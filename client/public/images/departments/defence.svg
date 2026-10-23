@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="48" fill="#1C3F24" stroke="#D4AF37" stroke-width="2.5"/>
+  <circle cx="50" cy="50" r="42" fill="#FFFFFF" stroke="#1C3F24" stroke-width="1.5"/>
+  <!-- Tri-services Crest: Shield with Crossed Swords & Eagle Wings & Anchor -->
+  <path d="M50 20 L68 28 L68 52 C68 66 50 76 50 76 C50 76 32 66 32 52 L32 28 Z" fill="#1C3F24" stroke="#D4AF37" stroke-width="2"/>
+  <!-- Crossed Swords in Gold -->
+  <line x1="38" y1="36" x2="62" y2="60" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="62" y1="36" x2="38" y2="60" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Ashoka Chakra Gold -->
+  <circle cx="50" cy="48" r="5.5" fill="#D4AF37" stroke="#1C3F24" stroke-width="1"/>
+  <!-- Tricolor Ribbon at Bottom -->
+  <rect x="36" y="79" width="28" height="2" fill="#FF9933"/>
+  <rect x="36" y="81" width="28" height="2" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="0.3"/>
+  <rect x="36" y="83" width="28" height="2" fill="#138808"/>
+  <text x="50" y="93" font-family="Arial, sans-serif" font-size="8" font-weight="900" fill="#1C3F24" text-anchor="middle" letter-spacing="1">DEFENCE</text>
+</svg>

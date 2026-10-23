@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="48" fill="#003366" stroke="#FFBF00" stroke-width="2.5"/>
+  <circle cx="50" cy="50" r="42" fill="#FFFFFF" stroke="#003366" stroke-width="1.5"/>
+  <!-- Classical Bank / Pillar Architecture & Rupee Icon -->
+  <polygon points="50,22 25,34 75,34" fill="#003366"/>
+  <rect x="23" y="34" width="54" height="4" fill="#FFBF00"/>
+  <!-- 4 Pillars -->
+  <rect x="27" y="38" width="6" height="24" fill="#003366"/>
+  <rect x="40" y="38" width="6" height="24" fill="#003366"/>
+  <rect x="54" y="38" width="6" height="24" fill="#003366"/>
+  <rect x="67" y="38" width="6" height="24" fill="#003366"/>
+  <!-- Base -->
+  <rect x="23" y="62" width="54" height="4" fill="#FFBF00"/>
+  <rect x="20" y="66" width="60" height="5" fill="#003366"/>
+  <!-- Rupee Symbol in Center -->
+  <circle cx="50" cy="50" r="8" fill="#FFBF00" stroke="#003366" stroke-width="1"/>
+  <text x="50" y="54" font-family="Arial, sans-serif" font-size="10" font-weight="900" fill="#003366" text-anchor="middle">₹</text>
+  <text x="50" y="85" font-family="Arial, sans-serif" font-size="8.5" font-weight="900" fill="#003366" text-anchor="middle" letter-spacing="1">BANKING / IBPS</text>
+</svg>

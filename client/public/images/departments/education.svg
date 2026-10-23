@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="48" fill="#4A154B" stroke="#F4A261" stroke-width="2.5"/>
+  <circle cx="50" cy="50" r="42" fill="#FFFFFF" stroke="#4A154B" stroke-width="1.5"/>
+  <!-- Graduation Cap & Open Knowledge Book -->
+  <!-- Cap Top Diamond -->
+  <polygon points="50,22 75,32 50,42 25,32" fill="#4A154B"/>
+  <path d="M35 37 L35 48 C35 55 65 55 65 48 L65 37" fill="#4A154B"/>
+  <!-- Tassel -->
+  <line x1="75" y1="32" x2="78" y2="44" stroke="#F4A261" stroke-width="1.5"/>
+  <circle cx="78" cy="45" r="1.5" fill="#F4A261"/>
+  <!-- Open Book -->
+  <path d="M30 62 C38 58 46 59 50 62 C54 59 62 58 70 62 L70 73 C62 69 54 70 50 73 C46 70 38 69 30 73 Z" fill="#F4A261" stroke="#4A154B" stroke-width="1"/>
+  <line x1="50" y1="62" x2="50" y2="73" stroke="#4A154B" stroke-width="1.5"/>
+  <text x="50" y="86" font-family="Arial, sans-serif" font-size="8" font-weight="900" fill="#4A154B" text-anchor="middle" letter-spacing="1">EDUCATION</text>
+</svg>

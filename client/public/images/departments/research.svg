@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="48" fill="#14213D" stroke="#FCA311" stroke-width="2.5"/>
+  <circle cx="50" cy="42" r="42" fill="#FFFFFF" stroke="#14213D" stroke-width="1.5"/>
+  <!-- Space Rocket Launch & Atomic Orbit -->
+  <!-- Atomic Ellipses -->
+  <ellipse cx="50" cy="45" rx="22" ry="8" fill="none" stroke="#FCA311" stroke-width="1" transform="rotate(-30 50 45)"/>
+  <ellipse cx="50" cy="45" rx="22" ry="8" fill="none" stroke="#14213D" stroke-width="1" transform="rotate(30 50 45)"/>
+  <!-- Rocket Body -->
+  <path d="M50 20 C46 28 46 44 46 54 L54 54 C54 44 54 28 50 20 Z" fill="#14213D"/>
+  <polygon points="50,18 48,22 52,22" fill="#E63946"/>
+  <!-- Fins -->
+  <polygon points="46,46 40,54 46,54" fill="#FCA311"/>
+  <polygon points="54,46 60,54 54,54" fill="#FCA311"/>
+  <!-- Rocket Window -->
+  <circle cx="50" cy="32" r="2.5" fill="#FFFFFF" stroke="#14213D" stroke-width="1"/>
+  <!-- Flame Thrust -->
+  <polygon points="47,54 50,65 53,54" fill="#E63946"/>
+  <polygon points="48,54 50,61 52,54" fill="#FCA311"/>
+  <text x="50" y="85" font-family="Arial, sans-serif" font-size="7.5" font-weight="900" fill="#14213D" text-anchor="middle" letter-spacing="1">ISRO / DRDO</text>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="48" fill="#3D3A45" stroke="#E76F51" stroke-width="2.5"/>
+  <circle cx="50" cy="50" r="42" fill="#FFFFFF" stroke="#3D3A45" stroke-width="1.5"/>
+  <!-- Industrial Plant / Energy / Gear -->
+  <!-- Gear cogwheel -->
+  <circle cx="50" cy="48" r="20" fill="none" stroke="#E76F51" stroke-width="4" stroke-dasharray="8 3"/>
+  <circle cx="50" cy="48" r="14" fill="#FAF5E8" stroke="#3D3A45" stroke-width="1.5"/>
+  <!-- Factory / Refinery Outline in Center -->
+  <polygon points="40,56 40,42 46,47 46,42 52,47 52,38 58,38 58,56" fill="#3D3A45"/>
+  <!-- Chimney smoke -->
+  <circle cx="55" cy="33" r="1.5" fill="#E76F51"/>
+  <circle cx="56.5" cy="28" r="2" fill="#E76F51"/>
+  <text x="50" y="82" font-family="Arial, sans-serif" font-size="10" font-weight="900" fill="#3D3A45" text-anchor="middle" letter-spacing="2">PSU</text>
+</svg>
