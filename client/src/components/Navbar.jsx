@@ -1,7 +1,14 @@
 import React from 'react';
-import { Landmark, ShieldCheck, Lock, ExternalLink } from 'lucide-react';
+import { Landmark, ShieldCheck, Lock, ExternalLink, User, LogOut, LogIn } from 'lucide-react';
 
-export default function Navbar({ currentView, setCurrentView, openResumeModal }) {
+export default function Navbar({ 
+  currentView, 
+  setCurrentView, 
+  openResumeModal, 
+  openAuthModal, 
+  user, 
+  onLogout 
+}) {
   const triggerCyberCafeHelp = () => {
     const text = encodeURIComponent("Namaste Jobopedia Cyber Cafe Helpline,\n\nI want assistance with online form submission and document verification.");
     window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
@@ -31,25 +38,26 @@ export default function Navbar({ currentView, setCurrentView, openResumeModal })
       {/* Main Navbar */}
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
+          <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
+            
             {/* Logo */}
             <div 
               onClick={() => setCurrentView('home')} 
-              className="flex items-center space-x-3 cursor-pointer group"
+              className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group shrink-0"
             >
               <img 
                 src="/images/jobopedia-icon.png" 
                 alt="Jobopedia" 
-                className="w-10 h-10 object-contain rounded-xl shadow-xs"
+                className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-xl shadow-xs"
                 onError={(e) => { e.target.src = '/images/careersetu-icon.png'; }}
               />
-              <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+              <span className="text-lg sm:text-2xl font-black tracking-tight text-slate-900">
                 Job<span className="text-[#F58220]">opedia</span>
               </span>
             </div>
 
             {/* Nav Links */}
-            <nav className="hidden md:flex items-center space-x-6 text-sm font-bold text-slate-700">
+            <nav className="hidden lg:flex items-center space-x-6 text-sm font-bold text-slate-700">
               <button 
                 onClick={() => setCurrentView('home')} 
                 className={`hover:text-blue-600 transition ${currentView === 'home' ? 'text-blue-600' : ''}`}
@@ -71,24 +79,57 @@ export default function Navbar({ currentView, setCurrentView, openResumeModal })
             </nav>
 
             {/* Action Buttons */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              
+              {/* Login / User Profile Button */}
+              {user ? (
+                <div className="flex items-center space-x-2 bg-slate-100 py-1 px-2.5 rounded-xl border border-slate-200">
+                  <div className="w-6 h-6 rounded-full bg-[#0B1528] text-white flex items-center justify-center text-xs font-black">
+                    {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
+                  </div>
+                  <span className="text-xs font-bold text-slate-800 max-w-[80px] sm:max-w-[120px] truncate hidden xs:inline">
+                    {user.fullName || user.email?.split('@')[0]}
+                  </span>
+                  <button
+                    onClick={onLogout}
+                    title="Logout"
+                    className="p-1 hover:text-red-600 text-slate-400 transition"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={openAuthModal}
+                  className="px-3.5 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition flex items-center space-x-1.5 shadow-xs cursor-pointer"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Login / Register</span>
+                </button>
+              )}
+
+              {/* Admin Portal Toggle */}
               <button
                 onClick={() => setCurrentView(currentView === 'home' ? 'admin' : 'home')}
-                className="px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1.5"
+                className="px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1.5"
+                title="Admin Control Center"
               >
                 <Lock className="w-3.5 h-3.5 text-slate-500" />
-                <span>{currentView === 'home' ? 'Admin Portal' : 'Public Site'}</span>
+                <span className="hidden sm:inline">{currentView === 'home' ? 'Admin Portal' : 'Public Site'}</span>
+                <span className="sm:hidden">{currentView === 'home' ? 'Admin' : 'Home'}</span>
               </button>
 
+              {/* Cyber Cafe Helpline */}
               <button
                 onClick={triggerCyberCafeHelp}
-                className="px-4 py-2 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer"
+                className="px-3 sm:px-4 py-2 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer"
               >
                 <i className="fa-brands fa-whatsapp text-sm"></i>
-                <span className="hidden sm:inline">Cyber Cafe Form Help</span>
-                <span className="sm:hidden">Help</span>
+                <span className="hidden md:inline">Cyber Cafe Form Help</span>
+                <span className="md:hidden">Help</span>
               </button>
             </div>
+
           </div>
         </div>
       </header>
