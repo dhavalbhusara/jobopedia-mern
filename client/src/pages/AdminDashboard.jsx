@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, PlusCircle, Users, Code, CloudUpload, ArrowLeft, Download } from 'lucide-react';
+import { Lock, PlusCircle, Users, Code, CloudUpload, ArrowLeft, Download, Briefcase, Landmark, Building2, GraduationCap, CheckCircle2 } from 'lucide-react';
 
 export default function AdminDashboard({ setCurrentView, user }) {
-  const [activeTab, setActiveTab] = useState('dhaval');
+  const [activeTab, setActiveTab] = useState('hr');
+  const [candidates, setCandidates] = useState([]);
+  const [successToast, setSuccessToast] = useState('');
 
   // Security Guard: Only users with role === 'ADMIN' can view the control center
   if (!user || user.role !== 'ADMIN') {
@@ -26,7 +28,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
       </div>
     );
   }
-  const [candidates, setCandidates] = useState([]);
+
   const [jobsJson, setJobsJson] = useState(`[
   {
     "title": "Assistant Section Officer (ASO) 2026",
@@ -40,19 +42,6 @@ export default function AdminDashboard({ setCurrentView, user }) {
     "lastDate": "2026-11-28",
     "dayNumber": 3,
     "description": "Foreign posting allowance, diplomatic consular duties, and administrative coordination in Indian embassies abroad."
-  },
-  {
-    "title": "Lead Cloud Infrastructure Architect",
-    "department": "Wipro Digital Solutions",
-    "category": "private",
-    "sector": "PRIVATE",
-    "state": "Maharashtra",
-    "qualification": "B.Tech / MCA",
-    "salary": "₹16,00,000 - ₹24,00,000 / year",
-    "vacancies": 12,
-    "lastDate": "2026-12-05",
-    "dayNumber": 4,
-    "description": "Designing high-availability Kubernetes clusters, cloud security policies, and DevOps pipelines for banking clients."
   }
 ]`);
 
@@ -62,26 +51,26 @@ export default function AdminDashboard({ setCurrentView, user }) {
     "question": "Which schedule of the Indian Constitution contains provisions regarding the allocation of seats in Rajya Sabha?",
     "options": ["Fourth Schedule", "Third Schedule", "Seventh Schedule", "Eighth Schedule"],
     "correctIndex": 0,
-    "explanation": "The Fourth Schedule specifies the allocation of seats in the Council of States (Rajya Sabha) to states and Union Territories."
-  },
-  {
-    "id": 102,
-    "question": "The term 'Bull and Bear' is associated with which branch of commercial activity?",
-    "options": ["Banking", "Stock Market", "Foreign Trade", "Insurance"],
-    "correctIndex": 1,
-    "explanation": "In financial markets, a bull market refers to an upward market trend, whereas a bear market refers to a declining trend."
+    "explanation": "The Fourth Schedule specifies the allocation of seats in the Council of States (Rajya Sabha)."
   }
 ]`);
 
+  // Rich Job Post Form State
   const [singleJob, setSingleJob] = useState({
     title: '',
     department: '',
+    jobType: 'GOVERNMENT', // GOVERNMENT, PRIVATE, INTERNSHIP, BANKING_PSU, HEALTHCARE, EDUCATION
     category: 'govt',
+    employmentType: 'Full Time (Regular)',
+    experienceLevel: 'Fresher (0 - 1 Year)',
     state: 'Central',
     salary: '',
     qualification: 'Graduate',
     vacancies: 50,
+    ageLimit: '18 - 35 Years',
     lastDate: '2026-12-31',
+    applyUrl: 'https://jobopedia.in',
+    notificationUrl: '',
     description: ''
   });
 
@@ -93,7 +82,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
           setCandidates(data.candidates);
         }
       })
-      .catch(err => console.error(err));
+      .catch(() => {});
   }, []);
 
   const handleBulkJobs = async () => {
@@ -105,7 +94,8 @@ export default function AdminDashboard({ setCurrentView, user }) {
         body: JSON.stringify(parsed)
       });
       const data = await res.json();
-      alert(data.message || 'Jobs successfully uploaded to MongoDB Atlas!');
+      setSuccessToast(data.message || 'Jobs successfully uploaded to MongoDB Atlas!');
+      setTimeout(() => setSuccessToast(''), 4000);
     } catch (e) {
       alert("Invalid JSON format: " + e.message);
     }
@@ -118,14 +108,15 @@ export default function AdminDashboard({ setCurrentView, user }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          testId: 'upsc-gs-1',
-          exam: 'UPSC Civil Services',
-          title: 'UPSC GS Mock Test',
+          testId: 'gpsc-mock-' + Date.now(),
+          exam: 'Competitive Exam Mock Test',
+          title: 'All India Practice Test Series',
           questions: parsed
         })
       });
       const data = await res.json();
-      alert(data.message || 'MCQs successfully uploaded to MongoDB Atlas!');
+      setSuccessToast(data.message || 'MCQs successfully uploaded to MongoDB Atlas!');
+      setTimeout(() => setSuccessToast(''), 4000);
     } catch (e) {
       alert("Invalid JSON format: " + e.message);
     }
@@ -134,22 +125,40 @@ export default function AdminDashboard({ setCurrentView, user }) {
   const handleSingleJobSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Synchronize category with jobType
+      const cat = singleJob.jobType === 'GOVERNMENT' || singleJob.jobType === 'BANKING_PSU' ? 'govt' : (singleJob.jobType === 'INTERNSHIP' ? 'internship' : 'private');
+      const payload = {
+        ...singleJob,
+        category: cat,
+        sector: singleJob.jobType === 'INTERNSHIP' ? 'INTERNSHIP' : (cat === 'govt' ? 'GOVERNMENT' : 'PRIVATE')
+      };
+
       const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(singleJob)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
-      alert("Job published successfully to Jobopedia!");
+      
+      setSuccessToast(`🎉 Success: "${singleJob.title}" has been published to MongoDB Atlas!`);
+      setTimeout(() => setSuccessToast(''), 4000);
+
+      // Reset form
       setSingleJob({
         title: '',
         department: '',
+        jobType: 'GOVERNMENT',
         category: 'govt',
+        employmentType: 'Full Time (Regular)',
+        experienceLevel: 'Fresher (0 - 1 Year)',
         state: 'Central',
         salary: '',
         qualification: 'Graduate',
         vacancies: 50,
+        ageLimit: '18 - 35 Years',
         lastDate: '2026-12-31',
+        applyUrl: 'https://jobopedia.in',
+        notificationUrl: '',
         description: ''
       });
     } catch (err) {
@@ -174,7 +183,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800">
+      <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800 shadow-xl">
         <div>
           <button 
             onClick={() => setCurrentView('home')}
@@ -183,57 +192,293 @@ export default function AdminDashboard({ setCurrentView, user }) {
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Public Website</span>
           </button>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">
-            Jobopedia Dual Admin Control Center
+          <div className="flex items-center space-x-2">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-400 text-slate-950">
+              Admin Access Active
+            </span>
+            <span className="text-xs text-slate-400">Logged in as: <strong>{user?.fullName || user?.email}</strong></span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
+            Jobopedia Master Admin Control Center
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            MERN Stack Connected to MongoDB Atlas. Manage HR posts, Candidate ATS resumes, and Dhaval/Tushar Bulk JSON engines.
+          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            MERN Stack Connected to MongoDB Atlas. Publish Jobs, MCQs, and track candidate applications.
           </p>
         </div>
 
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex items-center space-x-3">
           <div>
-            <div className="text-[10px] uppercase font-bold text-slate-300">Active Live Visitors</div>
-            <div className="text-xl font-black text-amber-300">14,821 Live</div>
+            <div className="text-[10px] uppercase font-bold text-slate-300">Live MongoDB Status</div>
+            <div className="text-lg font-black text-emerald-300 flex items-center space-x-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Atlas Connected</span>
+            </div>
           </div>
-          <span className="text-2xl">📈</span>
         </div>
       </div>
 
+      {/* Success Notification Banner */}
+      {successToast && (
+        <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-2xl text-xs sm:text-sm font-bold flex items-center space-x-2 shadow-sm animate-in fade-in">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span>{successToast}</span>
+        </div>
+      )}
+
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none">
+        
         <button
-          onClick={() => setActiveTab('dhaval')}
-          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer ${
-            activeTab === 'dhaval' ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          onClick={() => setActiveTab('hr')}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+            activeTab === 'hr' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
-          <span>⚡</span>
-          <span>CONTENT ADMIN (DHAVAL &amp; TUSHAR - BULK JSON)</span>
+          <PlusCircle className="w-4 h-4" />
+          <span>JOB POSTING FORM (NEW VACANCY)</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('hr')}
-          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer ${
-            activeTab === 'hr' ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          onClick={() => setActiveTab('dhaval')}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+            activeTab === 'dhaval' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
-          <span>💼</span>
-          <span>HR SINGLE JOB POSTING</span>
+          <span>⚡</span>
+          <span>BULK JSON UPLOAD (JOBS &amp; MCQS)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('candidates')}
-          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer ${
-            activeTab === 'candidates' ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+            activeTab === 'candidates' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
-          <span>👥</span>
+          <Users className="w-4 h-4" />
           <span>CANDIDATE APPLICATIONS ({candidates.length})</span>
         </button>
+
       </div>
 
-      {/* Dhaval & Tushar Bulk JSON Panel */}
+      {/* TAB 1: ADVANCED SINGLE JOB POSTING FORM WITH TYPE SELECTOR */}
+      {activeTab === 'hr' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+          <div className="border-b border-slate-100 pb-4">
+            <h2 className="text-xl font-black text-slate-900">
+              Publish New Vacancy or Internship (Job Post Form)
+            </h2>
+            <p className="text-xs text-slate-500 font-medium">
+              Select the Job Post Type below. This automatically categorizes the vacancy into Govt Jobs, Private &amp; MNCs, or Internships.
+            </p>
+          </div>
+
+          <form onSubmit={handleSingleJobSubmit} className="space-y-6">
+            
+            {/* Visual Job Post Type Selector */}
+            <div className="space-y-2">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                1. Select Job Post Type (ભરતીનો પ્રકાર પસંદ કરો) *
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {[
+                  { id: 'GOVERNMENT', label: 'Government (Sarkari)', icon: '🏛️', desc: 'UPSC, GPSC, GSSSB, Police' },
+                  { id: 'PRIVATE', label: 'Private & MNC', icon: '🏢', desc: 'TCS, Infosys, Sun Pharma' },
+                  { id: 'INTERNSHIP', label: 'Paid Internship', icon: '🎓', desc: 'Students & Freshers' },
+                  { id: 'BANKING_PSU', label: 'Banking & PSU', icon: '🏦', desc: 'SBI, IBPS, ONGC, IOCL' },
+                  { id: 'HEALTHCARE', label: 'Healthcare & Medical', icon: '💊', desc: 'Doctors, Staff Nurse' },
+                  { id: 'EDUCATION', label: 'Teaching / Faculty', icon: '📚', desc: 'TET, TAT, Professor' }
+                ].map(item => {
+                  const isSelected = singleJob.jobType === item.id;
+                  return (
+                    <button
+                      type="button"
+                      key={item.id}
+                      onClick={() => setSingleJob({ ...singleJob, jobType: item.id })}
+                      className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                        isSelected 
+                          ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/20 shadow-xs' 
+                          : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                      }`}
+                    >
+                      <div className="text-xl mb-1">{item.icon}</div>
+                      <div>
+                        <div className="text-xs font-black text-slate-900">{item.label}</div>
+                        <div className="text-[10px] text-slate-500 leading-tight mt-0.5">{item.desc}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Main Form Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Job Designation / Post Title *</label>
+                <input
+                  type="text"
+                  value={singleJob.title}
+                  onChange={(e) => setSingleJob({ ...singleJob, title: e.target.value })}
+                  placeholder="e.g. Deputy Collector / Software Engineer / Intern"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Department / Company / Authority *</label>
+                <input
+                  type="text"
+                  value={singleJob.department}
+                  onChange={(e) => setSingleJob({ ...singleJob, department: e.target.value })}
+                  placeholder="e.g. GPSC / Tata Consultancy Services (TCS)"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Employment Type *</label>
+                <select
+                  value={singleJob.employmentType}
+                  onChange={(e) => setSingleJob({ ...singleJob, employmentType: e.target.value })}
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none bg-white font-semibold"
+                >
+                  <option value="Full Time (Regular)">Full Time (Permanent / Regular)</option>
+                  <option value="Fixed Pay (5-Year Govt Scheme)">Fixed Pay (5-Year Govt Scheme)</option>
+                  <option value="Paid Internship (Stipend Based)">Paid Internship (Stipend Based)</option>
+                  <option value="Contractual / Trainee">Contractual / Trainee</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Location / State *</label>
+                <select
+                  value={singleJob.state}
+                  onChange={(e) => setSingleJob({ ...singleJob, state: e.target.value })}
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none bg-white font-semibold"
+                >
+                  <option value="Central">Central (All India)</option>
+                  <option value="Gujarat">Gujarat (Ahmedabad, Gandhinagar, Surat)</option>
+                  <option value="Maharashtra">Maharashtra (Mumbai, Pune)</option>
+                  <option value="Delhi">Delhi NCR</option>
+                  <option value="Karnataka">Karnataka (Bengaluru)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Salary / Stipend *</label>
+                <input
+                  type="text"
+                  value={singleJob.salary}
+                  onChange={(e) => setSingleJob({ ...singleJob, salary: e.target.value })}
+                  placeholder="e.g. ₹56,100 - ₹1,77,500 / month or ₹20,000 Stipend"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Required Qualification *</label>
+                <input
+                  type="text"
+                  value={singleJob.qualification}
+                  onChange={(e) => setSingleJob({ ...singleJob, qualification: e.target.value })}
+                  placeholder="e.g. Any Graduate / B.Tech / 12th Pass"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Total Vacancies / Openings *</label>
+                <input
+                  type="number"
+                  value={singleJob.vacancies}
+                  onChange={(e) => setSingleJob({ ...singleJob, vacancies: Number(e.target.value) })}
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Age Limit</label>
+                <input
+                  type="text"
+                  value={singleJob.ageLimit}
+                  onChange={(e) => setSingleJob({ ...singleJob, ageLimit: e.target.value })}
+                  placeholder="e.g. 18 - 35 Years (Relaxation as per rules)"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Last Date to Apply (Deadline) *</label>
+                <input
+                  type="date"
+                  value={singleJob.lastDate}
+                  onChange={(e) => setSingleJob({ ...singleJob, lastDate: e.target.value })}
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                  required
+                />
+              </div>
+
+              <div className="sm:col-span-2 lg:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 mb-1">Direct Official Online Apply Link *</label>
+                <input
+                  type="url"
+                  value={singleJob.applyUrl}
+                  onChange={(e) => setSingleJob({ ...singleJob, applyUrl: e.target.value })}
+                  placeholder="https://ojas.gujarat.gov.in or official portal URL"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Official Notification PDF Link</label>
+                <input
+                  type="url"
+                  value={singleJob.notificationUrl}
+                  onChange={(e) => setSingleJob({ ...singleJob, notificationUrl: e.target.value })}
+                  placeholder="https://.../advt_notification.pdf"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                />
+              </div>
+
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Detailed Job Description &amp; Scope *</label>
+              <textarea
+                value={singleJob.description}
+                onChange={(e) => setSingleJob({ ...singleJob, description: e.target.value })}
+                rows="4"
+                placeholder="Mention duties, selection stages, physical criteria, syllabus, or instructions for candidates..."
+                className="w-full p-3.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
+                required
+              />
+            </div>
+
+            <div className="pt-2 flex items-center justify-between">
+              <span className="text-xs text-slate-400">
+                Data will be instantly synced to MongoDB Atlas and published to live website.
+              </span>
+              <button
+                type="submit"
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-2 cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Publish Job to Live Database</span>
+              </button>
+            </div>
+
+          </form>
+        </div>
+      )}
+
+      {/* TAB 2: BULK JSON UPLOADER */}
       {activeTab === 'dhaval' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
@@ -244,21 +489,22 @@ export default function AdminDashboard({ setCurrentView, user }) {
                 <span>📁</span>
                 <span>Bulk Jobs JSON Uploader</span>
               </h3>
-              <p className="text-xs text-slate-500 font-medium">Upload multiple Sarkari &amp; Corporate vacancies to MongoDB Atlas.</p>
+              <p className="text-xs text-slate-500 font-medium">Upload multiple Sarkari &amp; Corporate vacancies to MongoDB Atlas in 1-click.</p>
             </div>
 
             <textarea
               value={jobsJson}
               onChange={(e) => setJobsJson(e.target.value)}
-              className="w-full h-64 p-3 bg-slate-950 text-emerald-400 font-mono text-xs rounded-2xl border border-slate-800 focus:outline-none"
+              rows="12"
+              className="w-full font-mono text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
             />
 
             <button
               onClick={handleBulkJobs}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
             >
-              <span>☁️</span>
-              <span>Validate &amp; Bulk Upload to MongoDB Atlas</span>
+              <CloudUpload className="w-4 h-4" />
+              <span>Publish Bulk Jobs to MongoDB Atlas</span>
             </button>
           </div>
 
@@ -267,188 +513,82 @@ export default function AdminDashboard({ setCurrentView, user }) {
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
                 <span>📝</span>
-                <span>Bulk MCQs Mock Test Uploader</span>
+                <span>Bulk MCQs &amp; Mock Tests Uploader</span>
               </h3>
-              <p className="text-xs text-slate-500 font-medium">Add 100+ MCQs to UPSC, SSC CGL, or Banking test series.</p>
+              <p className="text-xs text-slate-500 font-medium">Add practice questions with solutions directly into MongoDB Mock Test collection.</p>
             </div>
 
             <textarea
               value={mcqJson}
               onChange={(e) => setMcqJson(e.target.value)}
-              className="w-full h-64 p-3 bg-slate-950 text-amber-400 font-mono text-xs rounded-2xl border border-slate-800 focus:outline-none"
+              rows="12"
+              className="w-full font-mono text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
             />
 
             <button
               onClick={handleBulkMcqs}
-              className="w-full py-3 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-2xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
             >
-              <span>🚀</span>
-              <span>Upload MCQs to Test Series</span>
+              <CloudUpload className="w-4 h-4" />
+              <span>Publish MCQs to Mock Tests Engine</span>
             </button>
           </div>
 
         </div>
       )}
 
-      {/* HR Single Job Post Form */}
-      {activeTab === 'hr' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h2 className="text-lg font-black text-slate-900">Publish a New Vacancy</h2>
-            <p className="text-xs text-slate-500 font-medium">Fill in details to save directly into MongoDB Atlas.</p>
-          </div>
-
-          <form onSubmit={handleSingleJobSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Job Designation *</label>
-                <input
-                  type="text"
-                  value={singleJob.title}
-                  onChange={(e) => setSingleJob({ ...singleJob, title: e.target.value })}
-                  placeholder="e.g. Probationary Officer"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Department / Organization *</label>
-                <input
-                  type="text"
-                  value={singleJob.department}
-                  onChange={(e) => setSingleJob({ ...singleJob, department: e.target.value })}
-                  placeholder="e.g. State Bank of India"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Category *</label>
-                <select
-                  value={singleJob.category}
-                  onChange={(e) => setSingleJob({ ...singleJob, category: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200"
-                >
-                  <option value="govt">Sarkari Job</option>
-                  <option value="private">Private Job</option>
-                  <option value="internship">Paid Internship</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">State *</label>
-                <select
-                  value={singleJob.state}
-                  onChange={(e) => setSingleJob({ ...singleJob, state: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200"
-                >
-                  <option value="Central">Central (All India)</option>
-                  <option value="Gujarat">Gujarat</option>
-                  <option value="Maharashtra">Maharashtra</option>
-                  <option value="Delhi">Delhi NCR</option>
-                  <option value="Karnataka">Karnataka</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Salary / Pay Scale *</label>
-                <input
-                  type="text"
-                  value={singleJob.salary}
-                  onChange={(e) => setSingleJob({ ...singleJob, salary: e.target.value })}
-                  placeholder="e.g. ₹56,100 - ₹1,77,500 / month"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Qualification *</label>
-                <input
-                  type="text"
-                  value={singleJob.qualification}
-                  onChange={(e) => setSingleJob({ ...singleJob, qualification: e.target.value })}
-                  placeholder="e.g. Graduate or B.Tech"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Job Description *</label>
-              <textarea
-                value={singleJob.description}
-                onChange={(e) => setSingleJob({ ...singleJob, description: e.target.value })}
-                rows="4"
-                placeholder="Official job scope, duties and pattern..."
-                className="w-full p-3 text-xs rounded-xl border border-slate-200"
-                required
-              />
-            </div>
-
-            <button type="submit" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow-md cursor-pointer">
-              Publish Job to MongoDB
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* Candidate Applications Tab */}
+      {/* TAB 3: CANDIDATE APPLICATIONS */}
       {activeTab === 'candidates' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
-              <h2 className="text-lg font-black text-slate-900">Candidate Applications &amp; ATS Resume Profiles</h2>
-              <p className="text-xs text-slate-500 font-medium">Direct WhatsApp contact, state verification, and ATS qualifications.</p>
+              <h2 className="text-lg font-black text-slate-900">Candidate ATS Applications</h2>
+              <p className="text-xs text-slate-500">Live tracker of candidates who generated resumes or applied through the portal.</p>
             </div>
-            <button 
+            <button
               onClick={exportCsv}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm cursor-pointer"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export CSV</span>
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                  <th className="p-3.5">Candidate Name</th>
-                  <th className="p-3.5">WhatsApp / Phone</th>
-                  <th className="p-3.5">Email</th>
-                  <th className="p-3.5">State</th>
-                  <th className="p-3.5">Qualification</th>
-                  <th className="p-3.5">Applied Role</th>
-                  <th className="p-3.5">ATS Resume</th>
-                  <th className="p-3.5">Status</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-700 uppercase font-black border-b border-slate-200">
+                <tr>
+                  <th className="py-3 px-4">Candidate</th>
+                  <th className="py-3 px-4">Contact</th>
+                  <th className="py-3 px-4">State &amp; Qual</th>
+                  <th className="py-3 px-4">Applied Role</th>
+                  <th className="py-3 px-4">ATS Resume</th>
+                  <th className="py-3 px-4">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {candidates.map((c, i) => (
-                  <tr key={i} className="hover:bg-slate-50 transition">
-                    <td className="p-3.5 font-bold text-slate-900">{c.name}</td>
-                    <td className="p-3.5">
-                      <a 
-                        href={`https://wa.me/${c.mobile.replace(/[^0-9]/g, '')}`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="text-emerald-600 font-bold hover:underline flex items-center space-x-1"
-                      >
-                        <span>💬</span> <span>{c.mobile}</span>
-                      </a>
+                {candidates.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="py-8 text-center text-slate-400">
+                      No candidate applications recorded yet.
                     </td>
-                    <td className="p-3.5 text-slate-600">{c.email}</td>
-                    <td className="p-3.5"><span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-[10px]">{c.state}</span></td>
-                    <td className="p-3.5 text-slate-700">{c.qualification}</td>
-                    <td className="p-3.5 font-medium text-slate-900">{c.targetJob}</td>
-                    <td className="p-3.5 text-blue-600 font-medium hover:underline cursor-pointer">📄 {c.resumeTitle}</td>
-                    <td className="p-3.5"><span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px]">{c.status}</span></td>
                   </tr>
-                ))}
+                ) : (
+                  candidates.map((c, i) => (
+                    <tr key={i} className="hover:bg-slate-50/50">
+                      <td className="py-3 px-4 font-bold text-slate-900">{c.name}</td>
+                      <td className="py-3 px-4 text-slate-600">{c.mobile}<br/>{c.email}</td>
+                      <td className="py-3 px-4 text-slate-600">{c.state}<br/>{c.qualification}</td>
+                      <td className="py-3 px-4 font-semibold text-blue-600">{c.targetJob}</td>
+                      <td className="py-3 px-4 text-slate-500">{c.resumeTitle}</td>
+                      <td className="py-3 px-4">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800">
+                          {c.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

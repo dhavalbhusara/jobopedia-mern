@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
+import GovtJobsPage from './pages/GovtJobsPage';
+import PrivateJobsPage from './pages/PrivateJobsPage';
 import InternshipsPage from './pages/InternshipsPage';
+import MockTestsPage from './pages/MockTestsPage';
 import PreparationPage from './pages/PreparationPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
@@ -47,14 +50,12 @@ export default function App() {
     localStorage.removeItem('jobopedia_user');
     setUser(null);
     setCurrentView('home');
-    // Re-prompt login when logged out
     setAuthMode('login');
     setIsAuthModalOpen(true);
   };
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
-    // If the logged-in user is an ADMIN, automatically take them to Admin Dashboard
     if (userData.role === 'ADMIN') {
       setCurrentView('admin');
     } else {
@@ -64,8 +65,14 @@ export default function App() {
 
   const renderCurrentView = () => {
     switch (currentView) {
+      case 'govt':
+        return <GovtJobsPage setCurrentView={setCurrentView} />;
+      case 'private':
+        return <PrivateJobsPage setCurrentView={setCurrentView} />;
       case 'internships':
         return <InternshipsPage setCurrentView={setCurrentView} />;
+      case 'mock-tests':
+        return <MockTestsPage setCurrentView={setCurrentView} />;
       case 'preparation':
         return <PreparationPage setCurrentView={setCurrentView} />;
       case 'about':

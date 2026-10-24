@@ -11,8 +11,8 @@ export default function Navbar({
 }) {
   const [resourcesOpen, setResourcesOpen] = useState(false);
 
-  const handleNavClick = (sectionId, filterType) => {
-    setCurrentView('home');
+  const navigateTo = (view, sectionId) => {
+    setCurrentView(view);
     if (sectionId) {
       setTimeout(() => {
         const el = document.getElementById(sectionId);
@@ -77,13 +77,13 @@ export default function Navbar({
               </div>
             </a>
 
-            {/* Desktop Navigation Links (from exact 2nd image) */}
+            {/* Desktop Navigation Links */}
             <nav className="hidden xl:flex items-center space-x-4 lg:space-x-5 text-sm font-bold text-slate-700">
               
               {/* Home */}
               <button 
                 onClick={() => setCurrentView('home')}
-                className={`transition-colors pb-1 ${
+                className={`transition-colors pb-1 cursor-pointer ${
                   currentView === 'home' 
                     ? 'text-blue-600 border-b-2 border-blue-600 font-extrabold' 
                     : 'text-slate-600 hover:text-blue-600'
@@ -92,26 +92,34 @@ export default function Navbar({
                 Home
               </button>
 
-              {/* Govt Jobs */}
+              {/* Govt Jobs (Separate Page) */}
               <button 
-                onClick={() => handleNavClick('jobs-section', 'govt')}
-                className="transition-colors hover:text-blue-600 text-slate-600"
+                onClick={() => setCurrentView('govt')}
+                className={`transition-colors pb-1 cursor-pointer ${
+                  currentView === 'govt' 
+                    ? 'text-blue-600 border-b-2 border-blue-600 font-extrabold' 
+                    : 'text-slate-600 hover:text-blue-600'
+                }`}
               >
                 Govt Jobs
               </button>
 
-              {/* Private & MNCs */}
+              {/* Private & MNCs (Separate Page) */}
               <button 
-                onClick={() => handleNavClick('jobs-section', 'private')}
-                className="transition-colors hover:text-emerald-600 text-slate-600"
+                onClick={() => setCurrentView('private')}
+                className={`transition-colors pb-1 cursor-pointer ${
+                  currentView === 'private' 
+                    ? 'text-emerald-600 border-b-2 border-emerald-600 font-extrabold' 
+                    : 'text-slate-600 hover:text-emerald-600'
+                }`}
               >
                 Private &amp; MNCs
               </button>
 
-              {/* Internships with NEW badge */}
+              {/* Internships (Separate Page) */}
               <button 
                 onClick={() => setCurrentView('internships')}
-                className={`transition-colors flex items-center space-x-1.5 pb-1 ${
+                className={`transition-colors flex items-center space-x-1.5 pb-1 cursor-pointer ${
                   currentView === 'internships'
                     ? 'text-emerald-700 border-b-2 border-emerald-600 font-extrabold'
                     : 'text-slate-600 hover:text-emerald-600'
@@ -123,10 +131,14 @@ export default function Navbar({
                 </span>
               </button>
 
-              {/* Mock Tests (MCQs) with LIVE badge */}
+              {/* Mock Tests (MCQs) (Separate Page) */}
               <button 
-                onClick={() => handleNavClick('mock-tests')}
-                className="transition-colors hover:text-blue-600 flex items-center space-x-1.5 text-blue-700 font-extrabold"
+                onClick={() => setCurrentView('mock-tests')}
+                className={`transition-colors flex items-center space-x-1.5 pb-1 cursor-pointer ${
+                  currentView === 'mock-tests'
+                    ? 'text-blue-700 border-b-2 border-blue-600 font-extrabold'
+                    : 'text-blue-700 hover:text-blue-900'
+                }`}
               >
                 <span>Mock Tests (MCQs)</span>
                 <span className="px-1.5 py-0.2 text-[9px] font-black bg-blue-100 text-blue-700 rounded-full border border-blue-200">
@@ -134,10 +146,10 @@ export default function Navbar({
                 </span>
               </button>
 
-              {/* Prep Guide */}
+              {/* Prep Guide (Separate Page) */}
               <button 
                 onClick={() => setCurrentView('preparation')}
-                className={`transition-colors pb-1 ${
+                className={`transition-colors pb-1 cursor-pointer ${
                   currentView === 'preparation'
                     ? 'text-purple-700 border-b-2 border-purple-600 font-extrabold'
                     : 'text-slate-600 hover:text-purple-600'
@@ -146,15 +158,15 @@ export default function Navbar({
                 Prep Guide
               </button>
 
-              {/* Exams */}
+              {/* Exams Calendar (Scrolls to Calendar) */}
               <button 
-                onClick={() => handleNavClick('weekly-calendar')}
-                className="transition-colors hover:text-purple-600 text-slate-600"
+                onClick={() => navigateTo('home', 'weekly-calendar')}
+                className="transition-colors hover:text-purple-600 text-slate-600 cursor-pointer"
               >
                 Exams
               </button>
 
-              {/* Pathways */}
+              {/* Pathways / AI Resume */}
               <button 
                 onClick={openResumeModal}
                 className="transition-colors hover:text-amber-600 flex items-center space-x-1 text-slate-600 cursor-pointer"
@@ -183,14 +195,14 @@ export default function Navbar({
                       <span>Exam Blueprints &amp; Timetable</span>
                     </button>
                     <button 
-                      onClick={() => { setResourcesOpen(false); handleNavClick('weekly-calendar'); }}
+                      onClick={() => { setResourcesOpen(false); navigateTo('home', 'weekly-calendar'); }}
                       className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
                     >
                       <Calendar className="w-4 h-4 text-blue-600" />
                       <span>Exam Calendar 2026</span>
                     </button>
                     <button 
-                      onClick={() => { setResourcesOpen(false); handleNavClick('mock-tests'); }}
+                      onClick={() => { setResourcesOpen(false); setCurrentView('mock-tests'); }}
                       className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
                     >
                       <Award className="w-4 h-4 text-emerald-600" />
@@ -227,7 +239,7 @@ export default function Navbar({
               
               {/* Search Icon */}
               <button 
-                onClick={() => handleNavClick('jobs-section')}
+                onClick={() => navigateTo('home', 'jobs-section')}
                 className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
                 title="Search Jobs"
               >
@@ -256,7 +268,7 @@ export default function Navbar({
                   {/* ADMIN PORTAL BUTTON (Strictly ONLY shown when user?.role === 'ADMIN') */}
                   {user.role === 'ADMIN' && (
                     <button
-                      onClick={() => setCurrentView(currentView === 'home' ? 'admin' : 'home')}
+                      onClick={() => setCurrentView(currentView === 'admin' ? 'home' : 'admin')}
                       className={`px-3 py-2 text-xs font-black rounded-xl transition flex items-center space-x-1.5 shadow-sm cursor-pointer ${
                         currentView === 'admin'
                           ? 'bg-slate-900 text-white hover:bg-slate-800'
@@ -265,7 +277,7 @@ export default function Navbar({
                       title="Admin Control Center"
                     >
                       <Lock className="w-3.5 h-3.5" />
-                      <span>{currentView === 'home' ? '👑 Admin Portal' : 'Public Site'}</span>
+                      <span>{currentView === 'admin' ? 'Public Site' : '👑 Admin Portal'}</span>
                     </button>
                   )}
                 </div>
