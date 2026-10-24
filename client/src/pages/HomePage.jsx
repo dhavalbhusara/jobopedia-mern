@@ -21,11 +21,6 @@ export default function HomePage({ openResumeModal, openAuthModal }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState(null);
 
-  const triggerCyberCafeHelp = () => {
-    const text = encodeURIComponent("Namaste Jobopedia Cyber Cafe Helpline,\n\nGhar baithe WhatsApp se online application form fill karwana hai.");
-    window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
-  };
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const el = document.getElementById('jobs-section');
@@ -59,141 +54,104 @@ export default function HomePage({ openResumeModal, openAuthModal }) {
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none z-0"></div>
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none z-0"></div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-6">
+          <div className="max-w-3xl lg:max-w-4xl space-y-5">
             
-            {/* Left Hero Content */}
-            <div className="lg:col-span-8 space-y-5">
-              
-              <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-lg">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span className="text-[11px] font-black uppercase tracking-wider text-amber-300">
-                  Government &amp; Corporate Careers Portal 2026
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12]">
-                Find <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 bg-clip-text text-transparent">Government &amp; Private Jobs</span><br/>
-                Tailored for Your Qualification
-              </h1>
-
-              <p className="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl font-medium">
-                Unified India Career Bridge — Apply to authentic vacancies from UPSC, SSC, Railways, Banking, ISRO &amp; State PSCs along with top MNCs like TCS, Infosys, Sun Pharma, L&amp;T, and HDFC Bank.
-              </p>
-
-              {/* Big Search Bar */}
-              <div className="max-w-2xl pt-1">
-                <form 
-                  onSubmit={handleSearchSubmit}
-                  className="relative flex items-center bg-white rounded-2xl border-2 border-slate-200/90 shadow-[0_10px_30px_-5px_rgba(15,41,66,0.12)] hover:border-blue-500 focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all duration-300"
-                >
-                  <div className="pl-4 pr-2 text-slate-400">
-                    <Search className="w-5 h-5 text-blue-600 animate-pulse" />
-                  </div>
-                  <input 
-                    type="text" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Type job title, skill, or department (e.g. UPSC, GPSC, Software Engineer, 12th Pass)..." 
-                    className="w-full py-3.5 sm:py-4 px-2 text-sm sm:text-base font-semibold text-slate-800 placeholder-slate-400 bg-transparent outline-none"
-                  />
-                  <div className="pr-2.5 py-1.5 shrink-0">
-                    <button 
-                      type="submit" 
-                      className="px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs sm:text-sm font-black rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer"
-                    >
-                      <span>Search</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* Trending Searches Tags */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] text-slate-300 font-medium">
-                <span className="font-bold text-amber-400">Trending:</span>
-                <button onClick={() => handleDepartmentClick('UPSC')} className="px-2.5 py-1 bg-white/10 hover:bg-blue-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">⚡ UPSC 2026</button>
-                <button onClick={() => handleDepartmentClick('SSC')} className="px-2.5 py-1 bg-white/10 hover:bg-indigo-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🔥 SSC CGL</button>
-                <button onClick={() => handleDepartmentClick('GPSC')} className="px-2.5 py-1 bg-white/10 hover:bg-amber-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🏛️ GPSC Class 1 &amp; 2</button>
-                <button onClick={() => handleDepartmentClick('TCS')} className="px-2.5 py-1 bg-white/10 hover:bg-emerald-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🚀 TCS NQT</button>
-                <button onClick={() => handleDepartmentClick('Railway')} className="px-2.5 py-1 bg-white/10 hover:bg-rose-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🚆 RRB NTPC</button>
-                <button onClick={() => handleDepartmentClick('Bank')} className="px-2.5 py-1 bg-white/10 hover:bg-purple-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🏦 SBI PO</button>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button 
-                  onClick={openResumeModal}
-                  className="inline-flex items-center space-x-2 px-4 sm:px-5 py-2.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-black shadow-lg cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-100" />
-                  <span>Free ATS Resume Builder</span>
-                </button>
-
-                <a 
-                  href="#weekly-calendar" 
-                  className="inline-flex items-center space-x-2 px-4 sm:px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer border border-blue-400/30"
-                >
-                  <Landmark className="w-4 h-4" />
-                  <span>🏛️ Government Jobs Calendar</span>
-                </a>
-
-                <a 
-                  href="#jobs-section" 
-                  className="inline-flex items-center space-x-2 px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer border border-emerald-400/30"
-                >
-                  <Building2 className="w-4 h-4" />
-                  <span>🏢 Private &amp; MNC Careers</span>
-                </a>
-              </div>
-
-              {/* Badges Strip */}
-              <div className="grid grid-cols-3 gap-3 pt-3 max-w-lg">
-                <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-white/15 text-left">
-                  <div className="text-base sm:text-xl font-black text-amber-400 leading-none">100%</div>
-                  <div className="text-[10px] text-slate-300 font-bold mt-1">Official Apply Links</div>
-                </div>
-                <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-white/15 text-left">
-                  <div className="text-base sm:text-xl font-black text-emerald-400 leading-none">Govt + MNC</div>
-                  <div className="text-[10px] text-slate-300 font-bold mt-1">Dual Career Portals</div>
-                </div>
-                <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-white/15 text-left">
-                  <div className="text-base sm:text-xl font-black text-blue-400 leading-none">ATS Ready</div>
-                  <div className="text-[10px] text-slate-300 font-bold mt-1">Free Resume Builder</div>
-                </div>
-              </div>
-
+            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-lg">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-300">
+                Government &amp; Corporate Careers Portal 2026
+              </span>
             </div>
 
-            {/* Right Card: Online Cyber Cafe Desk */}
-            <div className="lg:col-span-4 relative self-center">
-              <div className="bg-gradient-to-br from-[#0F2942]/90 to-[#0A1D30]/90 backdrop-blur-md rounded-3xl p-6 sm:p-7 border border-white/20 shadow-2xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                    <h3 className="font-black text-white text-base">Online Cyber Cafe Desk</h3>
-                  </div>
-                  <span className="text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded">
-                    100% Verified
-                  </span>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12]">
+              Find <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 bg-clip-text text-transparent">Government &amp; Private Jobs</span><br/>
+              Tailored for Your Qualification
+            </h1>
+
+            <p className="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl font-medium">
+              Unified India Career Bridge — Apply to authentic vacancies from UPSC, SSC, Railways, Banking, ISRO &amp; State PSCs along with top MNCs like TCS, Infosys, Sun Pharma, L&amp;T, and HDFC Bank.
+            </p>
+
+            {/* Big Search Bar */}
+            <div className="max-w-2xl pt-1">
+              <form 
+                onSubmit={handleSearchSubmit}
+                className="relative flex items-center bg-white rounded-2xl border-2 border-slate-200/90 shadow-[0_10px_30px_-5px_rgba(15,41,66,0.12)] hover:border-blue-500 focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all duration-300"
+              >
+                <div className="pl-4 pr-2 text-slate-400">
+                  <Search className="w-5 h-5 text-blue-600 animate-pulse" />
                 </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Worried about photo resize, thumb impression, or form rejection? Certified operators will fill your application form error-free on WhatsApp.
-                </p>
-
-                <div className="bg-white/5 rounded-2xl p-3 border border-white/10 space-y-1 text-xs">
-                  <div className="text-slate-300">⚡ Live Application Status</div>
-                  <div className="text-emerald-300 font-bold">UPSC CSE 2026 • SSC CGL • SBI PO • GPSC</div>
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Type job title, skill, or department (e.g. UPSC, GPSC, Software Engineer, 12th Pass)..." 
+                  className="w-full py-3.5 sm:py-4 px-2 text-sm sm:text-base font-semibold text-slate-800 placeholder-slate-400 bg-transparent outline-none"
+                />
+                <div className="pr-2.5 py-1.5 shrink-0">
+                  <button 
+                    type="submit" 
+                    className="px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs sm:text-sm font-black rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer"
+                  >
+                    <span>Search</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
+              </form>
+            </div>
 
-                <button
-                  onClick={triggerCyberCafeHelp}
-                  className="w-full py-3 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-2xl text-xs font-black shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer"
-                >
-                  <i className="fa-brands fa-whatsapp text-base"></i>
-                  <span>Book Form on WhatsApp (+91 98765 43210)</span>
-                </button>
+            {/* Trending Searches Tags */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] text-slate-300 font-medium">
+              <span className="font-bold text-amber-400">Trending:</span>
+              <button onClick={() => handleDepartmentClick('UPSC')} className="px-2.5 py-1 bg-white/10 hover:bg-blue-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">⚡ UPSC 2026</button>
+              <button onClick={() => handleDepartmentClick('SSC')} className="px-2.5 py-1 bg-white/10 hover:bg-indigo-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🔥 SSC CGL</button>
+              <button onClick={() => handleDepartmentClick('GPSC')} className="px-2.5 py-1 bg-white/10 hover:bg-amber-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🏛️ GPSC Class 1 &amp; 2</button>
+              <button onClick={() => handleDepartmentClick('TCS')} className="px-2.5 py-1 bg-white/10 hover:bg-emerald-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🚀 TCS NQT</button>
+              <button onClick={() => handleDepartmentClick('Railway')} className="px-2.5 py-1 bg-white/10 hover:bg-rose-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🚆 RRB NTPC</button>
+              <button onClick={() => handleDepartmentClick('Bank')} className="px-2.5 py-1 bg-white/10 hover:bg-purple-600/60 text-white rounded-full font-bold border border-white/15 backdrop-blur-sm transition-all cursor-pointer">🏦 SBI PO</button>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button 
+                onClick={openResumeModal}
+                className="inline-flex items-center space-x-2 px-4 sm:px-5 py-2.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-black shadow-lg cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-amber-100" />
+                <span>Free ATS Resume Builder</span>
+              </button>
+
+              <a 
+                href="#weekly-calendar" 
+                className="inline-flex items-center space-x-2 px-4 sm:px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer border border-blue-400/30"
+              >
+                <Landmark className="w-4 h-4" />
+                <span>🏛️ Government Jobs Calendar</span>
+              </a>
+
+              <a 
+                href="#jobs-section" 
+                className="inline-flex items-center space-x-2 px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer border border-emerald-400/30"
+              >
+                <Building2 className="w-4 h-4" />
+                <span>🏢 Private &amp; MNC Careers</span>
+              </a>
+            </div>
+
+            {/* Badges Strip */}
+            <div className="grid grid-cols-3 gap-3 pt-3 max-w-lg">
+              <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-white/15 text-left">
+                <div className="text-base sm:text-xl font-black text-amber-400 leading-none">100%</div>
+                <div className="text-[10px] text-slate-300 font-bold mt-1">Official Apply Links</div>
+              </div>
+              <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-white/15 text-left">
+                <div className="text-base sm:text-xl font-black text-emerald-400 leading-none">Govt + MNC</div>
+                <div className="text-[10px] text-slate-300 font-bold mt-1">Dual Career Portals</div>
+              </div>
+              <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-white/15 text-left">
+                <div className="text-base sm:text-xl font-black text-blue-400 leading-none">ATS Ready</div>
+                <div className="text-[10px] text-slate-300 font-bold mt-1">Free Resume Builder</div>
               </div>
             </div>
 
