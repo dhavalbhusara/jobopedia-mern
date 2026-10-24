@@ -178,10 +178,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
             </>
           )}
 
-          {/* Email / Username */}
+          {/* Email / Mobile / Username */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">
-              {isLoginView ? 'Email or Mobile Number' : 'Email Address'}
+              {isLoginView ? 'Email Address or Mobile Number' : 'Email Address'}
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -191,7 +191,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="name@example.com or admin@jobopedia.in"
+                placeholder={isLoginView ? "Enter registered email or 10-digit mobile" : "name@example.com"}
                 className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F58220] focus:outline-hidden"
               />
             </div>

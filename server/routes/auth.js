@@ -7,9 +7,9 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'jobopedia_super_secret_jwt_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'jobopedia_super_secure_jwt_secret_2026';
 
-// Local file-based fallback store when MongoDB Atlas is connecting or IP not whitelisted
+// Persistent Local User File (Fallback backup in sync with MongoDB)
 const localDataDir = path.join(__dirname, '..', 'data');
 const localUsersFile = path.join(localDataDir, 'users.json');
 
@@ -28,143 +28,262 @@ function saveLocalUsers(users) {
     if (!fs.existsSync(localDataDir)) fs.mkdirSync(localDataDir, { recursive: true });
     fs.writeFileSync(localUsersFile, JSON.stringify(users, null, 2), 'utf8');
   } catch (e) {
-    console.error('Local user save error:', e.message);
+    console.error('Local user save warning:', e.message);
   }
 }
 
-// POST /api/auth/login
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: "Email/Phone and Password required" });
-    }
-
-    const cleanEmail = email.toLowerCase().trim();
-    let user = null;
-
-    // 1. Try finding in MongoDB if connected
-    if (mongoose.connection.readyState === 1) {
-      try {
-        user = await User.findOne({ 
-          $or: [{ email: cleanEmail }, { mobileNumber: email }] 
-        }).maxTimeMS(3000);
-      } catch (e) {
-        console.warn('MongoDB search warning:', e.message);
-      }
-    }
-
-    // 2. If not found in Mongo, check local users store
-    if (!user) {
-      const localUsers = getLocalUsers();
-      const foundLocal = localUsers.find(u => u.email === cleanEmail || u.mobileNumber === email);
-      if (foundLocal) {
-        const isMatch = await bcrypt.compare(password, foundLocal.password);
-        if (!isMatch && password !== 'Admin@123456') {
-          return res.status(401).json({ success: false, error: "Invalid password" });
-        }
-        const token = jwt.sign({ id: foundLocal._id, email: foundLocal.email, role: foundLocal.role }, JWT_SECRET, { expiresIn: '7d' });
-        return res.json({
-          success: true,
-          token,
-          user: { id: foundLocal._id, fullName: foundLocal.fullName, email: foundLocal.email, role: foundLocal.role }
-        });
-      }
-    }
-
-    // 3. Fallback for admin credentials
-    if (!user) {
-      if (cleanEmail.includes("admin") || cleanEmail.includes("dhaval") || cleanEmail.includes("tushar")) {
-        const token = jwt.sign({ email, role: 'ADMIN' }, JWT_SECRET, { expiresIn: '7d' });
-        return res.json({
-          success: true,
-          message: "Admin Login successful",
-          token,
-          user: { fullName: email.split('@')[0], email, role: 'ADMIN' }
-        });
-      }
-      return res.status(401).json({ success: false, error: "Account not found. Please register." });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, error: "Invalid credentials" });
-    }
-
-    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({
-      success: true,
-      token,
-      user: { id: user._id, fullName: user.fullName, email: user.email, role: user.role }
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// POST /api/auth/register
+// ==============================================================================
+// POST /api/auth/register - Create New Account (Save to MongoDB + Verify Unique)
+// ==============================================================================
 router.post('/register', async (req, res) => {
   try {
     const { fullName, email, mobileNumber, password, state, qualification } = req.body;
-    if (!fullName || !email) {
-      return res.status(400).json({ success: false, error: "Full Name and Email are required." });
+
+    // 1. Validation
+    if (!fullName || !fullName.trim()) {
+      return res.status(400).json({ success: false, error: 'Full Name is required.' });
+    }
+    if (!email || !email.trim()) {
+      return res.status(400).json({ success: false, error: 'Email Address is required.' });
+    }
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long.' });
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password || '123456', salt);
-    const userId = 'usr_' + Date.now();
+    const cleanMobile = mobileNumber ? mobileNumber.trim() : '';
 
-    const userData = {
+    // 2. Check if Email or Mobile already exists in MongoDB
+    if (mongoose.connection.readyState === 1) {
+      const searchCriteria = [{ email: cleanEmail }];
+      if (cleanMobile) {
+        searchCriteria.push({ mobileNumber: cleanMobile });
+      }
+
+      const existingUser = await User.findOne({ $or: searchCriteria });
+      if (existingUser) {
+        if (existingUser.email === cleanEmail) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'This Email Address is already registered. Please Login instead.' 
+          });
+        }
+        if (cleanMobile && existingUser.mobileNumber === cleanMobile) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'This Mobile Number is already registered. Please Login instead.' 
+          });
+        }
+      }
+    }
+
+    // 3. Hash Password Securely
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // 4. Save to MongoDB Atlas
+    let dbUser = null;
+    if (mongoose.connection.readyState === 1) {
+      try {
+        dbUser = await User.create({
+          fullName: fullName.trim(),
+          email: cleanEmail,
+          mobileNumber: cleanMobile,
+          password: hashedPassword,
+          state: state || 'Gujarat',
+          qualification: qualification || 'Graduate',
+          role: 'CANDIDATE',
+          isVerified: true
+        });
+        console.log(`✅ [MongoDB Atlas] New user registered successfully: ${cleanEmail} (${cleanMobile})`);
+      } catch (dbErr) {
+        if (dbErr.code === 11000) {
+          return res.status(400).json({
+            success: false,
+            error: 'An account with this Email already exists. Please Login.'
+          });
+        }
+        console.error('MongoDB insert error, falling back to local file:', dbErr.message);
+      }
+    }
+
+    // 5. Keep Local Backup in sync
+    const userId = dbUser ? dbUser._id.toString() : 'usr_' + Date.now();
+    const localUsers = getLocalUsers();
+    const backupRecord = {
       _id: userId,
-      fullName,
+      fullName: fullName.trim(),
       email: cleanEmail,
-      mobileNumber: mobileNumber || '',
+      mobileNumber: cleanMobile,
       password: hashedPassword,
       state: state || 'Gujarat',
       qualification: qualification || 'Graduate',
       role: 'CANDIDATE',
-      createdAt: new Date()
+      createdAt: new Date().toISOString()
     };
-
-    // 1. Try saving in MongoDB if Atlas is connected
-    if (mongoose.connection.readyState === 1) {
-      try {
-        const newUser = new User({
-          fullName,
-          email: cleanEmail,
-          mobileNumber,
-          password: hashedPassword,
-          state: state || 'Gujarat',
-          qualification: qualification || 'Graduate',
-          role: 'CANDIDATE'
-        });
-        await newUser.save();
-      } catch (e) {
-        console.warn('MongoDB save warning, falling back to local store:', e.message);
-      }
-    }
-
-    // 2. Also save to local user store so account is never lost and works instantly
-    const localUsers = getLocalUsers();
-    const existingIndex = localUsers.findIndex(u => u.email === cleanEmail);
-    if (existingIndex >= 0) {
-      localUsers[existingIndex] = userData;
+    const existingIdx = localUsers.findIndex(u => u.email === cleanEmail);
+    if (existingIdx >= 0) {
+      localUsers[existingIdx] = backupRecord;
     } else {
-      localUsers.push(userData);
+      localUsers.push(backupRecord);
     }
     saveLocalUsers(localUsers);
 
-    const token = jwt.sign({ id: userData._id, email: userData.email, role: userData.role }, JWT_SECRET, { expiresIn: '7d' });
+    // 6. Generate Login Token
+    const userPayload = {
+      id: userId,
+      fullName: fullName.trim(),
+      email: cleanEmail,
+      mobileNumber: cleanMobile,
+      role: 'CANDIDATE'
+    };
+    const token = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '14d' });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Registration successful!",
+      message: `Account created successfully! Welcome to Jobopedia, ${fullName.trim()}.`,
       token,
-      user: { id: userData._id, fullName: userData.fullName, email: userData.email, role: userData.role }
+      user: userPayload
+    });
+
+  } catch (err) {
+    console.error('Registration API Error:', err);
+    return res.status(500).json({ success: false, error: 'Registration failed: ' + err.message });
+  }
+});
+
+// ==============================================================================
+// POST /api/auth/login - Login with Email OR Phone Number + Password Verification
+// ==============================================================================
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const identifier = (email || req.body.identifier || req.body.mobileNumber || '').trim();
+
+    if (!identifier || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Please enter your Email or Mobile Number, and Password.' 
+      });
+    }
+
+    const cleanIdentifier = identifier.toLowerCase();
+    let foundUser = null;
+
+    // 1. Search in MongoDB Atlas by Email OR Phone Number
+    if (mongoose.connection.readyState === 1) {
+      try {
+        foundUser = await User.findOne({
+          $or: [
+            { email: cleanIdentifier },
+            { mobileNumber: identifier }
+          ]
+        });
+      } catch (err) {
+        console.warn('MongoDB search warning:', err.message);
+      }
+    }
+
+    // 2. If not found in Atlas, check local persistent store
+    if (!foundUser) {
+      const localUsers = getLocalUsers();
+      const localMatch = localUsers.find(u => 
+        u.email === cleanIdentifier || u.mobileNumber === identifier
+      );
+      if (localMatch) {
+        foundUser = localMatch;
+      }
+    }
+
+    // 3. User Not Found
+    if (!foundUser) {
+      // Special fallback for admin credentials
+      if (cleanIdentifier.includes('admin') && password === 'Admin@123456') {
+        const adminPayload = { id: 'admin_master', fullName: 'Jobopedia Admin', email: cleanIdentifier, role: 'ADMIN' };
+        const token = jwt.sign(adminPayload, JWT_SECRET, { expiresIn: '14d' });
+        return res.json({
+          success: true,
+          message: 'Admin Login successful',
+          token,
+          user: adminPayload
+        });
+      }
+      return res.status(401).json({ 
+        success: false, 
+        error: 'No account found with this Email or Mobile Number. Please Register first.' 
+      });
+    }
+
+    // 4. Verify Password with bcrypt
+    const isPasswordValid = await bcrypt.compare(password, foundUser.password);
+    
+    // Master recovery check for admin
+    const isMasterAdmin = (foundUser.role === 'ADMIN' && password === 'Admin@123456');
+
+    if (!isPasswordValid && !isMasterAdmin) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Incorrect Password. Please check and try again.' 
+      });
+    }
+
+    // 5. Successful Login -> Generate JWT Token
+    const userPayload = {
+      id: foundUser._id ? foundUser._id.toString() : foundUser.id,
+      fullName: foundUser.fullName,
+      email: foundUser.email,
+      mobileNumber: foundUser.mobileNumber || '',
+      role: foundUser.role || 'CANDIDATE'
+    };
+    const token = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '14d' });
+
+    console.log(`✅ [Login Success] User: ${foundUser.email} (${foundUser.mobileNumber})`);
+
+    return res.json({
+      success: true,
+      message: `Welcome back, ${foundUser.fullName}!`,
+      token,
+      user: userPayload
+    });
+
+  } catch (err) {
+    console.error('Login API Error:', err);
+    return res.status(500).json({ success: false, error: 'Login failed: ' + err.message });
+  }
+});
+
+// ==============================================================================
+// GET /api/auth/me - Verify current logged-in user from token
+// ==============================================================================
+router.get('/me', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'Authorization token required' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    if (mongoose.connection.readyState === 1 && decoded.id && !decoded.id.startsWith('usr_')) {
+      const user = await User.findById(decoded.id).select('-password');
+      if (user) {
+        return res.json({ success: true, user });
+      }
+    }
+
+    return res.json({
+      success: true,
+      user: {
+        id: decoded.id,
+        fullName: decoded.fullName,
+        email: decoded.email,
+        mobileNumber: decoded.mobileNumber,
+        role: decoded.role
+      }
     });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    return res.status(401).json({ success: false, error: 'Session expired. Please login again.' });
   }
 });
 
