@@ -1,8 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, PlusCircle, Users, Code, CloudUpload, ArrowLeft, Download } from 'lucide-react';
 
-export default function AdminDashboard({ setCurrentView }) {
+export default function AdminDashboard({ setCurrentView, user }) {
   const [activeTab, setActiveTab] = useState('dhaval');
+
+  // Security Guard: Only users with role === 'ADMIN' can view the control center
+  if (!user || user.role !== 'ADMIN') {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-16 h-16 rounded-3xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-sm">
+          <Lock className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900">Administrator Access Required</h2>
+        <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+          The Admin Control Center is strictly confidential and restricted. Please login using an Administrator Account to post jobs, upload MCQs, and access candidate records.
+        </p>
+        <div className="pt-3">
+          <button 
+            onClick={() => setCurrentView('home')}
+            className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md"
+          >
+            ← Return to Home Page
+          </button>
+        </div>
+      </div>
+    );
+  }
   const [candidates, setCandidates] = useState([]);
   const [jobsJson, setJobsJson] = useState(`[
   {

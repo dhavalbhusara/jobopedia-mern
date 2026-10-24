@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { X, LogIn, UserPlus, Mail, Lock, User, Phone, MapPin, GraduationCap, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
-  const [isLoginView, setIsLoginView] = useState(true);
+export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode = 'login' }) {
+  const [isLoginView, setIsLoginView] = useState(initialMode === 'login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  React.useEffect(() => {
+    setIsLoginView(initialMode === 'login');
+    setError('');
+    setSuccessMsg('');
+  }, [initialMode, isOpen]);
 
   // Form State
   const [formData, setFormData] = useState({
