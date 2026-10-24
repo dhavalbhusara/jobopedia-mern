@@ -552,26 +552,28 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-              <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 grid grid-cols-12">
-                <div className="col-span-6">Test Paper &amp; Subject</div>
-                <div className="col-span-2 text-center">Score</div>
-                <div className="col-span-2 text-center">Accuracy</div>
-                <div className="col-span-2 text-right">Attempt Date</div>
-              </div>
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-xs">
+              <div className="min-w-[480px]">
+                <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 grid grid-cols-12">
+                  <div className="col-span-6">Test Paper &amp; Subject</div>
+                  <div className="col-span-2 text-center">Score</div>
+                  <div className="col-span-2 text-center">Accuracy</div>
+                  <div className="col-span-2 text-right">Attempt Date</div>
+                </div>
 
-              <div className="divide-y divide-slate-100">
-                {mockHistory.map((test) => (
-                  <div key={test.id} className="p-4 grid grid-cols-12 items-center text-xs">
-                    <div className="col-span-6 font-bold text-slate-900 flex items-center space-x-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <span>{test.title}</span>
+                <div className="divide-y divide-slate-100">
+                  {mockHistory.map((test) => (
+                    <div key={test.id} className="p-4 grid grid-cols-12 items-center text-xs">
+                      <div className="col-span-6 font-bold text-slate-900 flex items-center space-x-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span className="truncate">{test.title}</span>
+                      </div>
+                      <div className="col-span-2 text-center font-black text-blue-600">{test.score}</div>
+                      <div className="col-span-2 text-center font-bold text-emerald-600">{test.accuracy}</div>
+                      <div className="col-span-2 text-right text-slate-400 font-medium">{test.date}</div>
                     </div>
-                    <div className="col-span-2 text-center font-black text-blue-600">{test.score}</div>
-                    <div className="col-span-2 text-center font-bold text-emerald-600">{test.accuracy}</div>
-                    <div className="col-span-2 text-right text-slate-400 font-medium">{test.date}</div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 

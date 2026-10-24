@@ -115,7 +115,7 @@ export default function App() {
         onLogout={handleLogout}
       />
 
-      <main className="flex-1">
+      <main className="flex-1 pb-16 md:pb-0">
         {renderCurrentView()}
       </main>
 

@@ -64,12 +64,12 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12]">
-              Find <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 bg-clip-text text-transparent">Government &amp; Private Jobs</span><br/>
-              Tailored for Your Qualification
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.15]">
+              Find <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 bg-clip-text text-transparent">Government &amp; Private Jobs</span><br className="hidden sm:inline" />
+              {' '}Tailored for Your Qualification
             </h1>
 
-            <p className="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl font-medium">
+            <p className="text-xs sm:text-sm md:text-base text-slate-200 leading-relaxed max-w-2xl font-medium">
               Unified India Career Bridge — Apply to authentic vacancies from UPSC, SSC, Railways, Banking, ISRO &amp; State PSCs along with top MNCs like TCS, Infosys, Sun Pharma, L&amp;T, and HDFC Bank.
             </p>
 
@@ -79,23 +79,23 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                 onSubmit={handleSearchSubmit}
                 className="relative flex items-center bg-white rounded-2xl border-2 border-slate-200/90 shadow-[0_10px_30px_-5px_rgba(15,41,66,0.12)] hover:border-blue-500 focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all duration-300"
               >
-                <div className="pl-4 pr-2 text-slate-400">
-                  <Search className="w-5 h-5 text-blue-600 animate-pulse" />
+                <div className="pl-3 sm:pl-4 pr-1 sm:pr-2 text-slate-400 shrink-0">
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 animate-pulse" />
                 </div>
                 <input 
                   type="text" 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Type job title, skill, or department (e.g. UPSC, GPSC, Software Engineer, 12th Pass)..." 
-                  className="w-full py-3.5 sm:py-4 px-2 text-sm sm:text-base font-semibold text-slate-800 placeholder-slate-400 bg-transparent outline-none"
+                  placeholder="Search jobs, UPSC, GPSC, 12th Pass, IT..." 
+                  className="w-full py-3 sm:py-4 px-2 text-xs sm:text-base font-semibold text-slate-800 placeholder-slate-400 bg-transparent outline-none min-w-0"
                 />
-                <div className="pr-2.5 py-1.5 shrink-0">
+                <div className="pr-1.5 sm:pr-2.5 py-1.5 shrink-0">
                   <button 
                     type="submit" 
-                    className="px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs sm:text-sm font-black rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer"
+                    className="px-4 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs sm:text-sm font-black rounded-xl shadow-md transition flex items-center space-x-1.5 sm:space-x-2 cursor-pointer"
                   >
                     <span>Search</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               </form>
@@ -140,18 +140,18 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
             </div>
 
             {/* Badges Strip */}
-            <div className="grid grid-cols-3 gap-3 pt-3 max-w-lg">
-              <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-white/15 text-left">
-                <div className="text-base sm:text-xl font-black text-amber-400 leading-none">100%</div>
-                <div className="text-[10px] text-slate-300 font-bold mt-1">Official Apply Links</div>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-3 max-w-lg">
+              <div className="bg-slate-900/80 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-white/15 text-left">
+                <div className="text-sm sm:text-xl font-black text-amber-400 leading-none">100%</div>
+                <div className="text-[9px] sm:text-[10px] text-slate-300 font-bold mt-1">Official Links</div>
               </div>
-              <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-white/15 text-left">
-                <div className="text-base sm:text-xl font-black text-emerald-400 leading-none">Govt + MNC</div>
-                <div className="text-[10px] text-slate-300 font-bold mt-1">Dual Career Portals</div>
+              <div className="bg-slate-900/80 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-white/15 text-left">
+                <div className="text-sm sm:text-xl font-black text-emerald-400 leading-none">Govt + MNC</div>
+                <div className="text-[9px] sm:text-[10px] text-slate-300 font-bold mt-1">Dual Portals</div>
               </div>
-              <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-white/15 text-left">
-                <div className="text-base sm:text-xl font-black text-blue-400 leading-none">ATS Ready</div>
-                <div className="text-[10px] text-slate-300 font-bold mt-1">Free Resume Builder</div>
+              <div className="bg-slate-900/80 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-white/15 text-left">
+                <div className="text-sm sm:text-xl font-black text-blue-400 leading-none">ATS Ready</div>
+                <div className="text-[9px] sm:text-[10px] text-slate-300 font-bold mt-1">Free Resume</div>
               </div>
             </div>
 

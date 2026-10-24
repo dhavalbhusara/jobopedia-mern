@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Search, ChevronDown, Lock, LogOut, User, Sparkles, BookOpen, FileText, Award, Calendar, ExternalLink } from 'lucide-react';
+import { 
+  Search, ChevronDown, Lock, LogOut, User, Sparkles, 
+  BookOpen, FileText, Award, Calendar, ExternalLink, 
+  Menu, X, Home, Landmark, Building2, GraduationCap, 
+  ChevronRight, Phone, ShieldCheck
+} from 'lucide-react';
 
 export default function Navbar({ 
   currentView, 
@@ -10,6 +15,7 @@ export default function Navbar({
   onLogout 
 }) {
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigateTo = (view, sectionId) => {
     setCurrentView(view);
@@ -330,11 +336,277 @@ export default function Navbar({
                 </div>
               )}
 
+              {/* Mobile Hamburger Menu Toggle Button (Visible on screens < xl) */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="xl:hidden p-2 text-slate-700 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                aria-label="Toggle Navigation Menu"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+
             </div>
 
           </div>
         </div>
+
+        {/* Mobile Full Dropdown Menu (Screen width < xl) */}
+        {mobileMenuOpen && (
+          <div className="xl:hidden bg-white border-t border-slate-200 px-4 py-4 space-y-3 shadow-2xl max-h-[80vh] overflow-y-auto animate-in slide-in-from-top-2 duration-150">
+            
+            {/* If Logged In: Show User Card */}
+            {user ? (
+              <div className="bg-gradient-to-r from-slate-900 to-blue-950 p-4 rounded-2xl text-white space-y-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-sm">
+                    {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
+                  </div>
+                  <div className="overflow-hidden">
+                    <div className="font-extrabold text-sm truncate">{user.fullName || 'Candidate'}</div>
+                    <div className="text-[11px] text-slate-300 truncate">{user.email}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1 border-t border-white/10">
+                  <button
+                    onClick={() => { setCurrentView('user-dashboard'); setMobileMenuOpen(false); }}
+                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold text-center cursor-pointer"
+                  >
+                    👤 Candidate Panel
+                  </button>
+                  {user.role === 'ADMIN' && (
+                    <button
+                      onClick={() => { setCurrentView('admin'); setMobileMenuOpen(false); }}
+                      className="py-2 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black cursor-pointer"
+                    >
+                      👑 Admin
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { onLogout(); setMobileMenuOpen(false); }}
+                    className="py-2 px-3 bg-white/10 hover:bg-white/20 text-rose-300 rounded-xl text-xs font-bold cursor-pointer"
+                    title="Logout"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100">
+                <button
+                  onClick={() => { openAuthModal(true); setMobileMenuOpen(false); }}
+                  className="w-full py-2.5 text-center text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => { openAuthModal(false); setMobileMenuOpen(false); }}
+                  className="w-full py-2.5 text-center text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  Register Free
+                </button>
+              </div>
+            )}
+
+            {/* Navigation Links List */}
+            <div className="space-y-1 text-sm font-bold text-slate-700">
+              <button
+                onClick={() => { setCurrentView('home'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl transition text-left cursor-pointer ${
+                  currentView === 'home' ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50'
+                }`}
+              >
+                <span className="flex items-center space-x-2.5">
+                  <Home className="w-4 h-4 text-slate-400" />
+                  <span>Home</span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+
+              <button
+                onClick={() => { setCurrentView('govt'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl transition text-left cursor-pointer ${
+                  currentView === 'govt' ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50'
+                }`}
+              >
+                <span className="flex items-center space-x-2.5">
+                  <Landmark className="w-4 h-4 text-blue-500" />
+                  <span>Government Jobs (Sarkari)</span>
+                </span>
+                <span className="text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">100% Verified</span>
+              </button>
+
+              <button
+                onClick={() => { setCurrentView('private'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl transition text-left cursor-pointer ${
+                  currentView === 'private' ? 'bg-emerald-50 text-emerald-600' : 'hover:bg-slate-50'
+                }`}
+              >
+                <span className="flex items-center space-x-2.5">
+                  <Building2 className="w-4 h-4 text-emerald-500" />
+                  <span>Private &amp; MNC Careers</span>
+                </span>
+                <span className="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">TCS, Infosys</span>
+              </button>
+
+              <button
+                onClick={() => { setCurrentView('internships'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl transition text-left cursor-pointer ${
+                  currentView === 'internships' ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-slate-50'
+                }`}
+              >
+                <span className="flex items-center space-x-2.5">
+                  <GraduationCap className="w-4 h-4 text-purple-500" />
+                  <span>Paid Internships</span>
+                </span>
+                <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">New</span>
+              </button>
+
+              <button
+                onClick={() => { setCurrentView('mock-tests'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl transition text-left cursor-pointer ${
+                  currentView === 'mock-tests' ? 'bg-blue-50 text-blue-700' : 'hover:bg-slate-50'
+                }`}
+              >
+                <span className="flex items-center space-x-2.5">
+                  <Award className="w-4 h-4 text-amber-500" />
+                  <span>Online Mock Tests &amp; MCQs</span>
+                </span>
+                <span className="text-[10px] font-black bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Live CBT</span>
+              </button>
+
+              <button
+                onClick={() => { setCurrentView('preparation'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl transition text-left cursor-pointer ${
+                  currentView === 'preparation' ? 'bg-purple-50 text-purple-700' : 'hover:bg-slate-50'
+                }`}
+              >
+                <span className="flex items-center space-x-2.5">
+                  <BookOpen className="w-4 h-4 text-indigo-500" />
+                  <span>Preparation Blueprint &amp; Timetable</span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+
+              <button
+                onClick={() => { openResumeModal(); setMobileMenuOpen(false); }}
+                className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 transition text-left cursor-pointer"
+              >
+                <span className="flex items-center space-x-2.5">
+                  <FileText className="w-4 h-4 text-amber-500" />
+                  <span>Free ATS Resume Builder</span>
+                </span>
+                <span className="text-[10px] font-black bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">AI Ready</span>
+              </button>
+
+              {user && (
+                <button
+                  onClick={() => { setCurrentView('user-dashboard'); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl transition text-left cursor-pointer ${
+                    currentView === 'user-dashboard' ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="flex items-center space-x-2.5">
+                    <User className="w-4 h-4 text-blue-600" />
+                    <span>Candidate User Panel</span>
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+              )}
+
+              <div className="border-t border-slate-100 pt-2 space-y-1">
+                <button
+                  onClick={() => { setCurrentView('about'); setMobileMenuOpen(false); }}
+                  className="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-600 text-left cursor-pointer flex items-center space-x-2"
+                >
+                  <span>ℹ️ About Jobopedia</span>
+                </button>
+                <button
+                  onClick={() => { setCurrentView('contact'); setMobileMenuOpen(false); }}
+                  className="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-600 text-left cursor-pointer flex items-center space-x-2"
+                >
+                  <span>📞 Contact Support Desk</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        )}
       </header>
+
+      {/* Sticky Mobile Bottom Navigation Bar (Visible only on screens < md) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 py-1.5 px-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] print:hidden">
+        <div className="grid grid-cols-5 items-center text-center">
+          
+          {/* Home */}
+          <button
+            onClick={() => { setCurrentView('home'); setMobileMenuOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
+              currentView === 'home' ? 'text-blue-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 leading-tight">Home</span>
+            {currentView === 'home' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-0.5"></span>}
+          </button>
+
+          {/* Govt Jobs */}
+          <button
+            onClick={() => { setCurrentView('govt'); setMobileMenuOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
+              currentView === 'govt' ? 'text-blue-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Landmark className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 leading-tight">Govt Jobs</span>
+            {currentView === 'govt' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-0.5"></span>}
+          </button>
+
+          {/* Private Jobs */}
+          <button
+            onClick={() => { setCurrentView('private'); setMobileMenuOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
+              currentView === 'private' ? 'text-emerald-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Building2 className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 leading-tight">Private</span>
+            {currentView === 'private' && <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full mt-0.5"></span>}
+          </button>
+
+          {/* Mock Tests */}
+          <button
+            onClick={() => { setCurrentView('mock-tests'); setMobileMenuOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
+              currentView === 'mock-tests' ? 'text-indigo-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Award className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 leading-tight">Mock Tests</span>
+            {currentView === 'mock-tests' && <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full mt-0.5"></span>}
+          </button>
+
+          {/* User Panel or Login */}
+          <button
+            onClick={() => {
+              if (user) {
+                setCurrentView('user-dashboard');
+              } else {
+                openAuthModal(true);
+              }
+              setMobileMenuOpen(false);
+            }}
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
+              currentView === 'user-dashboard' ? 'text-blue-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <User className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 leading-tight">{user ? 'My Panel' : 'Login'}</span>
+            {currentView === 'user-dashboard' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-0.5"></span>}
+          </button>
+
+        </div>
+      </nav>
     </>
   );
 }
