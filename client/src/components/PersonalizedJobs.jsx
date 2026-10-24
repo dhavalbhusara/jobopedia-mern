@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, GraduationCap, IndianRupee, Landmark, Building2, Briefcase, ExternalLink, ArrowRight } from 'lucide-react';
 
-export default function PersonalizedJobs() {
+export default function PersonalizedJobs({ externalSearch = '' }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('all');
   const [selectedState, setSelectedState] = useState('all');
   const [qualification, setQualification] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(externalSearch);
+
+  useEffect(() => {
+    if (externalSearch !== undefined) {
+      setSearchQuery(externalSearch);
+    }
+  }, [externalSearch]);
 
   useEffect(() => {
     fetchJobs();
