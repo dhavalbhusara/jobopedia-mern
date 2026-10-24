@@ -174,6 +174,21 @@ export default function Navbar({
                 <span>Pathways</span>
               </button>
 
+              {/* User Panel Link (Shown when Logged In) */}
+              {user && (
+                <button 
+                  onClick={() => setCurrentView('user-dashboard')}
+                  className={`transition-colors flex items-center space-x-1 pb-1 cursor-pointer ${
+                    currentView === 'user-dashboard'
+                      ? 'text-blue-600 border-b-2 border-blue-600 font-extrabold'
+                      : 'text-blue-600 hover:text-blue-800 font-bold'
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span>Candidate Panel</span>
+                </button>
+              )}
+
               {/* Resources Dropdown */}
               <div className="relative">
                 <button 
@@ -249,21 +264,36 @@ export default function Navbar({
               {/* User Logged In State vs Guest Buttons */}
               {user ? (
                 <div className="flex items-center space-x-2">
-                  <div className="flex items-center space-x-2 bg-slate-100 py-1.5 px-3 rounded-xl border border-slate-200">
-                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-black">
+                  {/* Candidate Panel Button */}
+                  <button
+                    onClick={() => setCurrentView(currentView === 'user-dashboard' ? 'home' : 'user-dashboard')}
+                    className={`flex items-center space-x-2 py-1.5 px-3 rounded-xl border transition shadow-xs cursor-pointer ${
+                      currentView === 'user-dashboard'
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200'
+                    }`}
+                    title="Open Candidate Panel"
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${
+                      currentView === 'user-dashboard' ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'
+                    }`}>
                       {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
                     </div>
-                    <span className="text-xs font-bold text-slate-800 max-w-[100px] sm:max-w-[130px] truncate">
+                    <span className="text-xs font-bold max-w-[100px] sm:max-w-[120px] truncate">
                       {user.fullName || user.email?.split('@')[0]}
                     </span>
-                    <button
-                      onClick={onLogout}
-                      title="Logout"
-                      className="p-1 hover:text-red-600 text-slate-400 transition cursor-pointer"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                    <span className="text-[10px] uppercase font-bold opacity-75 hidden sm:inline">
+                      Panel
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={onLogout}
+                    title="Logout"
+                    className="p-1.5 hover:text-red-600 hover:bg-red-50 text-slate-400 rounded-xl transition cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
 
                   {/* ADMIN PORTAL BUTTON (Strictly ONLY shown when user?.role === 'ADMIN') */}
                   {user.role === 'ADMIN' && (

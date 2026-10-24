@@ -9,6 +9,7 @@ import PreparationPage from './pages/PreparationPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import AdminDashboard from './pages/AdminDashboard';
+import UserDashboard from './pages/UserDashboard';
 import AiAssistant from './components/AiAssistant';
 import ResumeBuilder from './components/ResumeBuilder';
 import AuthModal from './components/AuthModal';
@@ -59,7 +60,7 @@ export default function App() {
     if (userData.role === 'ADMIN') {
       setCurrentView('admin');
     } else {
-      setCurrentView('home');
+      setCurrentView('user-dashboard');
     }
   };
 
@@ -81,10 +82,21 @@ export default function App() {
         return <ContactPage setCurrentView={setCurrentView} />;
       case 'admin':
         return <AdminDashboard setCurrentView={setCurrentView} user={user} />;
+      case 'user-dashboard':
+        return (
+          <UserDashboard 
+            user={user} 
+            setUser={setUser}
+            setCurrentView={setCurrentView} 
+            openResumeModal={() => setIsResumeModalOpen(true)}
+          />
+        );
       case 'home':
       default:
         return (
           <HomePage 
+            user={user}
+            setCurrentView={setCurrentView}
             openResumeModal={() => setIsResumeModalOpen(true)}
             openAuthModal={() => handleOpenAuth(true)}
           />

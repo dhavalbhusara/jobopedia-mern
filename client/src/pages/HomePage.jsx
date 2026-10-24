@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import WeeklyGovtJobCalendar from '../components/WeeklyGovtJobCalendar';
 import PersonalizedJobs from '../components/PersonalizedJobs';
 import MockTests from '../components/MockTests';
-import { Search, ArrowRight, Sparkles, GraduationCap, Building2, Landmark, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Search, ArrowRight, Sparkles, GraduationCap, Building2, Landmark, CheckCircle2, ChevronRight, User } from 'lucide-react';
 
 const DEPARTMENTS = [
   { id: 'UPSC', name: 'UPSC & Civil Services', icon: '/images/departments/upsc.svg', count: '1,056+ Posts', color: 'from-blue-500/10 to-indigo-500/10' },
@@ -17,7 +17,7 @@ const DEPARTMENTS = [
   { id: 'Research', name: 'Scientific & Research', icon: '/images/departments/research.svg', count: '1,950+ Posts', color: 'from-slate-500/10 to-zinc-500/10' }
 ];
 
-export default function HomePage({ openResumeModal, openAuthModal }) {
+export default function HomePage({ openResumeModal, openAuthModal, user, setCurrentView }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState(null);
 
@@ -158,6 +158,37 @@ export default function HomePage({ openResumeModal, openAuthModal }) {
           </div>
         </div>
       </section>
+
+      {/* Logged In Candidate Panel Banner */}
+      {user && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-[#0F2942] to-[#1E3A8A] rounded-2xl p-4 sm:p-5 text-white shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 border border-blue-500/30">
+            <div className="flex items-center space-x-3 text-center sm:text-left">
+              <div className="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center font-bold text-amber-300 border border-white/20 shrink-0">
+                <User className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-2 justify-center sm:justify-start">
+                  <span>Welcome back, {user.fullName || 'Candidate'}!</span>
+                  <span className="text-[10px] px-2 py-0.5 bg-emerald-500/30 text-emerald-300 rounded font-black border border-emerald-400/30">
+                    Candidate Panel Active
+                  </span>
+                </h3>
+                <p className="text-xs text-blue-200 mt-0.5">
+                  Track your saved vacancies, review mock test scorecards, and update your qualification preferences.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setCurrentView('user-dashboard')}
+              className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black rounded-xl text-xs shadow-md transition shrink-0 cursor-pointer flex items-center space-x-2"
+            >
+              <span>Open My Panel</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Quick Links Horizontal Strip */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

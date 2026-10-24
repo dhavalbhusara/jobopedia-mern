@@ -287,4 +287,57 @@ router.get('/me', async (req, res) => {
   }
 });
 
+// ==============================================================================
+// PUT /api/auth/profile - Update candidate profile details
+// ==============================================================================
+router.put('/profile', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'Authorization token required' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { fullName, mobileNumber, qualification, state, targetRole } = req.body;
+
+    let updatedUser = null;
+    if (mongoose.connection.readyState === 1 && decoded.id && !decoded.id.startsWith('usr_')) {
+      updatedUser = await User.findByIdAndUpdate(
+        decoded.id,
+        {
+          ...(fullName && { fullName: fullName.trim() }),
+          ...(mobileNumber && { mobileNumber: mobileNumber.trim() }),
+          ...(qualification && { qualification }),
+          ...(state && { state }),
+          ...(targetRole && { targetRole })
+        },
+        { new: true }
+      ).select('-password');
+    }
+
+    if (!updatedUser) {
+      updatedUser = {
+        id: decoded.id,
+        fullName: fullName || decoded.fullName,
+        email: decoded.email,
+        mobileNumber: mobileNumber || decoded.mobileNumber,
+        role: decoded.role || 'CANDIDATE',
+        qualification: qualification || 'Graduate',
+        state: state || 'Gujarat',
+        targetRole: targetRole || 'Government & Corporate'
+      };
+    }
+
+    return res.json({
+      success: true,
+      message: 'Profile updated successfully!',
+      user: updatedUser
+    });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    return res.status(500).json({ success: false, error: 'Failed to update profile: ' + err.message });
+  }
+});
+
 module.exports = router;
