@@ -1,13 +1,23 @@
 import React from 'react';
 
-export default function Footer() {
+export default function Footer({ setCurrentView }) {
   const triggerCyberCafeHelp = () => {
     const text = encodeURIComponent("Namaste Jobopedia Cyber Cafe Helpline,\n\nI want assistance with online form submission.");
     window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
   };
 
+  const navigateTo = (view, sectionId) => {
+    if (setCurrentView) setCurrentView(view);
+    if (sectionId) {
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  };
+
   return (
-    <footer className="bg-[#0B1528] text-white pt-14 pb-8 border-t border-slate-800 mt-16">
+    <footer className="bg-[#0B1528] text-white pt-14 pb-8 border-t border-slate-800 mt-16 print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-12 border-b border-slate-800 text-xs">
           
@@ -27,22 +37,24 @@ export default function Footer() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="font-black text-white text-sm">Quick Sections</h4>
+            <h4 className="font-black text-white text-sm">Quick Links</h4>
             <ul className="space-y-1.5 text-slate-400">
-              <li><a href="#weekly-calendar" className="hover:text-white transition">Weekly Govt Calendar (1-7)</a></li>
-              <li><a href="#jobs-feed" className="hover:text-white transition">All India Job Directory</a></li>
-              <li><a href="#mock-tests" className="hover:text-white transition">Full Mock Test Series</a></li>
-              <li><a href="#jobs-feed" className="hover:text-white transition">Internships for Freshers</a></li>
+              <li><button onClick={() => navigateTo('home', 'weekly-calendar')} className="hover:text-white transition cursor-pointer">Weekly Govt Calendar (1-7)</button></li>
+              <li><button onClick={() => navigateTo('home', 'jobs-section')} className="hover:text-white transition cursor-pointer">All India Job Directory</button></li>
+              <li><button onClick={() => navigateTo('internships')} className="hover:text-white transition cursor-pointer">College &amp; Fresher Internships</button></li>
+              <li><button onClick={() => navigateTo('preparation')} className="hover:text-white transition cursor-pointer">Exam Preparation Guide</button></li>
+              <li><button onClick={() => navigateTo('home', 'mock-tests')} className="hover:text-white transition cursor-pointer">Full Mock Test Series</button></li>
             </ul>
           </div>
 
           <div className="space-y-2">
-            <h4 className="font-black text-white text-sm">Top Govt Recruitments</h4>
+            <h4 className="font-black text-white text-sm">Organization</h4>
             <ul className="space-y-1.5 text-slate-400">
-              <li>UPSC Civil Services (IAS / IPS)</li>
-              <li>SSC CGL &amp; CHSL 2026</li>
-              <li>Railway RRB NTPC &amp; ALP</li>
-              <li>State Bank of India (SBI PO)</li>
+              <li><button onClick={() => navigateTo('about')} className="hover:text-white transition cursor-pointer">About Jobopedia</button></li>
+              <li><button onClick={() => navigateTo('contact')} className="hover:text-white transition cursor-pointer">Contact Support Desk</button></li>
+              <li>UPSC Civil Services 2026</li>
+              <li>Gujarat Police Constable &amp; PSI</li>
+              <li>SSC CGL &amp; Railway RRB NTPC</li>
             </ul>
           </div>
 
@@ -62,12 +74,15 @@ export default function Footer() {
 
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row sm:items-center justify-between text-slate-500 text-xs gap-3">
-          <div>© 2026 Jobopedia India. Built with MERN Stack (React + Node.js + MongoDB Atlas).</div>
-          <div className="flex space-x-4">
-            <a href="#" className="hover:text-slate-400">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-400">Terms of Service</a>
-            <a href="#" className="hover:text-slate-400">Sitemap</a>
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-slate-500 text-[11px] gap-3">
+          <div>
+            © 2026 Jobopedia India. All rights reserved. Connecting Youth with Verified Careers.
+          </div>
+          <div className="flex items-center space-x-4">
+            <button onClick={() => navigateTo('about')} className="hover:text-slate-400">About</button>
+            <button onClick={() => navigateTo('contact')} className="hover:text-slate-400">Contact</button>
+            <button onClick={() => navigateTo('internships')} className="hover:text-slate-400">Internships</button>
+            <button onClick={() => navigateTo('preparation')} className="hover:text-slate-400">Preparation</button>
           </div>
         </div>
       </div>

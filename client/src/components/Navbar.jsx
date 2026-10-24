@@ -110,8 +110,12 @@ export default function Navbar({
 
               {/* Internships with NEW badge */}
               <button 
-                onClick={() => handleNavClick('jobs-section', 'internship')}
-                className="transition-colors hover:text-emerald-600 flex items-center space-x-1.5 text-slate-600"
+                onClick={() => setCurrentView('internships')}
+                className={`transition-colors flex items-center space-x-1.5 pb-1 ${
+                  currentView === 'internships'
+                    ? 'text-emerald-700 border-b-2 border-emerald-600 font-extrabold'
+                    : 'text-slate-600 hover:text-emerald-600'
+                }`}
               >
                 <span>Internships</span>
                 <span className="px-1.5 py-0.2 text-[9px] font-black bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200">
@@ -132,8 +136,12 @@ export default function Navbar({
 
               {/* Prep Guide */}
               <button 
-                onClick={() => handleNavClick('weekly-calendar')}
-                className="transition-colors hover:text-purple-600 text-slate-600"
+                onClick={() => setCurrentView('preparation')}
+                className={`transition-colors pb-1 ${
+                  currentView === 'preparation'
+                    ? 'text-purple-700 border-b-2 border-purple-600 font-extrabold'
+                    : 'text-slate-600 hover:text-purple-600'
+                }`}
               >
                 Prep Guide
               </button>
@@ -149,7 +157,7 @@ export default function Navbar({
               {/* Pathways */}
               <button 
                 onClick={openResumeModal}
-                className="transition-colors hover:text-amber-600 flex items-center space-x-1 text-slate-600"
+                className="transition-colors hover:text-amber-600 flex items-center space-x-1 text-slate-600 cursor-pointer"
               >
                 <span>Pathways</span>
               </button>
@@ -158,8 +166,8 @@ export default function Navbar({
               <div className="relative">
                 <button 
                   onClick={() => setResourcesOpen(!resourcesOpen)}
-                  onBlur={() => setTimeout(() => setResourcesOpen(false), 200)}
-                  className="flex items-center space-x-1 text-slate-600 hover:text-blue-600 transition-colors focus:outline-hidden"
+                  onBlur={() => setTimeout(() => setResourcesOpen(false), 250)}
+                  className="flex items-center space-x-1 text-slate-600 hover:text-blue-600 transition-colors focus:outline-hidden cursor-pointer"
                 >
                   <span>Resources</span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -167,28 +175,46 @@ export default function Navbar({
 
                 {resourcesOpen && (
                   <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
-                    <a 
-                      href="#weekly-calendar" 
-                      onClick={() => setResourcesOpen(false)}
-                      className="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition"
+                    <button 
+                      onClick={() => { setResourcesOpen(false); setCurrentView('preparation'); }}
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4 text-purple-600" />
+                      <span>Exam Blueprints &amp; Timetable</span>
+                    </button>
+                    <button 
+                      onClick={() => { setResourcesOpen(false); handleNavClick('weekly-calendar'); }}
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
                     >
                       <Calendar className="w-4 h-4 text-blue-600" />
                       <span>Exam Calendar 2026</span>
-                    </a>
-                    <a 
-                      href="#mock-tests" 
-                      onClick={() => setResourcesOpen(false)}
-                      className="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition"
+                    </button>
+                    <button 
+                      onClick={() => { setResourcesOpen(false); handleNavClick('mock-tests'); }}
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
                     >
                       <Award className="w-4 h-4 text-emerald-600" />
-                      <span>Daily GK &amp; MCQs</span>
-                    </a>
+                      <span>Online Mock Tests &amp; MCQs</span>
+                    </button>
                     <button 
                       onClick={() => { setResourcesOpen(false); openResumeModal(); }}
-                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition"
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
                     >
-                      <FileText className="w-4 h-4 text-purple-600" />
+                      <FileText className="w-4 h-4 text-indigo-600" />
                       <span>Free ATS Resume Builder</span>
+                    </button>
+                    <div className="border-t border-slate-100 my-1"></div>
+                    <button 
+                      onClick={() => { setResourcesOpen(false); setCurrentView('about'); }}
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                    >
+                      <span>ℹ️ About Jobopedia</span>
+                    </button>
+                    <button 
+                      onClick={() => { setResourcesOpen(false); setCurrentView('contact'); }}
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                    >
+                      <span>📞 Contact Support Desk</span>
                     </button>
                   </div>
                 )}

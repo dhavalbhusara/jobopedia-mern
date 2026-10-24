@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
+import InternshipsPage from './pages/InternshipsPage';
+import PreparationPage from './pages/PreparationPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AiAssistant from './components/AiAssistant';
 import ResumeBuilder from './components/ResumeBuilder';
@@ -58,6 +62,29 @@ export default function App() {
     }
   };
 
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'internships':
+        return <InternshipsPage setCurrentView={setCurrentView} />;
+      case 'preparation':
+        return <PreparationPage setCurrentView={setCurrentView} />;
+      case 'about':
+        return <AboutPage setCurrentView={setCurrentView} />;
+      case 'contact':
+        return <ContactPage setCurrentView={setCurrentView} />;
+      case 'admin':
+        return <AdminDashboard setCurrentView={setCurrentView} user={user} />;
+      case 'home':
+      default:
+        return (
+          <HomePage 
+            openResumeModal={() => setIsResumeModalOpen(true)}
+            openAuthModal={() => handleOpenAuth(true)}
+          />
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
       <Navbar 
@@ -70,20 +97,10 @@ export default function App() {
       />
 
       <main className="flex-1">
-        {currentView === 'home' ? (
-          <HomePage 
-            openResumeModal={() => setIsResumeModalOpen(true)}
-            openAuthModal={() => handleOpenAuth(true)}
-          />
-        ) : (
-          <AdminDashboard 
-            setCurrentView={setCurrentView} 
-            user={user}
-          />
-        )}
+        {renderCurrentView()}
       </main>
 
-      <Footer />
+      <Footer setCurrentView={setCurrentView} />
 
       <AiAssistant />
       
