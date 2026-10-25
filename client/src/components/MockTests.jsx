@@ -1,229 +1,192 @@
 import React, { useState, useEffect } from 'react';
-import { FileCheck, Clock, CheckCircle2, XCircle, Printer, X, Play } from 'lucide-react';
+import { FileCheck, Clock, CheckCircle2, XCircle, Play, Award, Sparkles, BookOpen } from 'lucide-react';
+import CbtExamHall from './CbtExamHall';
 
 export default function MockTests() {
   const [tests, setTests] = useState([]);
   const [activeTest, setActiveTest] = useState(null);
-  const [userAnswers, setUserAnswers] = useState({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/mock-tests')
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
+        if (data.success && data.tests?.length > 0) {
           setTests(data.tests);
+        } else {
+          // Fallback test series if DB empty
+          setTests([
+            {
+              testId: 'upsc-gs-1',
+              exam: 'UPSC Civil Services',
+              title: 'UPSC Prelims General Studies Paper 1 Mock Simulator',
+              durationMinutes: 25,
+              totalQuestions: 10,
+              questions: [
+                {
+                  id: 1,
+                  question: "Which Constitutional Amendment Act introduced the Goods and Services Tax (GST) in India?",
+                  options: ["99th Amendment Act", "100th Amendment Act", "101st Amendment Act", "103rd Amendment Act"],
+                  correctIndex: 2,
+                  explanation: "The 101st Constitutional Amendment Act, 2016 introduced the national Goods and Services Tax (GST) in India."
+                },
+                {
+                  id: 2,
+                  question: "Under the Indian Constitution, the 'Right to Privacy' is protected as an intrinsic part of which Article?",
+                  options: ["Article 14", "Article 19", "Article 21", "Article 25"],
+                  correctIndex: 2,
+                  explanation: "In the landmark Justice K.S. Puttaswamy (Retd.) vs Union of India case (2017), the Supreme Court ruled that the Right to Privacy is protected under Article 21."
+                },
+                {
+                  id: 3,
+                  question: "Which river in India crosses the Tropic of Cancer twice during its flow?",
+                  options: ["Narmada", "Mahi", "Tapi", "Chambal"],
+                  correctIndex: 1,
+                  explanation: "The Mahi River originates in Madhya Pradesh, flows through Rajasthan and Gujarat, crossing the Tropic of Cancer twice."
+                },
+                {
+                  id: 4,
+                  question: "Who among the following was the Viceroy of India when the Indian National Congress was founded in 1885?",
+                  options: ["Lord Ripon", "Lord Dufferin", "Lord Curzon", "Lord Lansdowne"],
+                  correctIndex: 1,
+                  explanation: "Lord Dufferin was the Viceroy of India when the Indian National Congress was founded by A.O. Hume in Bombay in December 1885."
+                },
+                {
+                  id: 5,
+                  question: "The Monetary Policy Committee (MPC) of the Reserve Bank of India consists of how many members?",
+                  options: ["4 Members", "5 Members", "6 Members", "8 Members"],
+                  correctIndex: 2,
+                  explanation: "The MPC has 6 members: 3 from the Reserve Bank of India including the Governor, and 3 external members appointed by the Government of India."
+                }
+              ]
+            },
+            {
+              testId: 'ssc-cgl-tier1',
+              exam: 'SSC CGL 2026',
+              title: 'SSC CGL Tier-1 General Intelligence & Quantitative Aptitude',
+              durationMinutes: 20,
+              totalQuestions: 8,
+              questions: [
+                {
+                  id: 1,
+                  question: "Find the missing number in the series: 3, 7, 15, 31, 63, ?",
+                  options: ["95", "111", "127", "129"],
+                  correctIndex: 2,
+                  explanation: "The pattern is (x * 2) + 1: 3*2+1=7, 7*2+1=15, 15*2+1=31, 31*2+1=63, 63*2+1=127."
+                },
+                {
+                  id: 2,
+                  question: "If 'A' denotes '+', 'B' denotes '-', 'C' denotes '×', and 'D' denotes '÷', then what is the value of: 16 C 4 A 12 D 3 B 5?",
+                  options: ["59", "63", "65", "71"],
+                  correctIndex: 1,
+                  explanation: "Equation: 16 * 4 + 12 / 3 - 5 = 64 + 4 - 5 = 63."
+                },
+                {
+                  id: 3,
+                  question: "Where are the headquarters of the Food and Agriculture Organization (FAO) located?",
+                  options: ["Geneva, Switzerland", "Rome, Italy", "Paris, France", "Vienna, Austria"],
+                  correctIndex: 1,
+                  explanation: "The Food and Agriculture Organization (FAO) is a specialized agency of the UN headquartered in Rome, Italy."
+                }
+              ]
+            },
+            {
+              testId: 'gpsc-cce-1',
+              exam: 'GPSC / GSSSB CCE',
+              title: 'Gujarat Secondary Service (GSSSB CCE) Reasoning & General Studies',
+              durationMinutes: 20,
+              totalQuestions: 5,
+              questions: [
+                {
+                  id: 1,
+                  question: "ગુજરાતમાં પંચાયતી રાજનો અમલ કઈ તારીખથી શરૂ થયો હતો?",
+                  options: ["1 મે, 1960", "1 એપ્રિલ, 1963", "15 ઓગસ્ટ, 1965", "26 જાન્યુઆરી, 1962"],
+                  correctIndex: 1,
+                  explanation: "ગુજરાતમાં પંચાયતી રાજ અધિનિયમ મુજબ 1 એપ્રિલ, 1963 ના રોજથી પંચાયતી રાજનો અમલ શરૂ થયો હતો."
+                },
+                {
+                  id: 2,
+                  question: "કયા મોગલ શાસકનો જન્મ ગુજરાતના દાહોદ ખાતે થયો હતો?",
+                  options: ["અકબર", "જહાંગીર", "શાહજહાં", "ઔરંગઝેબ"],
+                  correctIndex: 3,
+                  explanation: "મોગલ બાદશાહ ઔરંગઝેબનો જન્મ 3 નવેમ્બર 1618 ના રોજ ગુજરાતના દાહોદ ખાતે થયો હતો."
+                }
+              ]
+            }
+          ]);
         }
       })
-      .catch(err => console.error("Error loading tests:", err));
+      .catch(err => console.error("Error loading tests:", err))
+      .finally(() => setLoading(false));
   }, []);
-
-  const startTest = (test) => {
-    setActiveTest(test);
-    setUserAnswers({});
-    setIsSubmitted(false);
-  };
-
-  const handleSelectOption = (qIdx, optIdx) => {
-    if (isSubmitted) return;
-    setUserAnswers(prev => ({ ...prev, [qIdx]: optIdx }));
-  };
-
-  const calculateScore = () => {
-    if (!activeTest) return 0;
-    let score = 0;
-    activeTest.questions.forEach((q, idx) => {
-      if (userAnswers[idx] === q.correctIndex) score++;
-    });
-    return score;
-  };
 
   return (
     <section id="mock-tests" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div>
-        <span className="text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-          Exam Preparation
-        </span>
-        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
-          National Mock Test Series &amp; MCQs
-        </h2>
-        <p className="text-xs sm:text-sm text-slate-500 font-medium">
-          Take authentic full-length practice tests. Solutions and full explanations are shown only after submission with PDF export.
-        </p>
+      
+      {/* Title */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span className="text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            Real Exam CBT Hall Simulator
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+            Official Mock Tests &amp; Practice MCQs
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            One question per screen, live countdown timer, and interactive Question Palette (Green: Answered, Red: Unanswered, Purple: Marked for Review).
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {/* Tests Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {tests.map(test => (
-          <div key={test.testId} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs hover:shadow-md transition space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
-                {test.exam}
-              </span>
-              <span className="text-xs font-semibold text-slate-500 flex items-center space-x-1">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{test.durationMinutes} Mins</span>
-              </span>
+          <div key={test.testId} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs hover:shadow-md transition space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                  {test.exam}
+                </span>
+                <span className="text-xs font-semibold text-slate-500 flex items-center space-x-1">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{test.durationMinutes} Mins</span>
+                </span>
+              </div>
+
+              <h3 className="text-base font-black text-slate-900 leading-snug">
+                {test.title}
+              </h3>
+
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Standard syllabus test with negative marking (+2.00 / -0.66), single-question view, and instant score analysis.
+              </p>
+
+              <div className="flex items-center space-x-3 text-xs text-slate-500 pt-1">
+                <span className="font-bold text-slate-700">{test.questions?.length || test.totalQuestions} Questions</span>
+                <span>•</span>
+                <span className="text-emerald-600 font-bold">Negative Marking</span>
+              </div>
             </div>
 
-            <h3 className="text-lg font-black text-slate-900">
-              {test.title}
-            </h3>
-
-            <p className="text-xs text-slate-500 font-medium leading-relaxed">
-              Standard syllabus test with negative marking evaluation, timer, and detailed answer explanations.
-            </p>
-
             <button
-              onClick={() => startTest(test)}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-black transition flex items-center justify-center space-x-2 shadow-sm cursor-pointer"
+              onClick={() => setActiveTest(test)}
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl text-xs font-black transition flex items-center justify-center space-x-2 shadow-md cursor-pointer"
             >
               <Play className="w-3.5 h-3.5" />
-              <span>Start Mock Test</span>
+              <span>Start Mock Test (CBT Hall)</span>
             </button>
           </div>
         ))}
       </div>
 
-      {/* Test Taking Modal */}
+      {/* Full-Screen CBT Exam Hall Interface */}
       {activeTest && (
-        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
-            
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-slate-200 p-5 flex items-center justify-between z-10">
-              <div>
-                <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  {activeTest.exam}
-                </span>
-                <h3 className="text-lg font-black text-slate-900 mt-1">{activeTest.title}</h3>
-              </div>
-              <button 
-                onClick={() => setActiveTest(null)} 
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Questions Container */}
-            <div className="p-6 space-y-6 flex-1">
-              <p className="text-xs text-slate-500 font-medium">
-                Select your answers for all questions. Answers will remain hidden until you click "Submit Test &amp; View Solutions".
-              </p>
-
-              {activeTest.questions.map((q, qIdx) => {
-                const userChoice = userAnswers[qIdx];
-                return (
-                  <div key={q.id || qIdx} className={`p-4 rounded-2xl border ${
-                    isSubmitted 
-                      ? userChoice === q.correctIndex 
-                        ? 'bg-emerald-50/60 border-emerald-300' 
-                        : 'bg-red-50/60 border-red-300'
-                      : 'bg-slate-50/60 border-slate-200'
-                  }`}>
-                    <div className="font-extrabold text-sm text-slate-900 mb-3">
-                      Q{qIdx + 1}. {q.question}
-                    </div>
-
-                    <div className="space-y-2">
-                      {q.options.map((opt, optIdx) => {
-                        const isChecked = userChoice === optIdx;
-                        let optClass = "p-3 rounded-xl border text-xs font-semibold flex items-center space-x-2.5 transition cursor-pointer ";
-                        
-                        if (isSubmitted) {
-                          if (optIdx === q.correctIndex) {
-                            optClass += "bg-emerald-100 border-emerald-500 text-emerald-900 font-bold";
-                          } else if (isChecked && optIdx !== q.correctIndex) {
-                            optClass += "bg-red-100 border-red-500 text-red-900 line-through";
-                          } else {
-                            optClass += "bg-white border-slate-200 text-slate-600 opacity-60";
-                          }
-                        } else {
-                          optClass += isChecked ? "bg-blue-50 border-blue-600 text-blue-900 font-bold" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100";
-                        }
-
-                        return (
-                          <div key={optIdx} onClick={() => handleSelectOption(qIdx, optIdx)} className={optClass}>
-                            <input 
-                              type="radio" 
-                              name={`q_${qIdx}`} 
-                              checked={isChecked} 
-                              disabled={isSubmitted} 
-                              readOnly 
-                              className="w-3.5 h-3.5 text-blue-600"
-                            />
-                            <span>{opt}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Reveal Explanations only AFTER submission! */}
-                    {isSubmitted && (
-                      <div className="mt-3 p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1">
-                        <div className="font-bold text-slate-900 flex items-center space-x-1 text-emerald-700">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Correct Answer: {q.options[q.correctIndex]}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                          <strong>Explanation:</strong> {q.explanation}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 p-4 flex items-center justify-between">
-              {isSubmitted ? (
-                <>
-                  <div className="text-sm font-black text-slate-900">
-                    Score: <span className="text-blue-600 font-extrabold">{calculateScore()} / {activeTest.questions.length}</span> ({Math.round((calculateScore()/activeTest.questions.length)*100)}%)
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => window.print()}
-                      className="px-4 py-2 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-xl text-xs font-black flex items-center space-x-1.5 shadow-sm cursor-pointer"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                      <span>Export / Print PDF</span>
-                    </button>
-                    <button
-                      onClick={() => setActiveTest(null)}
-                      className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold cursor-pointer"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <span className="text-xs text-slate-500 font-medium">
-                    Answered {Object.keys(userAnswers).length} of {activeTest.questions.length}
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => setIsSubmitted(true)}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow-md cursor-pointer"
-                    >
-                      Submit Test &amp; View Solutions
-                    </button>
-                    <button
-                      onClick={() => setActiveTest(null)}
-                      className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
-          </div>
-        </div>
+        <CbtExamHall 
+          test={activeTest} 
+          onExit={() => setActiveTest(null)} 
+        />
       )}
+
     </section>
   );
 }

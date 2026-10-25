@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Landmark, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, ShieldCheck, Phone } from 'lucide-react';
+import { Landmark, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, ShieldCheck, FileText } from 'lucide-react';
+import { ALL_STATES, QUALIFICATION_CATEGORIES } from '../constants/masterData';
 
-export default function GovtJobsPage({ setCurrentView }) {
+export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -168,11 +169,10 @@ export default function GovtJobsPage({ setCurrentView }) {
               onChange={(e) => setStateFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none bg-white font-semibold text-slate-700"
             >
-              <option value="all">All States &amp; Central</option>
-              <option value="Central">🏛️ All India (Central)</option>
-              <option value="Gujarat">📍 Gujarat</option>
-              <option value="Maharashtra">📍 Maharashtra</option>
-              <option value="Rajasthan">📍 Rajasthan</option>
+              <option value="all">📍 All States &amp; Central</option>
+              {ALL_STATES.map(st => (
+                <option key={st} value={st}>{st}</option>
+              ))}
             </select>
           </div>
 
@@ -182,12 +182,14 @@ export default function GovtJobsPage({ setCurrentView }) {
               onChange={(e) => setQualFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none bg-white font-semibold text-slate-700"
             >
-              <option value="all">All Qualifications</option>
-              <option value="10th Pass">10th Pass</option>
-              <option value="12th Pass">12th Pass</option>
-              <option value="Graduate">Any Graduate</option>
-              <option value="Post Graduate">Post Graduate</option>
-              <option value="Engineering">B.E. / B.Tech</option>
+              <option value="all">🎓 All Qualifications</option>
+              {QUALIFICATION_CATEGORIES.map(cat => (
+                <optgroup key={cat.category} label={cat.category}>
+                  {cat.degrees.map(deg => (
+                    <option key={deg} value={deg}>{deg}</option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
           </div>
 
@@ -236,23 +238,26 @@ export default function GovtJobsPage({ setCurrentView }) {
             </div>
 
             <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
-              <a 
-                href={job.applyUrl || 'https://jobopedia.in'}
-                target="_blank"
-                rel="noreferrer"
+              <button 
+                onClick={() => {
+                  if (onSelectJob) onSelectJob(job);
+                  else window.open(job.applyUrl || 'https://ojas.gujarat.gov.in', '_blank');
+                }}
                 className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
               >
-                <span>Apply Online</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-
-              <button
-                onClick={() => triggerCyberCafe(job.title)}
-                className="px-4 py-2 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
-              >
-                <Phone className="w-3 h-3" />
-                <span>Fill via WhatsApp</span>
+                <span>View Full Details</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
+
+              <a
+                href={job.applyUrl || 'https://ojas.gujarat.gov.in'}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+              >
+                <ExternalLink className="w-3 h-3" />
+                <span>Apply Official</span>
+              </a>
             </div>
           </div>
         ))}

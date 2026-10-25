@@ -135,6 +135,8 @@ router.post('/register', async (req, res) => {
       fullName: fullName.trim(),
       email: cleanEmail,
       mobileNumber: cleanMobile,
+      state: state || 'Gujarat',
+      qualification: qualification || 'Any Graduate (Any Bachelor\'s Degree)',
       role: 'CANDIDATE'
     };
     const token = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '14d' });
@@ -233,6 +235,8 @@ router.post('/login', async (req, res) => {
       fullName: foundUser.fullName,
       email: foundUser.email,
       mobileNumber: foundUser.mobileNumber || '',
+      state: foundUser.state || 'Gujarat',
+      qualification: foundUser.qualification || 'Any Graduate (Any Bachelor\'s Degree)',
       role: foundUser.role || 'CANDIDATE'
     };
     const token = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '14d' });

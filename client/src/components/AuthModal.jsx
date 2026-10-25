@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, LogIn, UserPlus, Mail, Lock, User, Phone, MapPin, GraduationCap, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ALL_STATES, QUALIFICATION_CATEGORIES } from '../constants/masterData';
 
 export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode = 'login' }) {
   const [isLoginView, setIsLoginView] = useState(initialMode === 'login');
@@ -222,43 +223,41 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
 
           {/* State & Qualification for Registration */}
           {!isLoginView && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">State</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Select Your State / UT</label>
                 <div className="relative">
                   <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
                   <select
                     name="state"
                     value={formData.state}
                     onChange={handleChange}
-                    className="w-full pl-9 pr-2 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F58220] focus:outline-hidden bg-white"
+                    className="w-full pl-9 pr-2 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F58220] focus:outline-hidden bg-white font-medium"
                   >
-                    <option value="Gujarat">Gujarat</option>
-                    <option value="Maharashtra">Maharashtra</option>
-                    <option value="Rajasthan">Rajasthan</option>
-                    <option value="Madhya Pradesh">Madhya Pradesh</option>
-                    <option value="Delhi">Delhi</option>
-                    <option value="Uttar Pradesh">Uttar Pradesh</option>
-                    <option value="Central">All India / Central</option>
+                    {ALL_STATES.map((st) => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Qualification</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Your Qualification / Degree</label>
                 <div className="relative">
                   <GraduationCap className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
                   <select
                     name="qualification"
                     value={formData.qualification}
                     onChange={handleChange}
-                    className="w-full pl-9 pr-2 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F58220] focus:outline-hidden bg-white"
+                    className="w-full pl-9 pr-2 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F58220] focus:outline-hidden bg-white font-medium"
                   >
-                    <option value="10th Pass">10th Pass</option>
-                    <option value="12th Pass">12th Pass</option>
-                    <option value="ITI / Diploma">ITI / Diploma</option>
-                    <option value="Graduate">Graduate</option>
-                    <option value="Post Graduate">Post Graduate</option>
+                    {QUALIFICATION_CATEGORIES.map((cat) => (
+                      <optgroup key={cat.category} label={cat.category}>
+                        {cat.degrees.map((deg) => (
+                          <option key={deg} value={deg}>{deg}</option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
               </div>

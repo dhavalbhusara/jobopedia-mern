@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, GraduationCap, IndianRupee, Landmark, Building2, Briefcase, ExternalLink, ArrowRight } from 'lucide-react';
+import { Search, MapPin, GraduationCap, IndianRupee, Landmark, Building2, Briefcase, ExternalLink, ArrowRight, Sparkles, Filter } from 'lucide-react';
+import { ALL_STATES, QUALIFICATION_CATEGORIES } from '../constants/masterData';
 
-export default function PersonalizedJobs({ externalSearch = '' }) {
+export default function PersonalizedJobs({ externalSearch = '', user, onSelectJob }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('all');
-  const [selectedState, setSelectedState] = useState('all');
-  const [qualification, setQualification] = useState('all');
+  const [selectedState, setSelectedState] = useState(user?.state || 'all');
+  const [qualification, setQualification] = useState(user?.qualification || 'all');
   const [searchQuery, setSearchQuery] = useState(externalSearch);
 
   useEffect(() => {
@@ -38,9 +39,16 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
       .finally(() => setLoading(false));
   };
 
-  const triggerCyberCafeHelp = (title) => {
-    const text = encodeURIComponent(`Namaste Jobopedia Cyber Cafe Helpline,\n\nI want to apply for: *${title}*.\nPlease assist me in online application submission.`);
-    window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
+  // Rule implemented:
+  // - Private Jobs: suggested only if matching user's state & qualification
+  // - Govt Jobs: shown across all states, with matching ones highlighted
+  // - Internships: filtered according to degree/qualification
+  const isMatchUserPreference = (job) => {
+    if (!user) return false;
+    const qualMatch = !user.qualification || 
+      (job.qualification && job.qualification.toLowerCase().includes(user.qualification.toLowerCase())) ||
+      (user.qualification.toLowerCase().includes('graduate') && job.qualification?.toLowerCase().includes('graduate'));
+    return qualMatch;
   };
 
   return (
@@ -49,14 +57,22 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-            All-India Job Directory
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+              Personalized Career Directory
+            </span>
+            {user && (
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Tailored for: {user.qualification || 'Graduate'} ({user.state || 'India'})</span>
+              </span>
+            )}
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1.5">
             Targeted Jobs &amp; Paid Internships
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Central Government jobs are shown across India, while Private jobs automatically filter by your chosen state.
+            Central &amp; State Government jobs are displayed for all candidates, while Private MNC jobs &amp; Internships filter according to your qualification &amp; state.
           </p>
         </div>
       </div>
@@ -71,8 +87,8 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by Job Designation, Department, or Skill (e.g. UPSC, SSC, Banking, Full Stack)..."
-            className="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            placeholder="Search by Job Designation, Department, or Skill (e.g. UPSC, SSC, Banking, Software Engineer)..."
+            className="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition font-medium"
           />
         </div>
 
@@ -82,10 +98,10 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
           {/* Category Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {[
-              { id: 'all', label: 'All Vacancies' },
-              { id: 'govt', label: '🏛️ Sarkari Jobs' },
-              { id: 'private', label: '🏢 Private Jobs' },
-              { id: 'internship', label: '🎓 Internships' },
+              { id: 'all', label: 'All Opportunities' },
+              { id: 'govt', label: '🏛️ Sarkari Govt Jobs (All India)' },
+              { id: 'private', label: '🏢 Private MNC Careers' },
+              { id: 'internship', label: '🎓 Paid Internships' },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -101,33 +117,32 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
             ))}
           </div>
 
-          {/* State & Qualification Selectors */}
+          {/* State & Qualification Selectors (A to Z Master Lists) */}
           <div className="flex items-center gap-3 flex-wrap">
             <select
               value={selectedState}
               onChange={(e) => setSelectedState(e.target.value)}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer max-w-[200px] truncate"
             >
               <option value="all">📍 All States (National)</option>
-              <option value="Gujarat">Gujarat (Ahmedabad/Surat)</option>
-              <option value="Maharashtra">Maharashtra (Pune/Mumbai)</option>
-              <option value="Delhi">Delhi NCR</option>
-              <option value="Karnataka">Karnataka (Bangalore)</option>
-              <option value="Uttar Pradesh">Uttar Pradesh</option>
-              <option value="Tamil Nadu">Tamil Nadu</option>
+              {ALL_STATES.map(st => (
+                <option key={st} value={st}>{st}</option>
+              ))}
             </select>
 
             <select
               value={qualification}
               onChange={(e) => setQualification(e.target.value)}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer max-w-[220px] truncate"
             >
-              <option value="all">🎓 Any Qualification</option>
-              <option value="10th">10th Pass</option>
-              <option value="12th">12th Pass</option>
-              <option value="Graduate">Graduate (Any Degree)</option>
-              <option value="B.Tech">B.Tech / Engineering</option>
-              <option value="Nursing">Nursing / Pharmacy</option>
+              <option value="all">🎓 Any Qualification / Degree</option>
+              {QUALIFICATION_CATEGORIES.map(cat => (
+                <optgroup key={cat.category} label={cat.category}>
+                  {cat.degrees.map(deg => (
+                    <option key={deg} value={deg}>{deg}</option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
           </div>
         </div>
@@ -136,7 +151,7 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
       {/* Jobs Grid */}
       {loading ? (
         <div className="py-12 text-center text-xs font-bold text-slate-500">
-          Loading matching opportunities...
+          Loading matching opportunities from database...
         </div>
       ) : jobs.length === 0 ? (
         <div className="bg-white rounded-3xl p-10 border border-slate-200 text-center space-y-2">
@@ -147,13 +162,16 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {jobs.map((job) => {
-            const isGovt = job.category === 'govt';
+            const isGovt = job.category === 'govt' || job.sector === 'GOVERNMENT';
             const isIntern = job.category === 'internship';
+            const isMatched = isMatchUserPreference(job);
 
             return (
               <div
                 key={job._id || job.id}
-                className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 relative group hover:border-slate-300"
+                className={`bg-white rounded-3xl p-5 border shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 relative group ${
+                  isMatched ? 'border-emerald-400/80 ring-1 ring-emerald-400/20' : 'border-slate-200 hover:border-slate-300'
+                }`}
               >
                 <div className="space-y-3">
                   {/* Badges */}
@@ -161,13 +179,20 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
                     <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md flex items-center space-x-1 ${
                       isGovt ? 'bg-blue-50 text-blue-700 border border-blue-200' :
                       isIntern ? 'bg-purple-50 text-purple-700 border border-purple-200' :
-                      'bg-amber-50 text-amber-800 border border-amber-200'
+                      'bg-emerald-50 text-emerald-800 border border-emerald-200'
                     }`}>
                       {isGovt ? <Landmark className="w-3 h-3" /> : isIntern ? <GraduationCap className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
                       <span>{isGovt ? 'Sarkari Job' : isIntern ? 'Paid Internship' : 'Corporate'}</span>
                     </span>
 
-                    {job.isNewJob && (
+                    {isMatched && (
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-emerald-600" />
+                        <span>Degree Match</span>
+                      </span>
+                    )}
+
+                    {job.isNewJob && !isMatched && (
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-red-50 text-red-600 border border-red-200">
                         ⚡ New
                       </span>
@@ -180,7 +205,7 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
                       {job.title}
                     </h3>
                     <p className="text-xs text-slate-500 font-semibold mt-1">
-                      {job.department}
+                      {job.department || job.company}
                     </p>
                   </div>
 
@@ -210,17 +235,23 @@ export default function PersonalizedJobs({ externalSearch = '' }) {
                   </p>
                 </div>
 
-                {/* Actions */}
+                {/* Actions: View Details & Official Apply (NO WhatsApp!) */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
                   <span className="text-[10px] font-bold text-slate-400">
                     Till: {job.lastDate}
                   </span>
 
                   <button
-                    onClick={() => triggerCyberCafeHelp(job.title)}
+                    onClick={() => {
+                      if (onSelectJob) {
+                        onSelectJob(job);
+                      } else {
+                        window.open(job.applyUrl || 'https://ojas.gujarat.gov.in', '_blank');
+                      }
+                    }}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-sm cursor-pointer"
                   >
-                    <span>Apply Now</span>
+                    <span>Apply &amp; Details</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

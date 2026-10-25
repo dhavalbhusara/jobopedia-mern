@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, MapPin, IndianRupee, GraduationCap, Building2, ExternalLink, Search, Filter, ArrowLeft } from 'lucide-react';
+import { Briefcase, MapPin, IndianRupee, GraduationCap, Building2, ExternalLink, Search, Filter, ArrowLeft, ArrowRight } from 'lucide-react';
 
-export default function InternshipsPage({ setCurrentView }) {
+export default function InternshipsPage({ setCurrentView, onSelectJob }) {
   const [internships, setInternships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState('ALL');
@@ -213,15 +213,16 @@ export default function InternshipsPage({ setCurrentView }) {
               <span className="text-[11px] font-bold text-slate-400">
                 100% Verified Trainee Posting
               </span>
-              <a 
-                href={item.applyUrl || 'https://jobopedia.in'}
-                target="_blank"
-                rel="noreferrer"
+              <button 
+                onClick={() => {
+                  if (onSelectJob) onSelectJob({ ...item, category: 'internship' });
+                  else window.open(item.applyUrl || 'https://jobopedia.in', '_blank');
+                }}
                 className="px-4 py-2 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
               >
-                <span>Apply Online</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+                <span>View Details &amp; Apply</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         ))}

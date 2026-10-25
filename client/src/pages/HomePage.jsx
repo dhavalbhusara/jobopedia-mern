@@ -17,7 +17,7 @@ const DEPARTMENTS = [
   { id: 'Research', name: 'Scientific & Research', icon: '/images/departments/research.svg', count: '1,950+ Posts', color: 'from-slate-500/10 to-zinc-500/10' }
 ];
 
-export default function HomePage({ openResumeModal, openAuthModal, user, setCurrentView }) {
+export default function HomePage({ openResumeModal, openAuthModal, user, setCurrentView, onSelectJob }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState(null);
 
@@ -304,12 +304,12 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
 
       {/* 📅 Weekly Government Job Calendar */}
       <div id="weekly-calendar">
-        <WeeklyGovtJobCalendar />
+        <WeeklyGovtJobCalendar onSelectJob={onSelectJob} />
       </div>
 
-      {/* 🎯 Targeted Jobs Directory (Passed with active department / search query) */}
+      {/* 🎯 Targeted Jobs Directory (Passed with active department, user profile, & onSelectJob) */}
       <div id="jobs-section">
-        <PersonalizedJobs externalSearch={searchQuery} />
+        <PersonalizedJobs externalSearch={searchQuery} user={user} onSelectJob={onSelectJob} />
       </div>
 
       {/* 📝 Mock Tests Series */}

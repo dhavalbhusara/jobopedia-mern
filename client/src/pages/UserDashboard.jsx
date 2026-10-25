@@ -4,10 +4,12 @@ import {
   Bookmark, CheckCircle2, Award, Clock, ArrowRight, 
   Sparkles, FileText, Settings, ShieldCheck, ExternalLink, 
   Building2, Landmark, RefreshCw, Edit3, Trash2, Check,
-  Search, Bell, AlertCircle, ChevronRight
+  Search, Bell, AlertCircle, ChevronRight, Calendar
 } from 'lucide-react';
+import WeeklyGovtJobCalendar from '../components/WeeklyGovtJobCalendar';
+import { ALL_STATES, QUALIFICATION_CATEGORIES } from '../constants/masterData';
 
-export default function UserDashboard({ user, setUser, setCurrentView, openResumeModal }) {
+export default function UserDashboard({ user, setUser, setCurrentView, openResumeModal, onSelectJob }) {
   const [activeTab, setActiveTab] = useState('recommended');
   const [jobs, setJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
@@ -211,35 +213,31 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Highest Qualification</label>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Highest Qualification / Degree</label>
                   <select
                     value={profileForm.qualification}
                     onChange={e => setProfileForm({ ...profileForm, qualification: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-white text-xs font-semibold focus:ring-2 focus:ring-blue-500 outline-none"
                   >
-                    <option value="10th Pass">10th Pass (Matriculation)</option>
-                    <option value="12th Pass">12th Pass (Higher Secondary)</option>
-                    <option value="ITI / Diploma">ITI / Polytechnic Diploma</option>
-                    <option value="Graduate (Any Discipline)">Graduate (BA / B.Sc / B.Com)</option>
-                    <option value="B.E. / B.Tech">B.E. / B.Tech (Engineering)</option>
-                    <option value="Post Graduate (MA/M.Sc/M.Com)">Post Graduate (MA / M.Sc / M.Com)</option>
-                    <option value="MBA / MCA">MBA / MCA / Professional</option>
+                    {QUALIFICATION_CATEGORIES.map(cat => (
+                      <optgroup key={cat.category} label={cat.category}>
+                        {cat.degrees.map(deg => (
+                          <option key={deg} value={deg}>{deg}</option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Home State</label>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Home State / UT</label>
                   <select
                     value={profileForm.state}
                     onChange={e => setProfileForm({ ...profileForm, state: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-white text-xs font-semibold focus:ring-2 focus:ring-blue-500 outline-none"
                   >
-                    <option value="Gujarat">Gujarat</option>
-                    <option value="Maharashtra">Maharashtra</option>
-                    <option value="Delhi NCR">Delhi NCR</option>
-                    <option value="Uttar Pradesh">Uttar Pradesh</option>
-                    <option value="Rajasthan">Rajasthan</option>
-                    <option value="Madhya Pradesh">Madhya Pradesh</option>
-                    <option value="Pan-India">All India (Any State)</option>
+                    {ALL_STATES.map(st => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="sm:col-span-2 lg:col-span-4 flex items-center justify-end space-x-3 pt-2">
@@ -350,6 +348,18 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
             <FileText className="w-4 h-4 text-purple-500" />
             <span>ATS Resume &amp; Documents</span>
           </button>
+
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className={`pb-3 px-4 transition cursor-pointer flex items-center space-x-2 border-b-2 ${
+              activeTab === 'calendar'
+                ? 'border-blue-600 text-blue-600 font-extrabold'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Calendar className="w-4 h-4 text-rose-500" />
+            <span>Weekly Govt Calendar</span>
+          </button>
         </div>
 
         {/* Tab 1: Recommended Jobs */}
@@ -445,15 +455,16 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                           Last Date: <span className="font-bold text-rose-600">{job.lastDate || 'Apply Soon'}</span>
                         </div>
 
-                        <a
-                          href={job.applyLink || '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => {
+                            if (onSelectJob) onSelectJob(job);
+                            else window.open(job.applyUrl || job.applyLink || 'https://ojas.gujarat.gov.in', '_blank');
+                          }}
                           className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
                         >
-                          <span>Apply Official</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
+                          <span>Apply &amp; Details</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
                       </div>
                     </div>
                   );
@@ -517,15 +528,16 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
 
                       <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                         <span className="text-xs font-bold text-rose-600">Deadline: {job.lastDate || 'Ongoing'}</span>
-                        <a
-                          href={job.applyLink || '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => {
+                            if (onSelectJob) onSelectJob(job);
+                            else window.open(job.applyUrl || job.applyLink || 'https://ojas.gujarat.gov.in', '_blank');
+                          }}
                           className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
                         >
-                          <span>Open Form</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
+                          <span>Full Details</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
                       </div>
                     </div>
                   );
@@ -592,6 +604,21 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
           </div>
         )}
 
+        {/* Tab 5: Weekly Govt Job Calendar */}
+        {activeTab === 'calendar' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
+              <h2 className="text-base font-extrabold text-slate-900 mb-1">
+                📅 Live Weekly Government Jobs Calendar
+              </h2>
+              <p className="text-xs text-slate-500 mb-4">
+                Auto-updated dates with pay scales, vacancies, and official notifications for all 4 weeks of the month.
+              </p>
+              <WeeklyGovtJobCalendar onSelectJob={onSelectJob} />
+            </div>
+          </div>
+        )}
+
         {/* Tab 4: ATS Resume & Documents */}
         {activeTab === 'resume' && (
           <div className="space-y-5">
@@ -626,6 +653,21 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                   <span>Edit in ATS Resume Builder</span>
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Weekly Govt Job Calendar */}
+        {activeTab === 'calendar' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
+              <h2 className="text-base font-extrabold text-slate-900 mb-1">
+                📅 Live Weekly Government Jobs Calendar
+              </h2>
+              <p className="text-xs text-slate-500 mb-4">
+                Auto-updated dates with pay scales, vacancies, and official notifications for all 4 weeks of the month.
+              </p>
+              <WeeklyGovtJobCalendar onSelectJob={onSelectJob} />
             </div>
           </div>
         )}

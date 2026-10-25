@@ -99,4 +99,52 @@ router.get('/candidates', async (req, res) => {
   }
 });
 
+// GET /api/admin/govt-jobs-mcqs (All Government jobs with MCQ practice availability status)
+router.get('/govt-jobs-mcqs', async (req, res) => {
+  try {
+    let jobs = [];
+    let mockTests = [];
+
+    try {
+      jobs = await Job.find({ 
+        $or: [
+          { category: 'govt' },
+          { sector: 'GOVERNMENT' },
+          { sector: 'Govt' }
+        ]
+      }).lean();
+    } catch (e) {}
+
+    try {
+      mockTests = await MockTest.find().lean();
+    } catch (e) {}
+
+    const result = (jobs || []).map(j => {
+      const jTitle = (j.title || '').toLowerCase();
+      const jDept = (j.department || '').toLowerCase();
+
+      const matchingTest = (mockTests || []).find(m => {
+        const mExam = (m.exam || '').toLowerCase();
+        const mTitle = (m.title || '').toLowerCase();
+        return (
+          (mExam && (jTitle.includes(mExam) || jDept.includes(mExam))) ||
+          (mTitle && (jTitle.includes(mTitle) || mTitle.includes(jTitle)))
+        );
+      });
+
+      return {
+        ...j,
+        hasMcq: !!matchingTest,
+        mcqCount: matchingTest ? (matchingTest.questions?.length || 0) : 0,
+        testId: matchingTest ? matchingTest.testId : null,
+        examName: matchingTest ? matchingTest.exam : null
+      };
+    });
+
+    res.json({ success: true, count: result.length, jobs: result, allTests: mockTests });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

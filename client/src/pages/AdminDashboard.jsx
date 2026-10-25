@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, PlusCircle, Users, Code, CloudUpload, ArrowLeft, Download, Briefcase, Landmark, Building2, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { 
+  Lock, PlusCircle, Users, Code, CloudUpload, ArrowLeft, 
+  Download, Briefcase, Landmark, Building2, GraduationCap, 
+  CheckCircle2, FileText, ExternalLink, Award, Sparkles, RefreshCw, AlertCircle
+} from 'lucide-react';
+import { ALL_STATES, QUALIFICATION_CATEGORIES } from '../constants/masterData';
 
 export default function AdminDashboard({ setCurrentView, user }) {
-  const [activeTab, setActiveTab] = useState('hr');
+  const [activeTab, setActiveTab] = useState('govt-list'); // 'govt-list', 'hr', 'dhaval', 'candidates'
   const [candidates, setCandidates] = useState([]);
+  const [govtJobsWithMcqs, setGovtJobsWithMcqs] = useState([]);
+  const [loadingGovtJobs, setLoadingGovtJobs] = useState(true);
   const [successToast, setSuccessToast] = useState('');
+  const [selectedExamForMcq, setSelectedExamForMcq] = useState('UPSC Civil Services 2026');
 
   // Security Guard: Only users with role === 'ADMIN' can view the control center
   if (!user || user.role !== 'ADMIN') {
@@ -74,6 +82,19 @@ export default function AdminDashboard({ setCurrentView, user }) {
     description: ''
   });
 
+  const fetchGovtJobs = () => {
+    setLoadingGovtJobs(true);
+    fetch('/api/admin/govt-jobs-mcqs')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.jobs) {
+          setGovtJobsWithMcqs(data.jobs);
+        }
+        setLoadingGovtJobs(false);
+      })
+      .catch(() => setLoadingGovtJobs(false));
+  };
+
   useEffect(() => {
     fetch('/api/admin/candidates')
       .then(res => res.json())
@@ -83,6 +104,8 @@ export default function AdminDashboard({ setCurrentView, user }) {
         }
       })
       .catch(() => {});
+
+    fetchGovtJobs();
   }, []);
 
   const handleBulkJobs = async () => {
@@ -95,6 +118,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
       });
       const data = await res.json();
       setSuccessToast(data.message || 'Jobs successfully uploaded to MongoDB Atlas!');
+      fetchGovtJobs();
       setTimeout(() => setSuccessToast(''), 4000);
     } catch (e) {
       alert("Invalid JSON format: " + e.message);
@@ -108,18 +132,24 @@ export default function AdminDashboard({ setCurrentView, user }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          testId: 'gpsc-mock-' + Date.now(),
-          exam: 'Competitive Exam Mock Test',
-          title: 'All India Practice Test Series',
+          testId: 'test-' + Date.now(),
+          exam: selectedExamForMcq,
+          title: `${selectedExamForMcq} CBT Mock Practice Series`,
           questions: parsed
         })
       });
       const data = await res.json();
       setSuccessToast(data.message || 'MCQs successfully uploaded to MongoDB Atlas!');
+      fetchGovtJobs();
       setTimeout(() => setSuccessToast(''), 4000);
     } catch (e) {
       alert("Invalid JSON format: " + e.message);
     }
+  };
+
+  const openMcqUploaderForJob = (job) => {
+    setSelectedExamForMcq(job.title || job.department);
+    setActiveTab('dhaval');
   };
 
   const handleSingleJobSubmit = async (e) => {
@@ -229,13 +259,23 @@ export default function AdminDashboard({ setCurrentView, user }) {
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none">
         
         <button
+          onClick={() => setActiveTab('govt-list')}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+            activeTab === 'govt-list' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Landmark className="w-4 h-4" />
+          <span>🏛️ GOVT JOBS &amp; MCQS STATUS ({govtJobsWithMcqs.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('hr')}
           className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
             activeTab === 'hr' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
           <PlusCircle className="w-4 h-4" />
-          <span>JOB POSTING FORM (NEW VACANCY)</span>
+          <span>JOB POSTING FORM</span>
         </button>
 
         <button
@@ -259,6 +299,117 @@ export default function AdminDashboard({ setCurrentView, user }) {
         </button>
 
       </div>
+
+      {/* TAB 0: UPLOADED GOVT JOBS & MCQS AVAILABILITY STATUS */}
+      {activeTab === 'govt-list' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                Live MongoDB Atlas Government Database
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
+                Uploaded Government Jobs &amp; MCQ Practice Status
+              </h2>
+              <p className="text-xs text-slate-500 font-medium">
+                Live listing of all government recruitment drives. Check whether CBT Mock Tests are attached and upload MCQs via JSON.
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={fetchGovtJobs}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Refresh Live Jobs</span>
+              </button>
+            </div>
+          </div>
+
+          {loadingGovtJobs ? (
+            <div className="py-12 text-center text-xs font-bold text-slate-500">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
+              Loading live jobs from MongoDB Atlas...
+            </div>
+          ) : govtJobsWithMcqs.length === 0 ? (
+            <div className="text-center py-10 text-xs text-slate-500">
+              No government jobs found in MongoDB. Upload jobs using the form or JSON uploader.
+            </div>
+          ) : (
+            <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+              <table className="w-full text-left text-xs text-slate-700">
+                <thead className="bg-slate-50 border-b border-slate-200 font-extrabold uppercase text-[11px] text-slate-500">
+                  <tr>
+                    <th className="p-4">Recruitment Job Title &amp; Department</th>
+                    <th className="p-4">Salary / Pay Scale</th>
+                    <th className="p-4">Vacancies</th>
+                    <th className="p-4">State</th>
+                    <th className="p-4">MCQ Practice Availability</th>
+                    <th className="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {govtJobsWithMcqs.map((job) => (
+                    <tr key={job._id || job.id} className="hover:bg-slate-50/80 transition">
+                      <td className="p-4 font-bold text-slate-900 max-w-xs">
+                        <div className="text-sm font-extrabold text-slate-900 line-clamp-1">{job.title}</div>
+                        <div className="text-[11px] text-slate-500 font-semibold">{job.department}</div>
+                      </td>
+                      <td className="p-4 font-bold text-emerald-700 whitespace-nowrap">
+                        {job.salary}
+                      </td>
+                      <td className="p-4 font-bold text-slate-800 whitespace-nowrap">
+                        {job.vacancies} Posts
+                      </td>
+                      <td className="p-4 whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px]">
+                          {job.state || 'All India'}
+                        </span>
+                      </td>
+                      <td className="p-4 whitespace-nowrap">
+                        {job.hasMcq ? (
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 font-black text-[10px] flex items-center space-x-1 w-fit">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>✅ Live MCQs ({job.mcqCount} Questions)</span>
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300 font-black text-[10px] flex items-center space-x-1 w-fit">
+                            <AlertCircle className="w-3 h-3 text-amber-600" />
+                            <span>❌ No MCQs Yet</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button
+                            onClick={() => openMcqUploaderForJob(job)}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-bold transition flex items-center space-x-1 cursor-pointer shadow-2xs"
+                            title="Upload MCQs for this exam via JSON"
+                          >
+                            <span>➕ Upload MCQs</span>
+                          </button>
+
+                          <a
+                            href={job.applyUrl || 'https://ojas.gujarat.gov.in'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[11px] font-bold transition flex items-center space-x-1 cursor-pointer"
+                            title="Open Official Portal"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span>Official</span>
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* TAB 1: ADVANCED SINGLE JOB POSTING FORM WITH TYPE SELECTOR */}
       {activeTab === 'hr' && (
@@ -359,11 +510,9 @@ export default function AdminDashboard({ setCurrentView, user }) {
                   onChange={(e) => setSingleJob({ ...singleJob, state: e.target.value })}
                   className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none bg-white font-semibold"
                 >
-                  <option value="Central">Central (All India)</option>
-                  <option value="Gujarat">Gujarat (Ahmedabad, Gandhinagar, Surat)</option>
-                  <option value="Maharashtra">Maharashtra (Mumbai, Pune)</option>
-                  <option value="Delhi">Delhi NCR</option>
-                  <option value="Karnataka">Karnataka (Bengaluru)</option>
+                  {ALL_STATES.map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
                 </select>
               </div>
 
@@ -513,15 +662,84 @@ export default function AdminDashboard({ setCurrentView, user }) {
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
                 <span>📝</span>
-                <span>Bulk MCQs &amp; Mock Tests Uploader</span>
+                <span>Bulk MCQs &amp; Mock Tests JSON Uploader</span>
               </h3>
-              <p className="text-xs text-slate-500 font-medium">Add practice questions with solutions directly into MongoDB Mock Test collection.</p>
+              <p className="text-xs text-slate-500 font-medium">Add practice questions with explanations directly into MongoDB Mock Test collection.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Target Examination / Recruitment Name *</label>
+              <input
+                type="text"
+                value={selectedExamForMcq}
+                onChange={(e) => setSelectedExamForMcq(e.target.value)}
+                placeholder="e.g. UPSC Civil Services, SSC CGL, GSSSB CCE, Gujarat Police"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none font-semibold text-slate-800"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+              <span className="font-bold text-slate-500">Insert Template:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedExamForMcq('UPSC Civil Services 2026');
+                  setMcqJson(`[
+  {
+    "id": 1,
+    "question": "Which Constitutional Article guarantees Equality Before Law and Equal Protection of the Laws?",
+    "options": ["Article 14", "Article 19", "Article 21", "Article 32"],
+    "correctIndex": 0,
+    "explanation": "Article 14 of the Constitution guarantees equality before law and equal protection of the laws to all persons within India."
+  }
+]`);
+                }}
+                className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-bold hover:bg-blue-100 cursor-pointer"
+              >
+                UPSC Template
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedExamForMcq('SSC CGL General Intelligence');
+                  setMcqJson(`[
+  {
+    "id": 1,
+    "question": "Select the related word from the given alternatives: Ocean : Water :: Glacier : ?",
+    "options": ["Mountain", "Ice", "Cave", "River"],
+    "correctIndex": 1,
+    "explanation": "As Ocean consists of Water, similarly Glacier consists of Ice."
+  }
+]`);
+                }}
+                className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-bold hover:bg-amber-100 cursor-pointer"
+              >
+                SSC Template
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedExamForMcq('GSSSB CCE General Studies');
+                  setMcqJson(`[
+  {
+    "id": 1,
+    "question": "ગુજરાતના કયા જિલ્લામાં મોઢેરાનું પ્રખ્યાત સૂર્યમંદિર આવેલું છે?",
+    "options": ["મહેસાણા", "પાટણ", "અમદાવાદ", "સાબરકાંઠા"],
+    "correctIndex": 0,
+    "explanation": "મોઢેરાનું સૂર્યમંદિર ગુજરાતના મહેસાણા જિલ્લામાં પુષ્પાવતી નદીના કિનારે આવેલું છે."
+  }
+]`);
+                }}
+                className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold hover:bg-emerald-100 cursor-pointer"
+              >
+                GSSSB Template
+              </button>
             </div>
 
             <textarea
               value={mcqJson}
               onChange={(e) => setMcqJson(e.target.value)}
-              rows="12"
+              rows="10"
               className="w-full font-mono text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
             />
 
