@@ -4,7 +4,7 @@ import {
   Bookmark, CheckCircle2, Award, Clock, ArrowRight, 
   Sparkles, FileText, Settings, ShieldCheck, ExternalLink, 
   Building2, Landmark, RefreshCw, Edit3, Trash2, Check,
-  Search, Bell, AlertCircle, ChevronRight, Calendar
+  Search, Bell, AlertCircle, ChevronRight, Calendar, MessageSquare, Send
 } from 'lucide-react';
 import WeeklyGovtJobCalendar from '../components/WeeklyGovtJobCalendar';
 import JobDetailsModal from '../components/JobDetailsModal';
@@ -34,6 +34,75 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
     targetRole: user?.targetRole || 'Government & Corporate Careers'
   });
   const [saveStatus, setSaveStatus] = useState({ loading: false, msg: '', error: '' });
+
+  // Grievance / Complaint submission state
+  const [complaintForm, setComplaintForm] = useState({
+    subject: '',
+    category: 'Job Application Issue',
+    message: ''
+  });
+  const [complaintSuccess, setComplaintSuccess] = useState(null);
+  const [complaintSubmitting, setComplaintSubmitting] = useState(false);
+  const [myComplaints, setMyComplaints] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/complaints')
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && Array.isArray(d.complaints)) {
+          if (user?.email || user?.mobileNumber) {
+            setMyComplaints(d.complaints.filter(c => 
+              (user.email && c.email === user.email) ||
+              (user.mobileNumber && c.mobileNumber === user.mobileNumber)
+            ));
+          } else {
+            setMyComplaints(d.complaints);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [user]);
+
+  const handleUserSubmitComplaint = async (e) => {
+    e.preventDefault();
+    setComplaintSubmitting(true);
+    try {
+      const res = await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: user?.fullName || 'Candidate',
+          email: user?.email || 'candidate@jobopedia.in',
+          mobileNumber: user?.mobileNumber || '9999999999',
+          category: complaintForm.category,
+          subject: complaintForm.subject,
+          message: complaintForm.message,
+          userId: user?.id || user?._id || null
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setComplaintSuccess(data);
+        setComplaintForm({ subject: '', category: 'Job Application Issue', message: '' });
+        fetch('/api/complaints')
+          .then(r => r.json())
+          .then(d => {
+            if (d.success && Array.isArray(d.complaints)) {
+              setMyComplaints(d.complaints.filter(c => 
+                (user?.email && c.email === user.email) ||
+                (user?.mobileNumber && c.mobileNumber === user.mobileNumber)
+              ));
+            }
+          });
+      } else {
+        alert(data.error || 'Failed to submit complaint');
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setComplaintSubmitting(false);
+    }
+  };
 
   // Mock Test History (stored in localStorage or simulated)
   const [mockHistory, setMockHistory] = useState(() => {
@@ -358,6 +427,18 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
             <Calendar className="w-4 h-4 text-blue-500" />
             <span>Weekly Govt Calendar</span>
           </button>
+
+          <button
+            onClick={() => setActiveTab('complaints')}
+            className={`pb-3 px-4 transition cursor-pointer flex items-center space-x-2 border-b-2 ${
+              activeTab === 'complaints'
+                ? 'border-rose-600 text-rose-600 font-extrabold'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 text-rose-500" />
+            <span>Help Desk &amp; Grievances (ફરિયાદ)</span>
+          </button>
         </div>
 
         {/* Tab 1: Recommended Jobs */}
@@ -646,6 +727,153 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
         {activeTab === 'calendar' && (
           <div className="space-y-4">
             <WeeklyGovtJobCalendar onSelectJob={onSelectJob} />
+          </div>
+        )}
+
+        {/* Tab 6: Grievance Redressal & Complaints */}
+        {activeTab === 'complaints' && (
+          <div className="space-y-6">
+            
+            {/* Header Card */}
+            <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-3xl p-6 border border-rose-200">
+              <div className="flex items-center space-x-3">
+                <span className="p-2.5 rounded-2xl bg-rose-600 text-white shadow-sm">
+                  <MessageSquare className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">
+                    Candidate Grievance &amp; Help Desk (ફરિયાદ નિવારણ)
+                  </h3>
+                  <p className="text-xs text-slate-600 font-medium mt-0.5">
+                    If you face any problem in job application, expired link, or need technical help, write here. Your ticket goes directly to Dhaval Admin Panel.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Submission Form & Ticket History */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Form */}
+              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                <h4 className="text-sm font-black text-slate-900 border-b border-slate-100 pb-2 flex items-center space-x-2">
+                  <span>📝</span>
+                  <span>Submit a New Complaint / Issue</span>
+                </h4>
+
+                {complaintSuccess && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1">
+                    <div className="flex items-center space-x-2 text-emerald-800 font-black text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>{complaintSuccess.message}</span>
+                    </div>
+                    <div className="text-[11px] font-mono text-emerald-700">
+                      Ticket ID: <strong>{complaintSuccess.ticketId}</strong>
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleUserSubmitComplaint} className="space-y-3.5 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Issue Category *</label>
+                    <select
+                      value={complaintForm.category}
+                      onChange={(e) => setComplaintForm({ ...complaintForm, category: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                    >
+                      <option value="Job Application Issue">Job Application Issue</option>
+                      <option value="Fake or Expired Job Report">Fake / Expired Job Report</option>
+                      <option value="MCQ / Test Question Error">MCQ / CBT Test Error</option>
+                      <option value="Website Technical Problem">Website Technical Problem</option>
+                      <option value="Account / Login Assistance">Account / Login Issue</option>
+                      <option value="Suggestion / Feedback">Suggestion / Feedback</option>
+                      <option value="Other Complaint">Other Complaint</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Subject (વિષય) *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Apply button redirect issue on GPSC job"
+                      value={complaintForm.subject}
+                      onChange={(e) => setComplaintForm({ ...complaintForm, subject: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Detailed Description (વિગતવાર સમજાવો) *</label>
+                    <textarea
+                      rows={4}
+                      required
+                      placeholder="Explain your problem clearly..."
+                      value={complaintForm.message}
+                      onChange={(e) => setComplaintForm({ ...complaintForm, message: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none leading-relaxed"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={complaintSubmitting}
+                    className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{complaintSubmitting ? 'Submitting...' : 'Send Complaint to Admin'}</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* My Submitted Complaints List */}
+              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                <h4 className="text-sm font-black text-slate-900 border-b border-slate-100 pb-2 flex items-center justify-between">
+                  <span className="flex items-center space-x-2">
+                    <span>📋</span>
+                    <span>My Complaint Tickets</span>
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-400">
+                    {myComplaints.length} Total
+                  </span>
+                </h4>
+
+                {myComplaints.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400 text-xs font-semibold">
+                    You have not submitted any complaints yet.
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {myComplaints.map(ticket => (
+                      <div key={ticket._id || ticket.ticketId} className="p-3.5 rounded-2xl border border-slate-200 space-y-2 bg-slate-50/50">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-[11px] font-black bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-800">
+                            {ticket.ticketId}
+                          </span>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                            ticket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800' :
+                            ticket.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                            'bg-amber-100 text-amber-800'
+                          }`}>
+                            ● {ticket.status}
+                          </span>
+                        </div>
+                        <div className="text-xs font-bold text-slate-900">{ticket.subject}</div>
+                        <p className="text-[11px] text-slate-600 leading-relaxed">{ticket.message}</p>
+                        {ticket.adminReply && (
+                          <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-[11px] space-y-0.5">
+                            <span className="font-bold text-blue-900">Admin Resolution:</span>
+                            <p className="text-blue-800">{ticket.adminReply}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+            </div>
+
           </div>
         )}
 

@@ -4,7 +4,7 @@ import {
   Download, Briefcase, Landmark, Building2, GraduationCap, 
   CheckCircle2, Bell, Send, Smartphone, Monitor, Trash2, 
   Search, BarChart3, TrendingUp, Calendar, FileSpreadsheet, 
-  RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles 
+  RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles, MessageSquare 
 } from 'lucide-react';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
@@ -265,6 +265,62 @@ export default function AdminDashboard({ setCurrentView, user }) {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [analyticsViewMode, setAnalyticsViewMode] = useState('date-wise'); // 'date-wise' | 'month-wise'
 
+  // User Complaints & Grievances State
+  const [complaintsList, setComplaintsList] = useState([]);
+  const [loadingComplaints, setLoadingComplaints] = useState(false);
+  const [complaintFilter, setComplaintFilter] = useState('all');
+  const [complaintSearch, setComplaintSearch] = useState('');
+  const [replyTextMap, setReplyTextMap] = useState({});
+
+  const fetchComplaints = () => {
+    setLoadingComplaints(true);
+    fetch('/api/complaints')
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && Array.isArray(d.complaints)) {
+          setComplaintsList(d.complaints);
+        }
+      })
+      .catch(err => console.error("Error fetching complaints:", err))
+      .finally(() => setLoadingComplaints(false));
+  };
+
+  const handleUpdateComplaint = async (complaintId, newStatus, reply) => {
+    try {
+      const res = await fetch(`/api/complaints/${complaintId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: newStatus,
+          adminReply: reply
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast(`✅ Complaint updated to "${newStatus}"!`);
+        fetchComplaints();
+        setTimeout(() => setSuccessToast(''), 4000);
+      }
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  };
+
+  const handleDeleteComplaint = async (complaintId) => {
+    if (!window.confirm("Are you sure you want to permanently delete this complaint record?")) return;
+    try {
+      const res = await fetch(`/api/complaints/${complaintId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast("🗑️ Complaint removed successfully!");
+        fetchComplaints();
+        setTimeout(() => setSuccessToast(''), 4000);
+      }
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  };
+
   const fetchAllAdminJobs = () => {
     setLoadingJobs(true);
     setLoadingGovtJobs(true);
@@ -367,6 +423,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
 
     fetchAllAdminJobs();
     fetchAnalytics();
+    fetchComplaints();
   }, []);
 
   const handleUploadJobMcqs = async () => {
@@ -645,6 +702,16 @@ export default function AdminDashboard({ setCurrentView, user }) {
         >
           <Bell className="w-4 h-4" />
           <span>📢 BROADCAST PUSH NOTIFICATION</span>
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('complaints'); fetchComplaints(); }}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+            activeTab === 'complaints' ? 'bg-gradient-to-r from-rose-700 via-pink-700 to-rose-800 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>📢 USER COMPLAINTS ({complaintsList.filter(c => c.status === 'Pending').length} Pending)</span>
         </button>
 
       </div>
@@ -1939,6 +2006,212 @@ export default function AdminDashboard({ setCurrentView, user }) {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* TAB 6: USER COMPLAINTS & GRIEVANCE REDRESSAL PANEL */}
+      {activeTab === 'complaints' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="p-1.5 rounded-lg bg-rose-100 text-rose-700">
+                  <MessageSquare className="w-5 h-5" />
+                </span>
+                <h2 className="text-xl font-black text-slate-900">
+                  User Complaints &amp; Grievances (ફરિયાદ નિવારણ કેન્દ્ર)
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Direct grievances, issues, and inquiries submitted by job seekers and website users.
+              </p>
+            </div>
+
+            <button
+              onClick={fetchComplaints}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer self-start sm:self-auto"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingComplaints ? 'animate-spin' : ''}`} />
+              <span>Refresh Complaints</span>
+            </button>
+          </div>
+
+          {/* Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left">
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total Complaints</div>
+              <div className="text-2xl font-black text-slate-900 mt-1">{complaintsList.length}</div>
+            </div>
+            <div className="bg-amber-50/80 p-4 rounded-2xl border border-amber-200 text-left">
+              <div className="text-xs font-bold text-amber-700 uppercase tracking-wide">Pending Investigation</div>
+              <div className="text-2xl font-black text-amber-900 mt-1">
+                {complaintsList.filter(c => c.status === 'Pending').length}
+              </div>
+            </div>
+            <div className="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200 text-left">
+              <div className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Resolved / Closed</div>
+              <div className="text-2xl font-black text-emerald-900 mt-1">
+                {complaintsList.filter(c => c.status === 'Resolved').length}
+              </div>
+            </div>
+          </div>
+
+          {/* Search & Filter Toolbar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center space-x-1.5 overflow-x-auto pb-1">
+              {['all', 'Pending', 'In Progress', 'Resolved'].map(st => (
+                <button
+                  key={st}
+                  onClick={() => setComplaintFilter(st)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer capitalize ${
+                    complaintFilter === st
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {st === 'all' ? 'All Issues' : st}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative w-full sm:w-72">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by name, phone, ticket ID..."
+                value={complaintSearch}
+                onChange={(e) => setComplaintSearch(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Complaints Cards List */}
+          {complaintsList.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 text-xs font-bold">
+              No user complaints recorded. All candidate issues are resolved!
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {complaintsList
+                .filter(c => {
+                  if (complaintFilter !== 'all' && c.status !== complaintFilter) return false;
+                  if (complaintSearch.trim()) {
+                    const q = complaintSearch.toLowerCase();
+                    return (
+                      c.fullName?.toLowerCase().includes(q) ||
+                      c.ticketId?.toLowerCase().includes(q) ||
+                      c.mobileNumber?.includes(q) ||
+                      c.subject?.toLowerCase().includes(q) ||
+                      c.message?.toLowerCase().includes(q)
+                    );
+                  }
+                  return true;
+                })
+                .map(comp => (
+                  <div 
+                    key={comp._id || comp.ticketId}
+                    className="p-5 rounded-2xl border border-slate-200 hover:border-slate-300 transition space-y-3 bg-white"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-mono text-xs font-black bg-slate-100 px-2 py-0.5 rounded-lg text-slate-800">
+                          {comp.ticketId}
+                        </span>
+                        <span className={`text-[11px] font-black px-2 py-0.5 rounded-full ${
+                          comp.status === 'Resolved' 
+                            ? 'bg-emerald-100 text-emerald-800' 
+                            : comp.status === 'In Progress' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          ● {comp.status}
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                          {comp.category}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {new Date(comp.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteComplaint(comp._id)}
+                          className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                          title="Delete Complaint Record"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900">{comp.subject}</h4>
+                      <p className="text-xs text-slate-600 font-medium leading-relaxed mt-1 bg-slate-50/60 p-3 rounded-xl border border-slate-100">
+                        {comp.message}
+                      </p>
+                    </div>
+
+                    {/* Candidate Contact Info */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+                      <div className="flex items-center space-x-3 text-slate-600 font-medium">
+                        <span>👤 <strong>{comp.fullName}</strong></span>
+                        <span>✉️ {comp.email}</span>
+                        <span>📱 {comp.mobileNumber}</span>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        {/* Direct WhatsApp Chat */}
+                        <a
+                          href={`https://wa.me/91${comp.mobileNumber.replace(/\D/g, '')}?text=Namaste%20${encodeURIComponent(comp.fullName)},%20regarding%20your%20Jobopedia%20Ticket%20${comp.ticketId}:`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition flex items-center space-x-1 cursor-pointer shadow-2xs"
+                        >
+                          <span>💬 Chat on WhatsApp</span>
+                        </a>
+
+                        {/* Status Change Buttons */}
+                        {comp.status !== 'In Progress' && (
+                          <button
+                            onClick={() => handleUpdateComplaint(comp._id, 'In Progress', comp.adminReply)}
+                            className="px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-[11px] font-bold transition cursor-pointer border border-blue-200"
+                          >
+                            Mark In Progress
+                          </button>
+                        )}
+                        {comp.status !== 'Resolved' && (
+                          <button
+                            onClick={() => handleUpdateComplaint(comp._id, 'Resolved', comp.adminReply)}
+                            className="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[11px] font-bold transition cursor-pointer border border-emerald-200"
+                          >
+                            ✓ Mark Resolved
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Admin Reply Section */}
+                    <div className="pt-2 border-t border-slate-100 flex items-center space-x-2">
+                      <input
+                        type="text"
+                        placeholder={comp.adminReply ? `Reply: ${comp.adminReply}` : "Type admin resolution notes or reply for this ticket..."}
+                        value={replyTextMap[comp._id] !== undefined ? replyTextMap[comp._id] : (comp.adminReply || '')}
+                        onChange={(e) => setReplyTextMap({ ...replyTextMap, [comp._id]: e.target.value })}
+                        className="flex-1 px-3 py-1.5 text-xs bg-slate-50 rounded-xl border border-slate-200 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={() => handleUpdateComplaint(comp._id, comp.status, replyTextMap[comp._id] || comp.adminReply)}
+                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[11px] font-bold transition cursor-pointer shrink-0"
+                      >
+                        Save Reply
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
       )}
 

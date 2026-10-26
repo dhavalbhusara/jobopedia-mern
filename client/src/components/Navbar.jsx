@@ -3,7 +3,7 @@ import {
   Search, ChevronDown, Lock, LogOut, User, Sparkles, 
   BookOpen, FileText, Award, Calendar, ExternalLink, 
   Menu, X, Home, Landmark, Building2, GraduationCap, 
-  ChevronRight, Phone, ShieldCheck
+  ChevronRight, Phone, ShieldCheck, MessageSquare
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 
@@ -11,6 +11,7 @@ export default function Navbar({
   currentView, 
   setCurrentView, 
   openResumeModal, 
+  openComplaintModal,
   openAuthModal, 
   user, 
   onLogout,
@@ -54,6 +55,14 @@ export default function Navbar({
               <span>📞 Help Desk:</span>
               <strong className="text-white">+91 98765 43210</strong>
             </a>
+            <span>•</span>
+            <button
+              onClick={openComplaintModal}
+              className="hover:text-rose-400 text-rose-300 transition flex items-center space-x-1 cursor-pointer bg-white/10 hover:bg-white/15 px-2 py-0.5 rounded-md font-bold"
+            >
+              <MessageSquare className="w-3 h-3 text-rose-400" />
+              <span>📢 Submit Complaint / Grievance (ફરિયાદ)</span>
+            </button>
           </div>
         </div>
       </div>
@@ -518,6 +527,13 @@ export default function Navbar({
                   className="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-600 text-left cursor-pointer flex items-center space-x-2"
                 >
                   <span>📞 Contact Support Desk</span>
+                </button>
+                <button
+                  onClick={() => { openComplaintModal(); setMobileMenuOpen(false); }}
+                  className="w-full p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-left cursor-pointer flex items-center space-x-2 font-bold"
+                >
+                  <MessageSquare className="w-4 h-4 text-rose-600" />
+                  <span>📢 Submit Complaint (ફરિયાદ)</span>
                 </button>
               </div>
             </div>

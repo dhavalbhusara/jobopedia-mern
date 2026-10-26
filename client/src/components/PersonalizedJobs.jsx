@@ -152,10 +152,10 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest,
         </div>
 
         {/* Category Tabs & Selectors */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2 border-t border-slate-100">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-1">
           
-          {/* Category Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {/* Category Tabs (Clean flex-wrap, No Horizontal Scrollbar Bar) */}
+          <div className="flex flex-wrap items-center gap-2">
             {[
               { id: 'all', label: 'All Opportunities' },
               { id: 'govt', label: '🏛️ Sarkari Jobs (All Open)' },
@@ -165,7 +165,7 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest,
               <button
                 key={tab.id}
                 onClick={() => setCategory(tab.id)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                   category === tab.id
                     ? 'bg-slate-900 text-white shadow-sm font-extrabold'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'

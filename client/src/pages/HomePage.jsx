@@ -137,6 +137,14 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                 <Building2 className="w-4 h-4" />
                 <span>🏢 Private &amp; MNC Careers</span>
               </a>
+
+              <button 
+                onClick={() => setCurrentView('internships')}
+                className="inline-flex items-center space-x-2 px-4 sm:px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer border border-red-400/40"
+              >
+                <GraduationCap className="w-4 h-4 text-red-100" />
+                <span>🎓 Paid Internships</span>
+              </button>
             </div>
 
             {/* Badges Strip */}

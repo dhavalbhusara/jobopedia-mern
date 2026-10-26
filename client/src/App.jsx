@@ -16,11 +16,13 @@ import AuthModal from './components/AuthModal';
 import JobDetailsModal from './components/JobDetailsModal';
 import JobDetailPage from './pages/JobDetailPage';
 import PushNotificationPrompt from './components/PushNotificationPrompt';
+import ComplaintModal from './components/ComplaintModal';
 import Footer from './components/Footer';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+  const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   
   // Auth User State from localStorage
@@ -158,6 +160,7 @@ export default function App() {
         currentView={currentView} 
         setCurrentView={setCurrentView} 
         openResumeModal={() => setIsResumeModalOpen(true)}
+        openComplaintModal={() => setIsComplaintModalOpen(true)}
         openAuthModal={handleOpenAuth}
         user={user}
         onLogout={handleLogout}
@@ -175,6 +178,12 @@ export default function App() {
       <ResumeBuilder 
         isOpen={isResumeModalOpen} 
         onClose={() => setIsResumeModalOpen(false)} 
+      />
+
+      <ComplaintModal 
+        isOpen={isComplaintModalOpen} 
+        onClose={() => setIsComplaintModalOpen(false)} 
+        user={user}
       />
       
       <AuthModal 

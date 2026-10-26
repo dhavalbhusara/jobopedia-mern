@@ -197,13 +197,21 @@ router.post('/login', async (req, res) => {
 
     // 3. User Not Found
     if (!foundUser) {
-      // Special fallback for admin credentials
-      if (cleanIdentifier.includes('admin') && password === 'Admin@123456') {
-        const adminPayload = { id: 'admin_master', fullName: 'Jobopedia Admin', email: cleanIdentifier, role: 'ADMIN' };
+      // Special fallback for Dhaval Admin credentials
+      if ((cleanIdentifier.includes('admin') || cleanIdentifier.includes('dhaval') || identifier === '9510443584') && password === 'Admin@123456') {
+        const adminPayload = { 
+          id: 'admin_dhaval_master', 
+          fullName: 'Dhaval Bhusara (Admin)', 
+          email: cleanIdentifier.includes('@') ? cleanIdentifier : 'dhavalbhusara0123@gmail.com', 
+          mobileNumber: '9510443584',
+          role: 'ADMIN',
+          state: 'Gujarat',
+          qualification: 'Graduate'
+        };
         const token = jwt.sign(adminPayload, JWT_SECRET, { expiresIn: '14d' });
         return res.json({
           success: true,
-          message: 'Admin Login successful',
+          message: 'Dhaval Admin Login successful',
           token,
           user: adminPayload
         });
@@ -217,14 +225,27 @@ router.post('/login', async (req, res) => {
     // 4. Verify Password with bcrypt
     const isPasswordValid = await bcrypt.compare(password, foundUser.password);
     
-    // Master recovery check for admin
-    const isMasterAdmin = (foundUser.role === 'ADMIN' && password === 'Admin@123456');
+    // Master recovery check for Dhaval Admin
+    const isMasterAdmin = (
+      (foundUser.role === 'ADMIN' || 
+       foundUser.email?.includes('dhaval') || 
+       cleanIdentifier.includes('dhaval') ||
+       foundUser.mobileNumber === '9510443584' ||
+       identifier === '9510443584') && 
+      password === 'Admin@123456'
+    );
 
     if (!isPasswordValid && !isMasterAdmin) {
       return res.status(401).json({ 
         success: false, 
         error: 'Incorrect Password. Please check and try again.' 
       });
+    }
+
+    // Upgrade to Admin if master admin verified
+    if (isMasterAdmin) {
+      foundUser.role = 'ADMIN';
+      foundUser.fullName = 'Dhaval Bhusara (Admin)';
     }
 
     // 5. Successful Login -> Generate JWT Token
