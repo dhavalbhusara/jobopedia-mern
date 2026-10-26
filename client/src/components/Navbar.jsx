@@ -35,11 +35,11 @@ export default function Navbar({
       {/* Top Announcement Bar */}
       <div className="bg-[#0B1528] text-white py-1 px-4 text-xs font-semibold flex items-center justify-between border-b border-slate-800 print:hidden">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="bg-[#F58220] text-slate-950 font-black px-2 py-0.5 rounded text-[10px] uppercase">
+          <div className="flex items-center space-x-2 flex-1 min-w-0 mr-4">
+            <span className="bg-[#F58220] text-slate-950 font-black px-2 py-0.5 rounded text-[10px] uppercase shrink-0">
               New Alerts
             </span>
-            <div className="overflow-hidden whitespace-nowrap w-64 sm:w-96 md:w-[650px]">
+            <div className="overflow-hidden whitespace-nowrap flex-1 min-w-0">
               <span className="animate-marquee inline-block text-[11px] text-slate-200">
                 🇮🇳 UPSC Civil Services 2026 Notification Active • SSC CGL 17,727 Vacancies • GPSC Class 1 &amp; 2 Online Form • Gujarat Police Constable Exam Schedule Released!
               </span>
@@ -95,7 +95,7 @@ export default function Navbar({
             </a>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden xl:flex items-center space-x-4 lg:space-x-5 text-sm font-bold text-slate-700">
+            <nav className="hidden lg:flex items-center space-x-3 xl:space-x-5 text-sm font-bold text-slate-700 shrink-0">
               
               {/* Home */}
               <button 
@@ -163,49 +163,6 @@ export default function Navbar({
                 </span>
               </button>
 
-              {/* Prep Guide (Separate Page) */}
-              <button 
-                onClick={() => setCurrentView('preparation')}
-                className={`transition-colors pb-1 cursor-pointer ${
-                  currentView === 'preparation'
-                    ? 'text-purple-700 border-b-2 border-purple-600 font-extrabold'
-                    : 'text-slate-600 hover:text-purple-600'
-                }`}
-              >
-                Prep Guide
-              </button>
-
-              {/* Exams Calendar (Scrolls to Calendar) */}
-              <button 
-                onClick={() => navigateTo('home', 'weekly-calendar')}
-                className="transition-colors hover:text-purple-600 text-slate-600 cursor-pointer"
-              >
-                Exams
-              </button>
-
-              {/* Pathways / AI Resume */}
-              <button 
-                onClick={openResumeModal}
-                className="transition-colors hover:text-amber-600 flex items-center space-x-1 text-slate-600 cursor-pointer"
-              >
-                <span>Pathways</span>
-              </button>
-
-              {/* User Panel Link (Shown when Logged In) */}
-              {user && (
-                <button 
-                  onClick={() => setCurrentView('user-dashboard')}
-                  className={`transition-colors flex items-center space-x-1 pb-1 cursor-pointer ${
-                    currentView === 'user-dashboard'
-                      ? 'text-blue-600 border-b-2 border-blue-600 font-extrabold'
-                      : 'text-blue-600 hover:text-blue-800 font-bold'
-                  }`}
-                >
-                  <User className="w-4 h-4" />
-                  <span>Candidate Panel</span>
-                </button>
-              )}
-
               {/* Resources Dropdown */}
               <div className="relative">
                 <button 
@@ -224,7 +181,7 @@ export default function Navbar({
                       className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
                     >
                       <BookOpen className="w-4 h-4 text-purple-600" />
-                      <span>Exam Blueprints &amp; Timetable</span>
+                      <span>Exam Blueprints &amp; Prep Guide</span>
                     </button>
                     <button 
                       onClick={() => { setResourcesOpen(false); navigateTo('home', 'weekly-calendar'); }}
@@ -245,7 +202,7 @@ export default function Navbar({
                       className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
                     >
                       <FileText className="w-4 h-4 text-indigo-600" />
-                      <span>Free ATS Resume Builder</span>
+                      <span>Free ATS Resume Builder (Pathways)</span>
                     </button>
                     <div className="border-t border-slate-100 my-1"></div>
                     <button 
@@ -299,18 +256,15 @@ export default function Navbar({
                     }`}>
                       {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
                     </div>
-                    <span className="text-xs font-bold max-w-[100px] sm:max-w-[120px] truncate">
+                    <span className="text-xs font-bold max-w-[80px] sm:max-w-[100px] truncate">
                       {user.fullName || user.email?.split('@')[0]}
-                    </span>
-                    <span className="text-[10px] uppercase font-bold opacity-75 hidden sm:inline">
-                      Panel
                     </span>
                   </button>
 
                   <button
                     onClick={onLogout}
                     title="Logout"
-                    className="p-1.5 hover:text-red-600 hover:bg-red-50 text-slate-400 rounded-xl transition cursor-pointer"
+                    className="p-1.5 hover:text-red-600 hover:bg-red-50 text-slate-400 rounded-xl transition cursor-pointer shrink-0"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                   </button>
@@ -319,15 +273,15 @@ export default function Navbar({
                   {user.role === 'ADMIN' && (
                     <button
                       onClick={() => setCurrentView(currentView === 'admin' ? 'home' : 'admin')}
-                      className={`px-3 py-2 text-xs font-black rounded-xl transition flex items-center space-x-1.5 shadow-sm cursor-pointer ${
+                      className={`px-2.5 py-1.5 text-xs font-black rounded-xl transition flex items-center space-x-1 shadow-sm shrink-0 cursor-pointer ${
                         currentView === 'admin'
                           ? 'bg-slate-900 text-white hover:bg-slate-800'
                           : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white'
                       }`}
                       title="Admin Control Center"
                     >
-                      <Lock className="w-3.5 h-3.5" />
-                      <span>{currentView === 'admin' ? 'Public Site' : '👑 Admin Portal'}</span>
+                      <Lock className="w-3 h-3" />
+                      <span>{currentView === 'admin' ? 'Public' : '👑 Admin'}</span>
                     </button>
                   )}
                 </div>
