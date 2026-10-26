@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Job = require('../models/Job');
 const Notification = require('../models/Notification');
+const { sendWebPushToAll } = require('../utils/webPushHelper');
 
 // Fallback Seed Jobs in case DB is newly starting
 const FALLBACK_JOBS = [
@@ -322,6 +323,15 @@ router.post('/', async (req, res) => {
         url: job.applyUrl || 'https://jobopedia.in',
         sentBy: 'System Auto-Trigger'
       });
+      // Real Web Push to Chrome on Phone and PC (Works even when website is closed!)
+      try {
+        sendWebPushToAll({
+          title: `⚡ New ${typeLabel}: ${job.title}`,
+          body: `${job.department} announced ${job.vacancies || 1} posts. Last Date: ${job.lastDate}. Apply now!`,
+          url: job.applyUrl || 'https://jobopedia.in'
+        }).catch(e => console.error("[WebPush Auto-Trigger Error]:", e.message));
+      } catch (e) {}
+
       console.log(`[Auto-Notification] Sent alert for job: "${job.title}" matching States: [${statesArr.join(', ')}] | Qualifications: [${qualArr.join(', ')}]`);
     } catch (notifErr) {
       console.error("[Auto-Notification] Error:", notifErr.message);

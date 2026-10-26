@@ -12,6 +12,8 @@ export default function AdminDashboard({ setCurrentView, user }) {
   const [activeTab, setActiveTab] = useState('hr');
   const [candidates, setCandidates] = useState([]);
   const [successToast, setSuccessToast] = useState('');
+  const [jobPostingStatus, setJobPostingStatus] = useState('idle'); // 'idle' | 'posting' | 'done'
+  const [bulkJobsStatus, setBulkJobsStatus] = useState('idle'); // 'idle' | 'posting' | 'done'
 
   // Push Notification Broadcast State
   const [broadcastForm, setBroadcastForm] = useState({
@@ -518,6 +520,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
 
   const handleBulkJobs = async () => {
     try {
+      setBulkJobsStatus('posting');
       const parsed = JSON.parse(jobsJson);
       const res = await fetch('/api/admin/jobs/bulk', {
         method: 'POST',
@@ -525,9 +528,14 @@ export default function AdminDashboard({ setCurrentView, user }) {
         body: JSON.stringify(parsed)
       });
       const data = await res.json();
-      setSuccessToast(data.message || 'Jobs successfully uploaded to MongoDB Atlas!');
-      setTimeout(() => setSuccessToast(''), 4000);
+      setBulkJobsStatus('done');
+      setSuccessToast(data.message || '✅ DONE! Jobs successfully uploaded to MongoDB Atlas!');
+      setTimeout(() => {
+        setSuccessToast('');
+        setBulkJobsStatus('idle');
+      }, 5000);
     } catch (e) {
+      setBulkJobsStatus('idle');
       alert("Invalid JSON format: " + e.message);
     }
   };
@@ -546,7 +554,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
         })
       });
       const data = await res.json();
-      setSuccessToast(data.message || 'MCQs successfully uploaded to MongoDB Atlas!');
+      setSuccessToast(data.message || '✅ DONE! MCQs successfully uploaded to MongoDB Atlas!');
       setTimeout(() => setSuccessToast(''), 4000);
     } catch (e) {
       alert("Invalid JSON format: " + e.message);
@@ -556,6 +564,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
   const handleSingleJobSubmit = async (e) => {
     e.preventDefault();
     try {
+      setJobPostingStatus('posting');
       // Synchronize category with jobType
       const cat = singleJob.jobType === 'GOVERNMENT' || singleJob.jobType === 'BANKING_PSU' ? 'govt' : (singleJob.jobType === 'INTERNSHIP' ? 'internship' : 'private');
       const finalStates = selectedStates.length > 0 ? selectedStates : ['All India / Central'];
@@ -578,8 +587,12 @@ export default function AdminDashboard({ setCurrentView, user }) {
       });
       const data = await res.json();
       
-      setSuccessToast(`🎉 Success: "${singleJob.title}" has been published to MongoDB Atlas! Auto-notifications sent to matched candidates.`);
-      setTimeout(() => setSuccessToast(''), 5000);
+      setJobPostingStatus('done');
+      setSuccessToast(`✅ DONE! "${singleJob.title}" has been published to MongoDB Atlas! Auto-notifications sent to matched candidates.`);
+      setTimeout(() => {
+        setSuccessToast('');
+        setJobPostingStatus('idle');
+      }, 6000);
 
       // Reset form
       setSingleJob({
@@ -1183,16 +1196,52 @@ export default function AdminDashboard({ setCurrentView, user }) {
               />
             </div>
 
-            <div className="pt-2 flex items-center justify-between">
+            {/* Success Done Banner right above submit button */}
+            {jobPostingStatus === 'done' && (
+              <div className="p-4 bg-emerald-50 border-2 border-emerald-400 text-emerald-950 rounded-2xl flex items-center space-x-3 shadow-md animate-in zoom-in-95">
+                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <CheckCircle2 className="w-6 h-6 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="font-black text-sm text-emerald-950">
+                    ✅ DONE! જોબ સફળતાપૂર્વક પોસ્ટ થઈ ગઈ છે!
+                  </h4>
+                  <p className="text-xs text-emerald-800">
+                    Job has been published to MongoDB Atlas and Chrome Web Push notifications dispatched to candidates!
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <span className="text-xs text-slate-400">
                 Data will be instantly synced to MongoDB Atlas and published to live website.
               </span>
               <button
                 type="submit"
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-2 cursor-pointer"
+                disabled={jobPostingStatus === 'posting'}
+                className={`px-8 py-3.5 rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer ${
+                  jobPostingStatus === 'done'
+                    ? 'bg-emerald-600 text-white ring-4 ring-emerald-200 scale-105'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
               >
-                <PlusCircle className="w-4 h-4" />
-                <span>Publish Job to Live Database</span>
+                {jobPostingStatus === 'done' ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-white animate-bounce" />
+                    <span className="text-sm">✅ DONE! Job Post Ho Gayi Hai</span>
+                  </>
+                ) : jobPostingStatus === 'posting' ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Publishing to MongoDB...</span>
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Publish Job to Live Database</span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -1600,10 +1649,29 @@ export default function AdminDashboard({ setCurrentView, user }) {
               <button
                 type="button"
                 onClick={handleBulkJobs}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
+                disabled={bulkJobsStatus === 'posting'}
+                className={`w-full py-3.5 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer ${
+                  bulkJobsStatus === 'done'
+                    ? 'bg-emerald-600 ring-4 ring-emerald-200'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
               >
-                <CloudUpload className="w-4 h-4" />
-                <span>Publish Bulk Jobs to MongoDB Atlas</span>
+                {bulkJobsStatus === 'done' ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-white animate-bounce" />
+                    <span>✅ DONE! Bulk Jobs Successfully Uploaded (જોબ પોસ્ટ થઈ ગઈ છે)</span>
+                  </>
+                ) : bulkJobsStatus === 'posting' ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Uploading Jobs...</span>
+                  </>
+                ) : (
+                  <>
+                    <CloudUpload className="w-4 h-4" />
+                    <span>Publish Bulk Jobs to MongoDB Atlas</span>
+                  </>
+                )}
               </button>
             </div>
 

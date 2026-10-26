@@ -4,6 +4,17 @@ import {
   AlertCircle, Sparkles, Volume2
 } from 'lucide-react';
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export default function NotificationCenter({ user }) {
   const [isOpen, setIsOpen] = useState(false);
   const [pushStatus, setPushStatus] = useState(() => {
@@ -13,14 +24,22 @@ export default function NotificationCenter({ user }) {
     return 'unsupported';
   });
   const [testSent, setTestSent] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
   const [toastAlert, setToastAlert] = useState(null);
   const knownIdsRef = React.useRef(new Set());
   const initialFetchDoneRef = React.useRef(false);
 
-  // Sync current permission status
+  // Sync current permission status & register service worker silently
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setPushStatus(Notification.permission);
+      
+      // Pre-register Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.warn("[SW] Registration warning:", err);
+        });
+      }
     }
   }, [isOpen]);
 
@@ -53,17 +72,10 @@ export default function NotificationCenter({ user }) {
             if (newlyAdded.length > 0) {
               const latestItem = newlyAdded[0];
               
-              // 1. Device Push Notification (Mobile Phone & PC Desktop)
-              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-                try {
-                  new Notification(latestItem.title, {
-                    body: latestItem.message,
-                    icon: '/images/jobopedia-icon.png'
-                  });
-                } catch (e) {}
-              }
+              // Device Push Notification (Works via Service Worker on Mobile Chrome & Desktop)
+              triggerDeviceNotification(latestItem.title, latestItem.message, latestItem.url);
 
-              // 2. In-App Floating Toast Alert
+              // In-App Floating Toast Alert
               setToastAlert(latestItem);
               setTimeout(() => setToastAlert(null), 8000);
             }
@@ -79,47 +91,124 @@ export default function NotificationCenter({ user }) {
       .catch(err => console.error("Error loading notifications:", err));
   };
 
-  // Enable Push Notifications for Phone & PC
+  const triggerDeviceNotification = async (title, body, url = '/') => {
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+      return;
+    }
+
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        if (reg && reg.showNotification) {
+          reg.showNotification(title, {
+            body,
+            icon: '/images/jobopedia-icon.png',
+            badge: '/images/jobopedia-icon.png',
+            vibrate: [200, 100, 200],
+            tag: 'job-alert-' + Date.now(),
+            data: { url }
+          });
+          return;
+        }
+      }
+      // Fallback
+      new Notification(title, { body, icon: '/images/jobopedia-icon.png' });
+    } catch (e) {
+      console.warn("Notification display:", e);
+    }
+  };
+
+  // Enable Official Chrome Push Notifications for Phone & PC
   const requestDeviceNotifications = async () => {
     if (!('Notification' in window)) {
       alert("This browser does not support phone/desktop push notifications.");
       return;
     }
 
+    setIsSubscribing(true);
+
     try {
+      // 1. Request Browser Permission
       const permission = await Notification.requestPermission();
       setPushStatus(permission);
 
       if (permission === 'granted') {
-        setTestSent(true);
+        // 2. Register Service Worker
+        let reg = null;
+        if ('serviceWorker' in navigator) {
+          reg = await navigator.serviceWorker.register('/sw.js');
+          await navigator.serviceWorker.ready;
+        }
+
+        // 3. Subscribe with VAPID Key to receive Chrome push even when website is closed
         try {
-          new Notification("🇮🇳 Jobopedia: Notifications Active!", {
-            body: `You will now receive instant job notifications on this ${window.innerWidth < 768 ? 'Mobile Phone' : 'PC / Laptop'} matching your qualification!`,
-            icon: '/images/jobopedia-icon.png'
-          });
-        } catch (e) {}
+          const vapidRes = await fetch('/api/notifications/vapid-public-key');
+          const vapidData = await vapidRes.json();
+
+          if (vapidData.success && vapidData.publicKey && reg && reg.pushManager) {
+            const convertedKey = urlBase64ToUint8Array(vapidData.publicKey);
+            const subscription = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: convertedKey
+            });
+
+            // Save subscription to MongoDB Atlas
+            await fetch('/api/notifications/subscribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                subscription,
+                userId: user?._id || user?.id || null,
+                qualification: user?.qualification || 'All',
+                state: user?.state || 'All India'
+              })
+            });
+            console.log("✅ Chrome Web Push Subscription successfully registered with MongoDB Atlas!");
+          }
+        } catch (subErr) {
+          console.warn("Push subscription warning:", subErr);
+        }
+
+        // 4. Send Immediate Official Chrome Notification to the Phone/PC
+        setTestSent(true);
+        triggerDeviceNotification(
+          "🇮🇳 Jobopedia: Notifications Active!",
+          `You will now receive official Chrome job notifications on this ${window.innerWidth < 768 ? 'Mobile Phone' : 'PC'} even when Chrome is closed!`,
+          '/'
+        );
         setTimeout(() => setTestSent(false), 4000);
+
       } else if (permission === 'denied') {
-        alert("Notifications were blocked. Please enable them in your browser settings (tap the lock icon in the address bar).");
+        alert("Notifications were blocked. Please enable them in your browser settings (tap the lock 🔒 icon in the Chrome address bar).");
       }
     } catch (e) {
       console.error("Notification permission error:", e);
+    } finally {
+      setIsSubscribing(false);
     }
   };
 
-  const sendTestNotification = () => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification("🇮🇳 Jobopedia Test Alert", {
-          body: "Great! Your phone is ready to receive instant job alerts whenever new vacancies are posted.",
-          icon: '/images/jobopedia-icon.png'
-        });
-        setTestSent(true);
-        setTimeout(() => setTestSent(false), 3000);
-      } catch (e) {
-        console.error(e);
-      }
+  // Test Notification Button
+  const sendTestNotification = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+      return;
     }
+
+    setTestSent(true);
+
+    // 1. Local Service Worker Native Notification
+    triggerDeviceNotification(
+      "🇮🇳 Jobopedia Official Chrome Alert",
+      "Great! Your phone is 100% configured to receive instant notifications even when Chrome is closed.",
+      '/'
+    );
+
+    // 2. Server-side Push via Google FCM
+    try {
+      await fetch('/api/notifications/test-push', { method: 'POST' });
+    } catch (e) {}
+
+    setTimeout(() => setTestSent(false), 4000);
   };
 
   return (
@@ -162,8 +251,8 @@ export default function NotificationCenter({ user }) {
                   <Bell className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-black text-base text-white">Job Notifications</h3>
-                  <p className="text-[11px] text-blue-200 font-medium">Phone &amp; Desktop Alerts</p>
+                  <h3 className="font-black text-base text-white">Chrome Notifications</h3>
+                  <p className="text-[11px] text-blue-200 font-medium">Official Mobile &amp; PC Alerts</p>
                 </div>
               </div>
 
@@ -189,13 +278,13 @@ export default function NotificationCenter({ user }) {
                   <div className="space-y-1.5">
                     <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>Notifications Active (ચાલુ છે)</span>
+                      <span>Chrome Push Active (ચાલુ છે)</span>
                     </div>
                     <h4 className="text-lg font-black text-slate-900 pt-1">
                       તમારા ફોનમાં નોટિફિકેશન ચાલુ છે!
                     </h4>
                     <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
-                      નવી સરકારી ભરતી કે પ્રાઈવેટ જોબ અપલોડ થતાં જ તમારા આ ફોન પર સીધા ફ્રી એલર્ટ મળતા રહેશે.
+                      Chrome કે વેબસાઈટ બંધ હશે તો પણ નવી સરકારી ભરતી કે પ્રાઈવેટ જોબ અપલોડ થતાં જ તમારા આ ફોન પર સીધા ફ્રી એલર્ટ મળતા રહેશે.
                     </p>
                   </div>
 
@@ -206,7 +295,7 @@ export default function NotificationCenter({ user }) {
                       className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
                     >
                       <Volume2 className="w-4 h-4 text-emerald-400" />
-                      <span>{testSent ? '✓ Test Alert Sent to Device!' : 'Send Test Notification (ચેક કરો)'}</span>
+                      <span>{testSent ? '✓ Test Alert Sent to Device!' : 'Send Test Notification (ટેસ્ટ કરો)'}</span>
                     </button>
 
                     <button
@@ -230,7 +319,7 @@ export default function NotificationCenter({ user }) {
                       <span>Permissions Blocked</span>
                     </div>
                     <h4 className="text-base font-black text-slate-900 pt-1">
-                      Browser માં નોટિફિકેશન Block થયેલ છે
+                      Chrome માં નોટિફિકેશન Block થયેલ છે
                     </h4>
                     <p className="text-xs text-slate-600 leading-relaxed">
                       ચાલુ કરવા માટે ઉપર બ્રાઉઝરના URL ની બાજુમાં <strong>તાળા (🔒 Lock)</strong> ના આઇકોન પર ક્લિક કરીને <strong>Notifications: Allow</strong> સિલેક્ટ કરો.
@@ -254,21 +343,22 @@ export default function NotificationCenter({ user }) {
 
                   <div className="space-y-1.5">
                     <h4 className="text-lg font-black text-slate-900">
-                      Job Notifications ચાલુ કરો
+                      Chrome Notifications ચાલુ કરો
                     </h4>
                     <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
-                      નવી ભરતી અપલોડ થતાં જ તમારા મોબાઈલ પર સીધા ફ્રી એલર્ટ મેળવવા માટે નોટિફિકેશન On કરો.
+                      વેબસાઇટ બંધ હોય ત્યારે પણ નવી ભરતીના લાઈવ એલર્ટ તમારા ફોન પર મેળવવા માટે On કરો.
                     </p>
                   </div>
 
                   <div className="pt-2 space-y-2">
                     <button
                       type="button"
+                      disabled={isSubscribing}
                       onClick={requestDeviceNotifications}
-                      className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-sm shadow-lg shadow-blue-500/25 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
+                      className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-sm shadow-lg shadow-blue-500/25 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95 disabled:opacity-50"
                     >
                       <Bell className="w-5 h-5 text-amber-300 animate-pulse" />
-                      <span>🔔 Turn ON Notifications (ઓન કરો)</span>
+                      <span>{isSubscribing ? 'Connecting Chrome...' : '🔔 Turn ON Notifications (ઓન કરો)'}</span>
                     </button>
 
                     <button
@@ -288,7 +378,7 @@ export default function NotificationCenter({ user }) {
             <div className="bg-slate-50 px-5 py-3 border-t border-slate-100 text-center">
               <span className="text-[11px] font-semibold text-slate-500 flex items-center justify-center space-x-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>100% Free Job Alerts • No Spam</span>
+                <span>Works Even When Website is Closed • 100% Free</span>
               </span>
             </div>
 

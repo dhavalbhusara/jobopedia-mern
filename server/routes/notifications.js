@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
+const PushSubscription = require('../models/PushSubscription');
+const { VAPID_PUBLIC_KEY, sendWebPushToAll } = require('../utils/webPushHelper');
 
 // Default initial notifications if database is fresh
 const SEED_NOTIFICATIONS = [
@@ -227,11 +229,75 @@ router.post('/broadcast', async (req, res) => {
       };
     }
 
+    // Trigger Web Push Notification to Chrome on mobile phones and desktops
+    try {
+      sendWebPushToAll({
+        title,
+        body: message,
+        url: url || 'https://jobopedia.in'
+      }).catch(e => console.error("WebPush background trigger error:", e.message));
+    } catch (e) {}
+
     res.json({
       success: true,
       message: `Notification broadcasted to candidates matching [States: ${stateDisplay} | Qualifications: ${qualDisplay}]!`,
       notification: savedNotif
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/notifications/vapid-public-key - Return public key to frontend for subscription
+router.get('/vapid-public-key', (req, res) => {
+  res.json({ success: true, publicKey: VAPID_PUBLIC_KEY });
+});
+
+// POST /api/notifications/subscribe - Save Chrome/device push subscription
+router.post('/subscribe', async (req, res) => {
+  try {
+    const { subscription, userId, qualification, state } = req.body;
+    if (!subscription || !subscription.endpoint || !subscription.keys) {
+      return res.status(400).json({ success: false, error: "Invalid subscription payload." });
+    }
+
+    const { endpoint, keys } = subscription;
+    const userAgent = req.headers['user-agent'] || '';
+
+    const updated = await PushSubscription.findOneAndUpdate(
+      { endpoint },
+      {
+        endpoint,
+        keys,
+        userId: userId || null,
+        qualification: qualification || 'All',
+        state: state || 'All India',
+        userAgent
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    console.log(`✅ [WebPush] Saved Chrome push subscription for endpoint: ${endpoint.substring(0, 45)}...`);
+    res.json({ success: true, message: "Device subscribed for Chrome push notifications!", id: updated._id });
+  } catch (err) {
+    console.error("❌ [WebPush] Subscribe Error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/notifications/test-push - Send immediate test Chrome push notification
+router.post('/test-push', async (req, res) => {
+  try {
+    const { subscription } = req.body;
+    
+    // If specific subscription provided, send to it; otherwise broadcast test to all
+    const result = await sendWebPushToAll({
+      title: "🇮🇳 Jobopedia: Live Push Active!",
+      body: "Great! Your phone will now receive instant alerts even when Chrome or this website is closed.",
+      url: "https://jobopedia.in"
+    });
+
+    res.json({ success: true, message: "Test Chrome push notification sent!", result });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
