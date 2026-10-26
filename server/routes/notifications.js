@@ -82,31 +82,74 @@ router.get('/', async (req, res) => {
         return false;
       }
 
-      // State Filter (Pan-India and Central notifications go to everyone)
+      // State Filter: Notification reaches candidate if:
+      // 1) Candidate state is not specified, or is 'all'
+      // 2) Notification is Pan-India / Central / All India
+      // 3) Any of the job's target states matches candidate's state
       if (state && state !== 'all') {
-        const notifState = (n.targetState || 'All India').toLowerCase();
-        const userState = state.toLowerCase();
-        const isPanIndia = notifState.includes('all india') || notifState.includes('central') || notifState === '';
-        if (!isPanIndia && !notifState.includes(userState) && !userState.includes(notifState)) {
-          return false;
+        const userState = state.toLowerCase().trim();
+        
+        let targetStateList = [];
+        if (Array.isArray(n.targetStates) && n.targetStates.length > 0) {
+          targetStateList = n.targetStates.map(s => String(s).toLowerCase().trim());
+        } else if (n.targetState) {
+          targetStateList = String(n.targetState).toLowerCase().split(',').map(s => s.trim());
+        }
+
+        const isPanIndia = targetStateList.length === 0 || targetStateList.some(s => 
+          s.includes('all india') || s.includes('central') || s.includes('pan-india') || s === 'all'
+        );
+
+        if (!isPanIndia) {
+          const stateMatches = targetStateList.some(s => 
+            s.includes(userState) || userState.includes(s)
+          );
+          if (!stateMatches) return false;
         }
       }
 
-      // Qualification / Degree Filter
+      // Qualification / Degree Filter: Notification reaches candidate if:
+      // 1) Candidate qualification is not specified, or is 'all'
+      // 2) Notification targets 'All', 'Any Graduate', 'Any Stream', or is open
+      // 3) Any of the job's target qualifications matches candidate's qualification
       if (qualification && qualification !== 'all') {
-        const notifQ = (n.targetQualification || 'All').toLowerCase();
-        const userQ = qualification.toLowerCase();
-        const isForAll = notifQ.includes('all') || notifQ === '';
+        const userQ = qualification.toLowerCase().trim();
+
+        let targetQList = [];
+        if (Array.isArray(n.targetQualifications) && n.targetQualifications.length > 0) {
+          targetQList = n.targetQualifications.map(q => String(q).toLowerCase().trim());
+        } else if (n.targetQualification) {
+          targetQList = String(n.targetQualification).toLowerCase().split(',').map(q => q.trim());
+        }
+
+        const isForAll = targetQList.length === 0 || targetQList.some(q => 
+          q.includes('all') || q.includes('any') || q.includes('any stream') || q.includes('any discipline') || q.includes('any graduate')
+        );
 
         if (!isForAll) {
-          const directMatch = notifQ.includes(userQ) || userQ.includes(notifQ);
-          const bothGraduate = (notifQ.includes('graduat') || notifQ.includes('degree')) && 
-                               (userQ.includes('graduat') || userQ.includes('degree') || userQ.includes('b.tech') || userQ.includes('bca') || userQ.includes('b.sc') || userQ.includes('b.com') || userQ.includes('b.a'));
-          const both12th = notifQ.includes('12th') && userQ.includes('12th');
-          const both10th = notifQ.includes('10th') && userQ.includes('10th');
-          const bothEng = (notifQ.includes('tech') || notifQ.includes('engineer')) && (userQ.includes('tech') || userQ.includes('engineer') || userQ.includes('cs') || userQ.includes('it'));
+          const matchesAnyQ = targetQList.some(notifQ => {
+            const directMatch = notifQ.includes(userQ) || userQ.includes(notifQ);
+            const bothGraduate = (notifQ.includes('graduat') || notifQ.includes('degree') || notifQ.includes('bachelor')) && 
+                                 (userQ.includes('graduat') || userQ.includes('degree') || userQ.includes('bachelor') || userQ.includes('b.tech') || userQ.includes('bca') || userQ.includes('b.sc') || userQ.includes('b.com') || userQ.includes('b.a') || userQ.includes('bba'));
+            const both12th = notifQ.includes('12th') && userQ.includes('12th');
+            const both10th = (notifQ.includes('10th') || notifQ.includes('matric') || notifQ.includes('ssc')) && 
+                             (userQ.includes('10th') || userQ.includes('matric') || userQ.includes('ssc'));
+            const bothIti = notifQ.includes('iti') && userQ.includes('iti');
+            const bothDiploma = (notifQ.includes('diploma') || notifQ.includes('polytechnic')) && 
+                                (userQ.includes('diploma') || userQ.includes('polytechnic'));
+            const bothEng = (notifQ.includes('tech') || notifQ.includes('engineer')) && 
+                            (userQ.includes('tech') || userQ.includes('engineer') || userQ.includes('cs') || userQ.includes('it'));
+            const bothCommerce = (notifQ.includes('commerce') || notifQ.includes('b.com') || notifQ.includes('m.com') || notifQ.includes('ca')) &&
+                                 (userQ.includes('commerce') || userQ.includes('b.com') || userQ.includes('m.com') || userQ.includes('ca'));
+            const bothMedical = (notifQ.includes('mbbs') || notifQ.includes('pharm') || notifQ.includes('nursing')) &&
+                                (userQ.includes('mbbs') || userQ.includes('pharm') || userQ.includes('nursing'));
+            const bothPostGrad = (notifQ.includes('post graduat') || notifQ.includes('master') || notifQ.includes('pg') || notifQ.includes('mba') || notifQ.includes('mca') || notifQ.includes('m.tech')) &&
+                                 (userQ.includes('post graduat') || userQ.includes('master') || userQ.includes('pg') || userQ.includes('mba') || userQ.includes('mca') || userQ.includes('m.tech'));
 
-          if (!directMatch && !bothGraduate && !both12th && !both10th && !bothEng) {
+            return directMatch || bothGraduate || both12th || both10th || bothIti || bothDiploma || bothEng || bothCommerce || bothMedical || bothPostGrad;
+          });
+
+          if (!matchesAnyQ) {
             return false;
           }
         }
@@ -128,11 +171,32 @@ router.get('/', async (req, res) => {
 // POST /api/notifications/broadcast - Admin sends targeted job alert
 router.post('/broadcast', async (req, res) => {
   try {
-    const { title, message, category, targetQualification, targetState, url, jobId } = req.body;
+    const { title, message, category, targetQualification, targetQualifications, targetState, targetStates, url, jobId } = req.body;
 
     if (!title || !message) {
       return res.status(400).json({ success: false, error: "Title and message are required." });
     }
+
+    // Normalize states
+    let sList = [];
+    if (Array.isArray(targetStates) && targetStates.length > 0) {
+      sList = targetStates.filter(Boolean);
+    } else if (targetState) {
+      sList = String(targetState).split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if (sList.length === 0) sList = ['All India'];
+
+    // Normalize qualifications
+    let qList = [];
+    if (Array.isArray(targetQualifications) && targetQualifications.length > 0) {
+      qList = targetQualifications.filter(Boolean);
+    } else if (targetQualification) {
+      qList = String(targetQualification).split(',').map(q => q.trim()).filter(Boolean);
+    }
+    if (qList.length === 0) qList = ['All'];
+
+    const stateDisplay = sList.length > 2 ? `${sList.slice(0, 2).join(', ')} +${sList.length - 2} more` : sList.join(', ');
+    const qualDisplay = qList.length > 2 ? `${qList.slice(0, 2).join(', ')} +${qList.length - 2} more` : qList.join(', ');
 
     let savedNotif = null;
     try {
@@ -140,8 +204,10 @@ router.post('/broadcast', async (req, res) => {
         title,
         message,
         category: category || 'govt',
-        targetQualification: targetQualification || 'All',
-        targetState: targetState || 'All India',
+        targetQualification: qualDisplay,
+        targetQualifications: qList,
+        targetState: stateDisplay,
+        targetStates: sList,
         url: url || 'https://jobopedia.in',
         jobId: jobId || null,
         sentBy: 'Admin'
@@ -152,8 +218,10 @@ router.post('/broadcast', async (req, res) => {
         title,
         message,
         category: category || 'govt',
-        targetQualification: targetQualification || 'All',
-        targetState: targetState || 'All India',
+        targetQualification: qualDisplay,
+        targetQualifications: qList,
+        targetState: stateDisplay,
+        targetStates: sList,
         url: url || 'https://jobopedia.in',
         createdAt: new Date()
       };
@@ -161,7 +229,7 @@ router.post('/broadcast', async (req, res) => {
 
     res.json({
       success: true,
-      message: `Notification broadcasted to candidates matching [${targetState} | ${targetQualification}]!`,
+      message: `Notification broadcasted to candidates matching [States: ${stateDisplay} | Qualifications: ${qualDisplay}]!`,
       notification: savedNotif
     });
   } catch (err) {

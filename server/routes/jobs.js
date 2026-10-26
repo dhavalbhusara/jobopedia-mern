@@ -277,23 +277,52 @@ router.get('/weekly-calendar', async (req, res) => {
 // POST /api/jobs (Publish new job & trigger auto-notification)
 router.post('/', async (req, res) => {
   try {
-    const job = new Job(req.body);
+    let jobData = { ...req.body };
+
+    // Normalize states (support multiple states array and comma-separated string)
+    let statesArr = [];
+    if (Array.isArray(jobData.states) && jobData.states.length > 0) {
+      statesArr = jobData.states.filter(Boolean);
+    } else if (jobData.state) {
+      statesArr = String(jobData.state).split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if (statesArr.length === 0) statesArr = ['All India'];
+    jobData.states = statesArr;
+    jobData.state = statesArr.join(', ');
+
+    // Normalize qualifications (support multiple qualifications array and comma-separated string)
+    let qualArr = [];
+    if (Array.isArray(jobData.qualifications) && jobData.qualifications.length > 0) {
+      qualArr = jobData.qualifications.filter(Boolean);
+    } else if (jobData.qualification) {
+      qualArr = String(jobData.qualification).split(',').map(q => q.trim()).filter(Boolean);
+    }
+    if (qualArr.length === 0) qualArr = ['Graduate'];
+    jobData.qualifications = qualArr;
+    jobData.qualification = qualArr.join(', ');
+
+    const job = new Job(jobData);
     await job.save();
 
-    // AUTOMATIC NOTIFICATION DISPATCH (Matching Candidate Interest & Degree)
+    // AUTOMATIC NOTIFICATION DISPATCH (Matching Candidate Interest, States & Degrees)
     try {
       const typeLabel = job.category === 'govt' ? 'Govt Job' : (job.category === 'internship' ? 'Internship' : 'Corporate Job');
+      const qualDisplay = qualArr.length > 2 ? `${qualArr.slice(0, 2).join(', ')} +${qualArr.length - 2} more` : qualArr.join(', ');
+      const stateDisplay = statesArr.length > 2 ? `${statesArr.slice(0, 2).join(', ')} +${statesArr.length - 2} more` : statesArr.join(', ');
+
       await Notification.create({
         title: `⚡ New ${typeLabel}: ${job.title}`,
-        message: `${job.department} announced ${job.vacancies || 1} posts for ${job.qualification}. Salary: ${job.salary}. Last Date: ${job.lastDate}. Apply online now!`,
+        message: `${job.department} announced ${job.vacancies || 1} vacancies for ${qualDisplay}. Location: ${stateDisplay}. Salary: ${job.salary}. Last Date: ${job.lastDate}. Apply online now!`,
         category: job.category || 'govt',
-        targetQualification: job.qualification || 'All',
-        targetState: job.state || 'All India',
+        targetQualification: qualDisplay,
+        targetQualifications: qualArr,
+        targetState: stateDisplay,
+        targetStates: statesArr,
         jobId: job._id ? job._id.toString() : null,
         url: job.applyUrl || 'https://jobopedia.in',
         sentBy: 'System Auto-Trigger'
       });
-      console.log(`[Auto-Notification] Sent alert for job: "${job.title}" matching [${job.state} | ${job.qualification}]`);
+      console.log(`[Auto-Notification] Sent alert for job: "${job.title}" matching States: [${statesArr.join(', ')}] | Qualifications: [${qualArr.join(', ')}]`);
     } catch (notifErr) {
       console.error("[Auto-Notification] Error:", notifErr.message);
     }

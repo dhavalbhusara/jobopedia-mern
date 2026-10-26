@@ -281,6 +281,24 @@ export default function JobDetailPage({ job, setCurrentView, onStartMockTest }) 
               <p>
                 <strong>Minimum Education:</strong> {currentJob.qualification || 'Graduate / Relevant Degree'}
               </p>
+              {Array.isArray(currentJob.qualifications) && currentJob.qualifications.length > 1 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {currentJob.qualifications.map(q => (
+                    <span key={q} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                      🎓 {q}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {Array.isArray(currentJob.states) && currentJob.states.length > 1 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {currentJob.states.map(s => (
+                    <span key={s} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                      📍 {s}
+                    </span>
+                  ))}
+                </div>
+              )}
               <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 text-emerald-950 space-y-1.5">
                 <div className="font-bold text-xs uppercase tracking-wider text-emerald-800">Criteria Details:</div>
                 <p className="text-xs leading-relaxed">

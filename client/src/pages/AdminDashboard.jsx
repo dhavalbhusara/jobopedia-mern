@@ -4,7 +4,7 @@ import {
   Download, Briefcase, Landmark, Building2, GraduationCap, 
   CheckCircle2, Bell, Send, Smartphone, Monitor, Trash2, 
   Search, BarChart3, TrendingUp, Calendar, FileSpreadsheet, 
-  RefreshCw, Eye 
+  RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles 
 } from 'lucide-react';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
@@ -22,6 +22,8 @@ export default function AdminDashboard({ setCurrentView, user }) {
     targetState: 'All India',
     url: 'https://jobopedia.in'
   });
+  const [broadcastStates, setBroadcastStates] = useState(['All India / Central']);
+  const [broadcastQualifications, setBroadcastQualifications] = useState(['All']);
   const [broadcastLoading, setBroadcastLoading] = useState(false);
 
   // Security Guard: Only users with role === 'ADMIN' can view the control center
@@ -53,8 +55,13 @@ export default function AdminDashboard({ setCurrentView, user }) {
     "department": "Ministry of External Affairs (MEA)",
     "category": "govt",
     "sector": "GOVERNMENT",
-    "state": "Central",
-    "qualification": "Graduate in any stream",
+    "states": ["All India / Central", "Delhi NCR", "Gujarat"],
+    "qualifications": [
+      "Graduate - Any Stream / Any Discipline",
+      "Graduate - B.A. (Bachelor of Arts)",
+      "Graduate - B.Com (Bachelor of Commerce)",
+      "Graduate - B.E. / B.Tech (Computer Science & IT)"
+    ],
     "salary": "₹52,000 - ₹1,40,000 / month (Level 7 Pay Matrix)",
     "vacancies": 450,
     "ageLimit": "20 - 30 Years",
@@ -72,8 +79,13 @@ export default function AdminDashboard({ setCurrentView, user }) {
     "department": "Tata Consultancy Services (TCS Digital)",
     "category": "private",
     "sector": "IT / SOFTWARE",
-    "state": "Gujarat",
-    "qualification": "B.Tech / B.E / MCA / M.Sc (IT / CS)",
+    "states": ["Gujarat", "Maharashtra", "Karnataka"],
+    "qualifications": [
+      "Graduate - B.E. / B.Tech (Computer Science & IT)",
+      "Graduate - BCA (Computer Applications)",
+      "Post Graduate - MCA (Computer Applications)",
+      "Post Graduate - M.Sc (Science / Information Technology)"
+    ],
     "salary": "₹7,50,000 - ₹14,00,000 / year + Performance Bonus",
     "vacancies": 120,
     "ageLimit": "21 - 32 Years",
@@ -90,8 +102,13 @@ export default function AdminDashboard({ setCurrentView, user }) {
     "department": "NITI Aayog (Government of India)",
     "category": "internship",
     "sector": "PUBLIC POLICY",
-    "state": "Delhi NCR",
-    "qualification": "Graduate / Post Graduate Students",
+    "states": ["Delhi NCR", "Gujarat", "Maharashtra", "All India / Central"],
+    "qualifications": [
+      "Graduate - Any Stream / Any Discipline",
+      "Graduate - B.A. (Bachelor of Arts)",
+      "Post Graduate - Any Master's Degree",
+      "Post Graduate - MBA / PGDM (Finance / Marketing / HR / Ops)"
+    ],
     "salary": "₹15,000 / month Stipend + Official Certificate",
     "vacancies": 60,
     "ageLimit": "19 - 28 Years",
@@ -123,9 +140,9 @@ export default function AdminDashboard({ setCurrentView, user }) {
     category: 'govt',
     employmentType: 'Full Time (Regular)',
     experienceLevel: 'Fresher (0 - 1 Year)',
-    state: 'Central',
+    state: 'All India / Central',
     salary: '',
-    qualification: 'Graduate',
+    qualification: 'Graduate - Any Stream / Any Discipline',
     vacancies: 50,
     ageLimit: '18 - 35 Years',
     lastDate: '2026-12-31',
@@ -133,6 +150,89 @@ export default function AdminDashboard({ setCurrentView, user }) {
     notificationUrl: '',
     description: ''
   });
+
+  // Multiple States and Qualifications Selection State
+  const [selectedStates, setSelectedStates] = useState(['All India / Central']);
+  const [selectedQualifications, setSelectedQualifications] = useState(['Graduate - Any Stream / Any Discipline']);
+  const [stateSearch, setStateSearch] = useState('');
+  const [qualSearch, setQualSearch] = useState('');
+  const [customQualInput, setCustomQualInput] = useState('');
+
+  // Toggle state selection
+  const toggleState = (st) => {
+    if (st === 'All India / Central') {
+      setSelectedStates(['All India / Central']);
+      return;
+    }
+    let updated = selectedStates.filter(s => s !== 'All India / Central');
+    if (updated.includes(st)) {
+      updated = updated.filter(s => s !== st);
+      if (updated.length === 0) updated = ['All India / Central'];
+    } else {
+      updated = [...updated, st];
+    }
+    setSelectedStates(updated);
+  };
+
+  // Toggle qualification selection
+  const toggleQual = (q) => {
+    if (q === 'Graduate - Any Stream / Any Discipline' || q === 'All') {
+      setSelectedQualifications(['Graduate - Any Stream / Any Discipline']);
+      return;
+    }
+    let updated = selectedQualifications.filter(x => x !== 'Graduate - Any Stream / Any Discipline' && x !== 'All');
+    if (updated.includes(q)) {
+      updated = updated.filter(x => x !== q);
+      if (updated.length === 0) updated = ['Graduate - Any Stream / Any Discipline'];
+    } else {
+      updated = [...updated, q];
+    }
+    setSelectedQualifications(updated);
+  };
+
+  // Add custom typed qualification
+  const addCustomQualification = (e) => {
+    if (e) e.preventDefault();
+    const trimmed = customQualInput.trim();
+    if (!trimmed) return;
+    if (!selectedQualifications.includes(trimmed)) {
+      const updated = selectedQualifications.filter(x => x !== 'Graduate - Any Stream / Any Discipline' && x !== 'All');
+      setSelectedQualifications([...updated, trimmed]);
+    }
+    setCustomQualInput('');
+  };
+
+  // Toggle broadcast state selection
+  const toggleBroadcastState = (st) => {
+    if (st === 'All India / Central' || st === 'All India') {
+      setBroadcastStates(['All India / Central']);
+      return;
+    }
+    let updated = broadcastStates.filter(s => s !== 'All India / Central' && s !== 'All India');
+    if (updated.includes(st)) {
+      updated = updated.filter(s => s !== st);
+      if (updated.length === 0) updated = ['All India / Central'];
+    } else {
+      updated = [...updated, st];
+    }
+    setBroadcastStates(updated);
+  };
+
+  // Toggle broadcast qualification selection
+  const toggleBroadcastQual = (q) => {
+    if (q === 'All' || q === 'Graduate - Any Stream / Any Discipline') {
+      setBroadcastQualifications(['All']);
+      return;
+    }
+    let updated = broadcastQualifications.filter(x => x !== 'All');
+    if (updated.includes(q)) {
+      updated = updated.filter(x => x !== q);
+      if (updated.length === 0) updated = ['All'];
+    } else {
+      updated = [...updated, q];
+    }
+    setBroadcastQualifications(updated);
+  };
 
   // Govt Jobs & MCQs Manager State
   const [govtJobs, setGovtJobs] = useState([]);
@@ -305,10 +405,21 @@ export default function AdminDashboard({ setCurrentView, user }) {
     }
     setBroadcastLoading(true);
     try {
+      const finalStates = broadcastStates.length > 0 ? broadcastStates : ['All India / Central'];
+      const finalQuals = broadcastQualifications.length > 0 ? broadcastQualifications : ['All'];
+
+      const payload = {
+        ...broadcastForm,
+        targetStates: finalStates,
+        targetState: finalStates.join(', '),
+        targetQualifications: finalQuals,
+        targetQualification: finalQuals.join(', ')
+      };
+
       const res = await fetch('/api/notifications/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(broadcastForm)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.success) {
@@ -321,6 +432,8 @@ export default function AdminDashboard({ setCurrentView, user }) {
           targetState: 'All India',
           url: 'https://jobopedia.in'
         });
+        setBroadcastStates(['All India / Central']);
+        setBroadcastQualifications(['All']);
         setTimeout(() => setSuccessToast(''), 6000);
       } else {
         alert(data.error || 'Failed to broadcast notification');
@@ -374,10 +487,17 @@ export default function AdminDashboard({ setCurrentView, user }) {
     try {
       // Synchronize category with jobType
       const cat = singleJob.jobType === 'GOVERNMENT' || singleJob.jobType === 'BANKING_PSU' ? 'govt' : (singleJob.jobType === 'INTERNSHIP' ? 'internship' : 'private');
+      const finalStates = selectedStates.length > 0 ? selectedStates : ['All India / Central'];
+      const finalQuals = selectedQualifications.length > 0 ? selectedQualifications : ['Graduate - Any Stream / Any Discipline'];
+
       const payload = {
         ...singleJob,
         category: cat,
-        sector: singleJob.jobType === 'INTERNSHIP' ? 'INTERNSHIP' : (cat === 'govt' ? 'GOVERNMENT' : 'PRIVATE')
+        sector: singleJob.jobType === 'INTERNSHIP' ? 'INTERNSHIP' : (cat === 'govt' ? 'GOVERNMENT' : 'PRIVATE'),
+        states: finalStates,
+        state: finalStates.join(', '),
+        qualifications: finalQuals,
+        qualification: finalQuals.join(', ')
       };
 
       const res = await fetch('/api/jobs', {
@@ -387,8 +507,8 @@ export default function AdminDashboard({ setCurrentView, user }) {
       });
       const data = await res.json();
       
-      setSuccessToast(`🎉 Success: "${singleJob.title}" has been published to MongoDB Atlas!`);
-      setTimeout(() => setSuccessToast(''), 4000);
+      setSuccessToast(`🎉 Success: "${singleJob.title}" has been published to MongoDB Atlas! Auto-notifications sent to matched candidates.`);
+      setTimeout(() => setSuccessToast(''), 5000);
 
       // Reset form
       setSingleJob({
@@ -398,9 +518,9 @@ export default function AdminDashboard({ setCurrentView, user }) {
         category: 'govt',
         employmentType: 'Full Time (Regular)',
         experienceLevel: 'Fresher (0 - 1 Year)',
-        state: 'Central',
+        state: 'All India / Central',
         salary: '',
-        qualification: 'Graduate',
+        qualification: 'Graduate - Any Stream / Any Discipline',
         vacancies: 50,
         ageLimit: '18 - 35 Years',
         lastDate: '2026-12-31',
@@ -408,6 +528,8 @@ export default function AdminDashboard({ setCurrentView, user }) {
         notificationUrl: '',
         description: ''
       });
+      setSelectedStates(['All India / Central']);
+      setSelectedQualifications(['Graduate - Any Stream / Any Discipline']);
     } catch (err) {
       alert("Error: " + err.message);
     }
@@ -620,39 +742,12 @@ export default function AdminDashboard({ setCurrentView, user }) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Location / State *</label>
-                <select
-                  value={singleJob.state}
-                  onChange={(e) => setSingleJob({ ...singleJob, state: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none bg-white font-semibold"
-                >
-                  <option value="Central">Central (All India)</option>
-                  <option value="Gujarat">Gujarat (Ahmedabad, Gandhinagar, Surat)</option>
-                  <option value="Maharashtra">Maharashtra (Mumbai, Pune)</option>
-                  <option value="Delhi">Delhi NCR</option>
-                  <option value="Karnataka">Karnataka (Bengaluru)</option>
-                </select>
-              </div>
-
-              <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Salary / Stipend *</label>
                 <input
                   type="text"
                   value={singleJob.salary}
                   onChange={(e) => setSingleJob({ ...singleJob, salary: e.target.value })}
                   placeholder="e.g. ₹56,100 - ₹1,77,500 / month or ₹20,000 Stipend"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Required Qualification *</label>
-                <input
-                  type="text"
-                  value={singleJob.qualification}
-                  onChange={(e) => setSingleJob({ ...singleJob, qualification: e.target.value })}
-                  placeholder="e.g. Any Graduate / B.Tech / 12th Pass"
                   className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
                   required
                 />
@@ -714,6 +809,285 @@ export default function AdminDashboard({ setCurrentView, user }) {
                 />
               </div>
 
+            </div>
+
+            {/* Multiple States & Locations Selection */}
+            <div className="p-4 sm:p-5 bg-gradient-to-br from-slate-50 to-blue-50/40 rounded-2xl border border-slate-200/80 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="p-1 rounded-md bg-blue-100 text-blue-700">
+                      <Globe className="w-4 h-4" />
+                    </span>
+                    <label className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                      2. Eligible States & Locations (એક કે તેથી વધુ રાજ્યો પસંદ કરો) *
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Select all states where candidates are eligible to apply. Automatic push notifications will be dispatched to candidates from these selected states.
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStates(['All India / Central'])}
+                    className="px-2.5 py-1 text-[11px] font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-xs cursor-pointer"
+                  >
+                    🇮🇳 Select All India
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStates([])}
+                    className="px-2.5 py-1 text-[11px] font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+
+              {/* Selected States Badges */}
+              <div className="flex flex-wrap items-center gap-1.5 p-2.5 bg-white rounded-xl border border-blue-100 min-h-[42px]">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mr-1">
+                  Selected ({selectedStates.length}):
+                </span>
+                {selectedStates.map(st => (
+                  <span 
+                    key={st}
+                    className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200 shadow-2xs"
+                  >
+                    <span>{st}</span>
+                    <button
+                      type="button"
+                      onClick={() => toggleState(st)}
+                      className="ml-1 text-blue-500 hover:text-rose-600 cursor-pointer font-black"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wide">Quick Add:</span>
+                {['Gujarat', 'Maharashtra', 'Delhi NCR', 'Rajasthan', 'Uttar Pradesh', 'Karnataka', 'Madhya Pradesh', 'Bihar', 'Punjab'].map(st => {
+                  const isSel = selectedStates.includes(st);
+                  return (
+                    <button
+                      type="button"
+                      key={st}
+                      onClick={() => toggleState(st)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer border ${
+                        isSel 
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs' 
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      {isSel ? '✓ ' : '+ '}{st}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Search All Indian States & UTs */}
+              <div className="space-y-2 pt-1">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={stateSearch}
+                    onChange={(e) => setStateSearch(e.target.value)}
+                    placeholder="Search from all 36 Indian States & UTs (e.g. Goa, Kerala, Assam, Uttarakhand...)"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div className="max-h-32 overflow-y-auto p-2 bg-white rounded-xl border border-slate-200 flex flex-wrap gap-1.5">
+                  {ALL_INDIAN_STATES
+                    .filter(s => s.toLowerCase().includes(stateSearch.toLowerCase()))
+                    .map(st => {
+                      const isSel = selectedStates.includes(st);
+                      return (
+                        <button
+                          type="button"
+                          key={st}
+                          onClick={() => toggleState(st)}
+                          className={`px-2 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer border ${
+                            isSel
+                              ? 'bg-blue-600 text-white border-blue-600 font-bold'
+                              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                          }`}
+                        >
+                          {isSel ? '✓ ' : '+ '}{st}
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
+
+            {/* Multiple Qualifications & Degrees Selection */}
+            <div className="p-4 sm:p-5 bg-gradient-to-br from-slate-50 to-purple-50/40 rounded-2xl border border-slate-200/80 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="p-1 rounded-md bg-purple-100 text-purple-700">
+                      <GraduationCap className="w-4 h-4" />
+                    </span>
+                    <label className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                      3. Required Qualifications & Degrees (એક કે તેથી વધુ લાયકાતો પસંદ કરો) *
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Select all eligible degrees and qualifications. Push notifications will automatically reach every user with matching education degrees.
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedQualifications(['Graduate - Any Stream / Any Discipline'])}
+                    className="px-2.5 py-1 text-[11px] font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition shadow-xs cursor-pointer"
+                  >
+                    🎓 Any Graduate
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedQualifications([])}
+                    className="px-2.5 py-1 text-[11px] font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+
+              {/* Selected Qualifications Badges */}
+              <div className="flex flex-wrap items-center gap-1.5 p-2.5 bg-white rounded-xl border border-purple-100 min-h-[42px]">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mr-1">
+                  Selected ({selectedQualifications.length}):
+                </span>
+                {selectedQualifications.map(q => (
+                  <span 
+                    key={q}
+                    className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-800 border border-purple-200 shadow-2xs"
+                  >
+                    <span>{q}</span>
+                    <button
+                      type="button"
+                      onClick={() => toggleQual(q)}
+                      className="ml-1 text-purple-500 hover:text-rose-600 cursor-pointer font-black"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              {/* Preset Category Shortcuts */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wide">Category Presets:</span>
+                {[
+                  {
+                    label: '⚡ 10th & 12th Pass',
+                    items: ['10th Pass (Matriculation / SSC)', '12th Pass - Arts', '12th Pass - Commerce', '12th Pass - Science']
+                  },
+                  {
+                    label: '💻 IT & Computer',
+                    items: ['Graduate - BCA (Computer Applications)', 'Graduate - B.E. / B.Tech (Computer Science & IT)', 'Post Graduate - MCA (Computer Applications)', 'Post Graduate - M.Sc (Science / Information Technology)']
+                  },
+                  {
+                    label: '⚙️ Engineering & Polytechnic',
+                    items: ['Polytechnic Diploma (Mechanical / Civil / Electrical / Auto)', 'Polytechnic Diploma (Computer / IT / Electronics)', 'Graduate - B.E. / B.Tech (Computer Science & IT)', 'Graduate - B.E. / B.Tech (Mechanical / Civil / Electrical / EC)']
+                  },
+                  {
+                    label: '💼 Commerce & MBA',
+                    items: ['Graduate - B.Com (Bachelor of Commerce)', 'Graduate - BBA / BMS (Business Administration)', 'Post Graduate - MBA / PGDM (Finance / Marketing / HR / Ops)', 'Chartered Accountant (CA) / CS / CMA / ICWA']
+                  },
+                  {
+                    label: '🏥 Medical & Pharma',
+                    items: ['Graduate - MBBS / BDS (Medical & Dental)', 'Graduate - B.Pharm (Pharmacy)', 'Graduate - B.Sc Nursing / GNM']
+                  }
+                ].map(cat => (
+                  <button
+                    type="button"
+                    key={cat.label}
+                    onClick={() => {
+                      const updated = selectedQualifications.filter(x => x !== 'Graduate - Any Stream / Any Discipline' && x !== 'All');
+                      const merged = Array.from(new Set([...updated, ...cat.items]));
+                      setSelectedQualifications(merged);
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white hover:bg-purple-50 hover:text-purple-700 text-slate-700 border border-slate-200 transition cursor-pointer"
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Degree Write-In & Search from 35+ Degrees */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                    <span>Search All Indian Degrees & Qualifications:</span>
+                  </div>
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                    <input
+                      type="text"
+                      value={qualSearch}
+                      onChange={(e) => setQualSearch(e.target.value)}
+                      placeholder="Search degree (e.g. B.Tech, 10th, Nursing, LLB, CA...)"
+                      className="w-full pl-8 pr-3 py-1.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500 outline-none"
+                    />
+                  </div>
+                  <div className="max-h-36 overflow-y-auto p-2 bg-white rounded-xl border border-slate-200 flex flex-wrap gap-1.5">
+                    {ALL_QUALIFICATIONS
+                      .filter(q => q.toLowerCase().includes(qualSearch.toLowerCase()))
+                      .map(q => {
+                        const isSel = selectedQualifications.includes(q);
+                        return (
+                          <button
+                            type="button"
+                            key={q}
+                            onClick={() => toggleQual(q)}
+                            className={`px-2 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer border ${
+                              isSel
+                                ? 'bg-purple-600 text-white border-purple-600 font-bold'
+                                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                            }`}
+                          >
+                            {isSel ? '✓ ' : '+ '}{q}
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Custom Write-In Input */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 block">
+                    Or Add Any Custom Degree / Trade:
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={customQualInput}
+                      onChange={(e) => setCustomQualInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomQualification(); } }}
+                      placeholder="e.g. B.Sc Agriculture / Diploma Fire Safety"
+                      className="flex-1 px-3 py-1.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500 outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomQualification}
+                      className="px-3.5 py-1.5 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition cursor-pointer flex items-center space-x-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add</span>
+                    </button>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-purple-50/50 border border-purple-100 text-[11px] text-purple-900 leading-tight">
+                    💡 <strong>Smart Notification Dispatch:</strong> Candidates having any of these selected degrees will receive instant push notifications on their Phone &amp; PC!
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -1035,17 +1409,20 @@ export default function AdminDashboard({ setCurrentView, user }) {
               </div>
 
               {/* JSON Field Reference Guide */}
-              <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-2xl text-[11px] space-y-1.5">
-                <div className="font-black text-blue-900 uppercase tracking-wide">Supported JSON Fields:</div>
+              <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl text-[11px] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-blue-900 uppercase tracking-wide">Supported JSON Fields:</span>
+                  <span className="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded-full">✨ Multiple Degrees &amp; States Supported</span>
+                </div>
                 <div className="flex flex-wrap gap-1 text-[10px] font-mono">
-                  {['title', 'department', 'category', 'sector', 'state', 'qualification', 'salary', 'vacancies', 'ageLimit', 'lastDate', 'dayNumber', 'applyUrl', 'notificationUrl', 'description', 'eligibility', 'selectionProcess', 'tags'].map(f => (
-                    <span key={f} className="px-1.5 py-0.5 bg-white border border-blue-200 text-blue-800 rounded font-bold">
+                  {['title', 'department', 'category', 'sector', 'states (array)', 'state', 'qualifications (array)', 'qualification', 'salary', 'vacancies', 'ageLimit', 'lastDate', 'dayNumber', 'applyUrl', 'notificationUrl', 'description', 'eligibility', 'selectionProcess', 'tags'].map(f => (
+                    <span key={f} className={`px-1.5 py-0.5 rounded font-bold border ${f.includes('array') ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white border-blue-200 text-blue-800'}`}>
                       {f}
                     </span>
                   ))}
                 </div>
-                <p className="text-[10px] text-blue-700/80">
-                  Tip: <code>description</code>, <code>eligibility</code>, and <code>selectionProcess</code> can include full multi-line details. When candidates click Apply, they redirect to the dedicated Job Detail Page!
+                <p className="text-[10px] text-blue-800 leading-relaxed">
+                  💡 <strong>Multi-Selection in JSON:</strong> Use <code>"states": ["Gujarat", "Maharashtra", "Delhi NCR"]</code> and <code>"qualifications": ["10th Pass (Matriculation / SSC)", "12th Pass - Science", "Graduate - B.E. / B.Tech (Computer Science &amp; IT)"]</code>. As soon as you upload, targeted push notifications will be automatically triggered to every user matching any of these degrees or states!
                 </p>
               </div>
 
@@ -1437,41 +1814,105 @@ export default function AdminDashboard({ setCurrentView, user }) {
             </div>
 
             {/* Targeting Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1">
-                  Target State / Region
-                </label>
-                <select
-                  value={broadcastForm.targetState}
-                  onChange={(e) => setBroadcastForm({ ...broadcastForm, targetState: e.target.value })}
-                  className="w-full p-2.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="All India">🇮🇳 All India / Central (Pan-India)</option>
-                  {ALL_INDIAN_STATES.map(st => (
-                    <option key={st} value={st}>{st}</option>
-                  ))}
-                </select>
-                <span className="text-[10px] text-slate-400 mt-0.5 block">Only candidates from this state receive alert</span>
+            <div className="space-y-4 p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="font-black text-xs uppercase tracking-wider text-slate-800 flex items-center space-x-1.5">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>Audience Targeting (Select Multiple States &amp; Degrees)</span>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1">
-                  Target Qualification / Degree
-                </label>
-                <select
-                  value={broadcastForm.targetQualification}
-                  onChange={(e) => setBroadcastForm({ ...broadcastForm, targetQualification: e.target.value })}
-                  className="w-full p-2.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="All">🎓 All Qualifications (Everyone)</option>
-                  {ALL_QUALIFICATIONS.map(q => (
-                    <option key={q} value={q}>{q}</option>
+              {/* Target States Selector */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+                    Target States ({broadcastStates.length})
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setBroadcastStates(['All India / Central'])}
+                    className="text-[10px] font-bold text-blue-600 hover:underline"
+                  >
+                    Reset to All India
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 p-2 bg-white rounded-xl border border-slate-200 min-h-[38px]">
+                  {broadcastStates.map(st => (
+                    <span key={st} className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                      <span>{st}</span>
+                      <button type="button" onClick={() => toggleBroadcastState(st)} className="ml-1 text-blue-400 hover:text-rose-600">×</button>
+                    </span>
                   ))}
-                </select>
-                <span className="text-[10px] text-slate-400 mt-0.5 block">Matched with user education profile</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1 text-[10px]">
+                  {['All India / Central', 'Gujarat', 'Maharashtra', 'Delhi NCR', 'Rajasthan', 'Uttar Pradesh', 'Karnataka', 'Madhya Pradesh'].map(st => (
+                    <button
+                      type="button"
+                      key={st}
+                      onClick={() => toggleBroadcastState(st)}
+                      className={`px-2 py-1 rounded-md font-bold border transition cursor-pointer ${
+                        broadcastStates.includes(st)
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      {broadcastStates.includes(st) ? '✓ ' : '+ '}{st}
+                    </button>
+                  ))}
+                </div>
               </div>
 
+              {/* Target Qualifications Selector */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+                    Target Qualifications ({broadcastQualifications.length})
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setBroadcastQualifications(['All'])}
+                    className="text-[10px] font-bold text-purple-600 hover:underline"
+                  >
+                    Reset to All Degrees
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 p-2 bg-white rounded-xl border border-slate-200 min-h-[38px]">
+                  {broadcastQualifications.map(q => (
+                    <span key={q} className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-lg text-xs font-bold bg-purple-50 text-purple-800 border border-purple-200">
+                      <span>{q}</span>
+                      <button type="button" onClick={() => toggleBroadcastQual(q)} className="ml-1 text-purple-400 hover:text-rose-600">×</button>
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap gap-1 text-[10px]">
+                  {[
+                    { label: 'All Qualifications', val: 'All' },
+                    { label: '10th & 12th', val: '10th Pass (Matriculation / SSC)' },
+                    { label: 'Any Graduate', val: 'Graduate - Any Stream / Any Discipline' },
+                    { label: 'B.Tech / IT', val: 'Graduate - B.E. / B.Tech (Computer Science & IT)' },
+                    { label: 'BCA / MCA', val: 'Graduate - BCA (Computer Applications)' },
+                    { label: 'B.Com / Finance', val: 'Graduate - B.Com (Bachelor of Commerce)' },
+                    { label: 'MBA / PG', val: 'Post Graduate - MBA / PGDM (Finance / Marketing / HR / Ops)' }
+                  ].map(item => (
+                    <button
+                      type="button"
+                      key={item.label}
+                      onClick={() => toggleBroadcastQual(item.val)}
+                      className={`px-2 py-1 rounded-md font-bold border transition cursor-pointer ${
+                        broadcastQualifications.includes(item.val)
+                          ? 'bg-purple-600 text-white border-purple-600'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      {broadcastQualifications.includes(item.val) ? '✓ ' : '+ '}{item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* URL */}
               <div>
                 <label className="block text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1">
                   Official Apply / Notification URL
@@ -1483,7 +1924,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
                   onChange={(e) => setBroadcastForm({ ...broadcastForm, url: e.target.value })}
                   className="w-full p-2.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
                 />
-                <span className="text-[10px] text-slate-400 mt-0.5 block">Direct link opened on clicking alert</span>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Direct link opened when candidate clicks the notification</span>
               </div>
             </div>
 

@@ -47,19 +47,53 @@ router.post('/jobs/bulk', async (req, res) => {
       return res.status(400).json({ success: false, error: "Input must be an array of jobs." });
     }
 
+    // Normalize multiple degrees and multiple states for each job
+    const normalizedJobs = jobsArray.map(item => {
+      let statesArr = [];
+      if (Array.isArray(item.states) && item.states.length > 0) {
+        statesArr = item.states.filter(Boolean);
+      } else if (item.state) {
+        statesArr = String(item.state).split(',').map(s => s.trim()).filter(Boolean);
+      }
+      if (statesArr.length === 0) statesArr = ['All India'];
+
+      let qualArr = [];
+      if (Array.isArray(item.qualifications) && item.qualifications.length > 0) {
+        qualArr = item.qualifications.filter(Boolean);
+      } else if (item.qualification) {
+        qualArr = String(item.qualification).split(',').map(q => q.trim()).filter(Boolean);
+      }
+      if (qualArr.length === 0) qualArr = ['Graduate'];
+
+      return {
+        ...item,
+        states: statesArr,
+        state: statesArr.join(', '),
+        qualifications: qualArr,
+        qualification: qualArr.join(', ')
+      };
+    });
+
     let insertedJobs = [];
     try {
-      insertedJobs = await Job.insertMany(jobsArray);
+      insertedJobs = await Job.insertMany(normalizedJobs);
 
-      // AUTOMATIC NOTIFICATION DISPATCH FOR EACH UPLOADED JOB
+      // AUTOMATIC TARGETED NOTIFICATION DISPATCH FOR EACH UPLOADED JOB
       const notifs = insertedJobs.map(job => {
         const typeLabel = job.category === 'govt' ? 'Govt Job' : (job.category === 'internship' ? 'Internship' : 'Corporate Job');
+        const qList = Array.isArray(job.qualifications) && job.qualifications.length > 0 ? job.qualifications : [job.qualification || 'All'];
+        const sList = Array.isArray(job.states) && job.states.length > 0 ? job.states : [job.state || 'All India'];
+        const qualDisplay = qList.length > 2 ? `${qList.slice(0, 2).join(', ')} +${qList.length - 2} more` : qList.join(', ');
+        const stateDisplay = sList.length > 2 ? `${sList.slice(0, 2).join(', ')} +${sList.length - 2} more` : sList.join(', ');
+
         return {
           title: `⚡ New ${typeLabel}: ${job.title}`,
-          message: `${job.department} announced ${job.vacancies || 1} posts for ${job.qualification}. Salary: ${job.salary}. Last Date: ${job.lastDate}.`,
+          message: `${job.department} announced ${job.vacancies || 1} vacancies for ${qualDisplay}. Location: ${stateDisplay}. Salary: ${job.salary}. Last Date: ${job.lastDate}. Apply online now!`,
           category: job.category || 'govt',
-          targetQualification: job.qualification || 'All',
-          targetState: job.state || 'All India',
+          targetQualification: qualDisplay,
+          targetQualifications: qList,
+          targetState: stateDisplay,
+          targetStates: sList,
           jobId: job._id ? job._id.toString() : null,
           url: job.applyUrl || 'https://jobopedia.in',
           sentBy: 'System Bulk Auto-Trigger'
@@ -68,7 +102,7 @@ router.post('/jobs/bulk', async (req, res) => {
 
       if (notifs.length > 0) {
         await Notification.insertMany(notifs);
-        console.log(`[Auto-Notification] Dispatched ${notifs.length} notifications for bulk uploaded jobs!`);
+        console.log(`[Auto-Notification] Dispatched ${notifs.length} targeted notifications for bulk uploaded jobs!`);
       }
     } catch (e) {
       console.error("Bulk upload / notification error:", e.message);
@@ -76,8 +110,8 @@ router.post('/jobs/bulk', async (req, res) => {
 
     res.json({
       success: true,
-      count: jobsArray.length,
-      message: `Successfully uploaded ${jobsArray.length} jobs to Jobopedia and dispatched automated notifications to matched candidates!`
+      count: normalizedJobs.length,
+      message: `Successfully uploaded ${normalizedJobs.length} jobs to Jobopedia and dispatched automated notifications to matched candidates!`
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

@@ -144,9 +144,22 @@ export default function NotificationCenter({ user, onSelectJob }) {
     if (activeTab === 'mock-test') return n.category === 'mock-test';
     if (activeTab === 'matched') {
       if (!user?.qualification) return true;
-      const q = (n.targetQualification || '').toLowerCase();
       const u = user.qualification.toLowerCase();
-      return q.includes(u) || u.includes(q) || q === 'all';
+      let qList = [];
+      if (Array.isArray(n.targetQualifications) && n.targetQualifications.length > 0) {
+        qList = n.targetQualifications.map(x => String(x).toLowerCase());
+      } else if (n.targetQualification) {
+        qList = String(n.targetQualification).toLowerCase().split(',').map(x => x.trim());
+      }
+      const isForAll = qList.length === 0 || qList.some(q => q.includes('all') || q.includes('any') || q.includes('any graduate'));
+      if (isForAll) return true;
+      return qList.some(q => 
+        q.includes(u) || u.includes(q) || 
+        ((q.includes('graduat') || q.includes('degree')) && (u.includes('graduat') || u.includes('b.tech') || u.includes('bca') || u.includes('b.sc') || u.includes('b.com'))) ||
+        (q.includes('12th') && u.includes('12th')) ||
+        (q.includes('10th') && u.includes('10th')) ||
+        ((q.includes('tech') || q.includes('eng')) && (u.includes('tech') || u.includes('eng') || u.includes('cs') || u.includes('it')))
+      );
     }
     return true;
   });
