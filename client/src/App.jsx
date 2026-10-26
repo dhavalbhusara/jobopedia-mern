@@ -15,6 +15,7 @@ import ResumeBuilder from './components/ResumeBuilder';
 import AuthModal from './components/AuthModal';
 import JobDetailsModal from './components/JobDetailsModal';
 import JobDetailPage from './pages/JobDetailPage';
+import PushNotificationPrompt from './components/PushNotificationPrompt';
 import Footer from './components/Footer';
 
 export default function App() {
@@ -62,6 +63,15 @@ export default function App() {
     setUser(userData);
     setCurrentView('home');
   };
+
+  // Automatically request browser notification permission on website load
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
+    }
+  }, []);
 
   // Auto-track website traffic for Dhaval's Analytics Dashboard
   useEffect(() => {
@@ -142,6 +152,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
+      <PushNotificationPrompt user={user} />
+
       <Navbar 
         currentView={currentView} 
         setCurrentView={setCurrentView} 
