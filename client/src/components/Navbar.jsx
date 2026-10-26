@@ -343,10 +343,10 @@ export default function Navbar({
                 </div>
               )}
 
-              {/* Mobile Hamburger Menu Toggle Button (Visible on screens < xl) */}
+              {/* Tablet Menu Toggle Button (Visible only on tablets md to xl; hidden on mobile phones to keep header clean) */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="xl:hidden p-2 text-slate-700 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                className="hidden md:flex xl:hidden p-2 text-slate-700 hover:text-blue-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
                 aria-label="Toggle Navigation Menu"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -357,9 +357,9 @@ export default function Navbar({
           </div>
         </div>
 
-        {/* Mobile Full Dropdown Menu (Screen width < xl) */}
+        {/* Tablet Dropdown Menu (Screen width md to xl) */}
         {mobileMenuOpen && (
-          <div className="xl:hidden bg-white border-t border-slate-200 px-4 py-4 space-y-3 shadow-2xl max-h-[80vh] overflow-y-auto animate-in slide-in-from-top-2 duration-150">
+          <div className="hidden md:block xl:hidden bg-white border-t border-slate-200 px-4 py-4 space-y-3 shadow-2xl max-h-[80vh] overflow-y-auto animate-in slide-in-from-top-2 duration-150">
             
             {/* If Logged In: Show User Card */}
             {user ? (

@@ -1,48 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Bell, Check, X, ShieldCheck, Sparkles, Landmark, 
-  Building2, GraduationCap, Award, ExternalLink, Settings, 
-  CheckCircle2, AlertCircle, Clock, Smartphone, Monitor 
+  Bell, Check, X, ShieldCheck, Smartphone, CheckCircle2, 
+  AlertCircle, Sparkles, Volume2
 } from 'lucide-react';
 
-export default function NotificationCenter({ user, onSelectJob }) {
+export default function NotificationCenter({ user }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(3);
-  const [activeTab, setActiveTab] = useState('all'); // all, matched, govt, private, mock-test
   const [pushStatus, setPushStatus] = useState(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       return Notification.permission;
     }
     return 'unsupported';
   });
-  const [showPreferences, setShowPreferences] = useState(false);
-  const [preferences, setPreferences] = useState(() => {
-    try {
-      const stored = localStorage.getItem('jobopedia_notif_prefs');
-      return stored ? JSON.parse(stored) : {
-        govt: true,
-        privateJobs: true,
-        internships: true,
-        mockTests: true
-      };
-    } catch {
-      return { govt: true, privateJobs: true, internships: true, mockTests: true };
-    }
-  });
-
+  const [testSent, setTestSent] = useState(false);
   const [toastAlert, setToastAlert] = useState(null);
   const knownIdsRef = React.useRef(new Set());
   const initialFetchDoneRef = React.useRef(false);
+
+  // Sync current permission status
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setPushStatus(Notification.permission);
+    }
+  }, [isOpen]);
 
   // Auto-fetch & Poll for newly uploaded jobs matching user's degree and interest
   useEffect(() => {
     fetchNotifications();
 
-    // Poll every 12 seconds for newly published jobs
+    // Poll every 15 seconds for newly published jobs
     const interval = setInterval(() => {
       fetchNotifications(true);
-    }, 12000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [user]);
@@ -77,9 +66,6 @@ export default function NotificationCenter({ user, onSelectJob }) {
               // 2. In-App Floating Toast Alert
               setToastAlert(latestItem);
               setTimeout(() => setToastAlert(null), 8000);
-
-              // 3. Increment badge
-              setUnreadCount(prev => prev + newlyAdded.length);
             }
           }
 
@@ -88,11 +74,6 @@ export default function NotificationCenter({ user, onSelectJob }) {
             if (n._id) knownIdsRef.current.add(n._id);
           });
           initialFetchDoneRef.current = true;
-
-          setNotifications(incoming);
-          if (!isBackgroundPoll) {
-            setUnreadCount(Math.min(incoming.length, 5));
-          }
         }
       })
       .catch(err => console.error("Error loading notifications:", err));
@@ -101,7 +82,7 @@ export default function NotificationCenter({ user, onSelectJob }) {
   // Enable Push Notifications for Phone & PC
   const requestDeviceNotifications = async () => {
     if (!('Notification' in window)) {
-      alert("This browser does not support desktop/phone push notifications.");
+      alert("This browser does not support phone/desktop push notifications.");
       return;
     }
 
@@ -110,59 +91,36 @@ export default function NotificationCenter({ user, onSelectJob }) {
       setPushStatus(permission);
 
       if (permission === 'granted') {
-        // Send immediate welcome test notification to device
-        new Notification("🇮🇳 Jobopedia: Notifications Active!", {
-          body: `You will now receive instant job notifications on this ${window.innerWidth < 768 ? 'Mobile Phone' : 'PC / Laptop'} matching your qualification!`,
-          icon: '/images/jobopedia-icon.png'
-        });
+        setTestSent(true);
+        try {
+          new Notification("🇮🇳 Jobopedia: Notifications Active!", {
+            body: `You will now receive instant job notifications on this ${window.innerWidth < 768 ? 'Mobile Phone' : 'PC / Laptop'} matching your qualification!`,
+            icon: '/images/jobopedia-icon.png'
+          });
+        } catch (e) {}
+        setTimeout(() => setTestSent(false), 4000);
+      } else if (permission === 'denied') {
+        alert("Notifications were blocked. Please enable them in your browser settings (tap the lock icon in the address bar).");
       }
     } catch (e) {
       console.error("Notification permission error:", e);
     }
   };
 
-  const handleTogglePref = (key) => {
-    const updated = { ...preferences, [key]: !preferences[key] };
-    setPreferences(updated);
-    localStorage.setItem('jobopedia_notif_prefs', JSON.stringify(updated));
-  };
-
-  const formatTimeAgo = (dateStr) => {
-    if (!dateStr) return 'Recently';
-    const diff = Math.floor((new Date() - new Date(dateStr)) / (1000 * 60));
-    if (diff < 60) return `${Math.max(1, diff)}m ago`;
-    const hours = Math.floor(diff / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  };
-
-  // Filter list
-  const filteredNotifs = notifications.filter(n => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'govt') return n.category === 'govt';
-    if (activeTab === 'private') return n.category === 'private';
-    if (activeTab === 'mock-test') return n.category === 'mock-test';
-    if (activeTab === 'matched') {
-      if (!user?.qualification) return true;
-      const u = user.qualification.toLowerCase();
-      let qList = [];
-      if (Array.isArray(n.targetQualifications) && n.targetQualifications.length > 0) {
-        qList = n.targetQualifications.map(x => String(x).toLowerCase());
-      } else if (n.targetQualification) {
-        qList = String(n.targetQualification).toLowerCase().split(',').map(x => x.trim());
+  const sendTestNotification = () => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification("🇮🇳 Jobopedia Test Alert", {
+          body: "Great! Your phone is ready to receive instant job alerts whenever new vacancies are posted.",
+          icon: '/images/jobopedia-icon.png'
+        });
+        setTestSent(true);
+        setTimeout(() => setTestSent(false), 3000);
+      } catch (e) {
+        console.error(e);
       }
-      const isForAll = qList.length === 0 || qList.some(q => q.includes('all') || q.includes('any') || q.includes('any graduate'));
-      if (isForAll) return true;
-      return qList.some(q => 
-        q.includes(u) || u.includes(q) || 
-        ((q.includes('graduat') || q.includes('degree')) && (u.includes('graduat') || u.includes('b.tech') || u.includes('bca') || u.includes('b.sc') || u.includes('b.com'))) ||
-        (q.includes('12th') && u.includes('12th')) ||
-        (q.includes('10th') && u.includes('10th')) ||
-        ((q.includes('tech') || q.includes('eng')) && (u.includes('tech') || u.includes('eng') || u.includes('cs') || u.includes('it')))
-      );
     }
-    return true;
-  });
+  };
 
   return (
     <div className="relative">
@@ -170,10 +128,7 @@ export default function NotificationCenter({ user, onSelectJob }) {
       {/* Bell Button in Navbar */}
       <button
         type="button"
-        onClick={() => {
-          setIsOpen(!isOpen);
-          if (!isOpen) setUnreadCount(0);
-        }}
+        onClick={() => setIsOpen(true)}
         className={`p-2 rounded-xl transition cursor-pointer relative ${
           isOpen 
             ? 'bg-blue-50 text-blue-600' 
@@ -182,225 +137,163 @@ export default function NotificationCenter({ user, onSelectJob }) {
         title="Job & Career Notifications (Phone & PC)"
         aria-label="Notifications"
       >
-        <Bell className="w-4 h-4" />
-        {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white animate-pulse" />
+        <Bell className="w-5 h-5" />
+        {pushStatus !== 'granted' && (
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white animate-pulse" />
         )}
       </button>
 
-      {/* Dropdown Notification Drawer (Responsive on PC & Phone) */}
+      {/* Clean Centered Notification Modal (No clutter, just Notification ON option) */}
       {isOpen && (
-        <>
-          {/* Backdrop on mobile */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          
+          {/* Backdrop click to close */}
           <div 
-            className="fixed inset-0 z-40 bg-black/20 sm:hidden" 
+            className="fixed inset-0" 
             onClick={() => setIsOpen(false)} 
           />
 
-          <div className="fixed sm:absolute top-16 sm:top-full right-2 sm:right-0 z-50 w-[95vw] sm:w-96 max-w-[420px] bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 flex flex-col max-h-[85vh]">
+          <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-10 animate-in zoom-in-95 duration-150">
             
             {/* Header */}
-            <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-4 sm:p-5 flex items-center justify-between">
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h3 className="font-black text-sm sm:text-base text-white">Job Alerts &amp; Notifications</h3>
-                  <span className="text-[10px] font-bold bg-blue-500/30 text-blue-300 border border-blue-400/30 px-2 py-0.5 rounded-full">
-                    Live
-                  </span>
+            <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-5 flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
+                  <Bell className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-[11px] text-slate-300 mt-0.5">
-                  Targeted alerts for Phone &amp; PC based on your interest
-                </p>
+                <div>
+                  <h3 className="font-black text-base text-white">Job Notifications</h3>
+                  <p className="text-[11px] text-blue-200 font-medium">Phone &amp; Desktop Alerts</p>
+                </div>
               </div>
 
-              <div className="flex items-center space-x-1">
-                <button
-                  type="button"
-                  onClick={() => setShowPreferences(!showPreferences)}
-                  className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition cursor-pointer"
-                  title="Notification Preferences"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Device Push Notification Activation Bar */}
-            <div className="bg-blue-50/80 border-b border-blue-100 p-3 flex items-center justify-between gap-2 text-xs">
-              <div className="flex items-center space-x-2 text-blue-950 font-semibold truncate">
-                {pushStatus === 'granted' ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="truncate">Device Push Alerts: <strong>Active (Phone &amp; PC)</strong></span>
-                  </>
-                ) : (
-                  <>
-                    <Smartphone className="w-4 h-4 text-blue-600 shrink-0" />
-                    <span className="truncate">Get real-time job alerts on this device</span>
-                  </>
-                )}
-              </div>
+            {/* Modal Body: ONLY NOTIFICATION ON OPTION */}
+            <div className="p-6 text-center space-y-5">
+              
+              {pushStatus === 'granted' ? (
+                <>
+                  {/* ALREADY ACTIVE STATE */}
+                  <div className="w-16 h-16 rounded-full bg-emerald-50 border-4 border-emerald-100 mx-auto flex items-center justify-center text-emerald-600 shadow-inner">
+                    <CheckCircle2 className="w-9 h-9" />
+                  </div>
 
-              {pushStatus !== 'granted' && (
-                <button
-                  type="button"
-                  onClick={requestDeviceNotifications}
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-black shrink-0 transition shadow-xs cursor-pointer"
-                >
-                  Turn ON
-                </button>
-              )}
-            </div>
-
-            {/* Preferences Drawer */}
-            {showPreferences && (
-              <div className="bg-slate-50 border-b border-slate-200 p-4 space-y-2 text-xs animate-in fade-in">
-                <div className="font-black text-slate-800 uppercase tracking-wider text-[10px]">
-                  Targeted Interest Settings (Filter Alerts):
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-slate-700 font-bold">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={preferences.govt} 
-                      onChange={() => handleTogglePref('govt')} 
-                      className="rounded text-blue-600 focus:ring-0" 
-                    />
-                    <span>🏛️ Sarkari Jobs</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={preferences.privateJobs} 
-                      onChange={() => handleTogglePref('privateJobs')} 
-                      className="rounded text-blue-600 focus:ring-0" 
-                    />
-                    <span>🏢 Private MNCs</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={preferences.internships} 
-                      onChange={() => handleTogglePref('internships')} 
-                      className="rounded text-blue-600 focus:ring-0" 
-                    />
-                    <span>🎓 Internships</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={preferences.mockTests} 
-                      onChange={() => handleTogglePref('mockTests')} 
-                      className="rounded text-blue-600 focus:ring-0" 
-                    />
-                    <span>⚡ Mock Tests</span>
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {/* Filter Tabs */}
-            <div className="flex border-b border-slate-100 bg-white px-3 pt-2 gap-1 overflow-x-auto scrollbar-none text-[11px] font-bold">
-              {[
-                { id: 'all', label: 'All Alerts' },
-                { id: 'matched', label: '🎓 For My Degree' },
-                { id: 'govt', label: '🏛️ Govt' },
-                { id: 'private', label: '🏢 Corporate' },
-                { id: 'mock-test', label: '📝 CBT' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`pb-2 px-2.5 transition whitespace-nowrap cursor-pointer border-b-2 ${
-                    activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600 font-extrabold'
-                      : 'border-transparent text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Notifications Scroll List */}
-            <div className="divide-y divide-slate-100 overflow-y-auto flex-1 p-2 space-y-1">
-              {filteredNotifs.length === 0 ? (
-                <div className="py-10 text-center text-slate-400 text-xs">
-                  No notifications matching your filter.
-                </div>
-              ) : (
-                filteredNotifs.map(n => {
-                  const isGovt = n.category === 'govt';
-                  const isPrivate = n.category === 'private';
-                  const isMock = n.category === 'mock-test';
-
-                  return (
-                    <div 
-                      key={n._id || n.id}
-                      className="p-3 rounded-2xl hover:bg-slate-50 transition space-y-2 border border-transparent hover:border-slate-100"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center space-x-2">
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${
-                            isGovt ? 'bg-blue-600' : isPrivate ? 'bg-emerald-500' : 'bg-amber-500'
-                          }`} />
-                          <h4 className="text-xs font-black text-slate-900 leading-snug">
-                            {n.title}
-                          </h4>
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-semibold shrink-0">
-                          {formatTimeAgo(n.createdAt)}
-                        </span>
-                      </div>
-
-                      <p className="text-[11px] text-slate-600 leading-relaxed pl-4">
-                        {n.message}
-                      </p>
-
-                      <div className="flex items-center justify-between pl-4 pt-1">
-                        <div className="flex items-center space-x-1.5 text-[10px]">
-                          <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">
-                            {n.targetQualification || 'All Degrees'}
-                          </span>
-                          <span className="text-slate-400">•</span>
-                          <span className="text-slate-500 font-semibold">
-                            {n.targetState || 'All India'}
-                          </span>
-                        </div>
-
-                        <a
-                          href={n.url || 'https://jobopedia.in'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-0.5 cursor-pointer"
-                        >
-                          <span>Open</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
+                  <div className="space-y-1.5">
+                    <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Notifications Active (ચાલુ છે)</span>
                     </div>
-                  );
-                })
+                    <h4 className="text-lg font-black text-slate-900 pt-1">
+                      તમારા ફોનમાં નોટિફિકેશન ચાલુ છે!
+                    </h4>
+                    <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
+                      નવી સરકારી ભરતી કે પ્રાઈવેટ જોબ અપલોડ થતાં જ તમારા આ ફોન પર સીધા ફ્રી એલર્ટ મળતા રહેશે.
+                    </p>
+                  </div>
+
+                  <div className="pt-2 space-y-2">
+                    <button
+                      type="button"
+                      onClick={sendTestNotification}
+                      className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
+                    >
+                      <Volume2 className="w-4 h-4 text-emerald-400" />
+                      <span>{testSent ? '✓ Test Alert Sent to Device!' : 'Send Test Notification (ચેક કરો)'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsOpen(false)}
+                      className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-bold transition cursor-pointer"
+                    >
+                      બંધ કરો (Close)
+                    </button>
+                  </div>
+                </>
+              ) : pushStatus === 'denied' ? (
+                <>
+                  {/* BLOCKED IN BROWSER STATE */}
+                  <div className="w-16 h-16 rounded-full bg-amber-50 border-4 border-amber-100 mx-auto flex items-center justify-center text-amber-600 shadow-inner">
+                    <AlertCircle className="w-9 h-9" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-black uppercase tracking-wider">
+                      <span>Permissions Blocked</span>
+                    </div>
+                    <h4 className="text-base font-black text-slate-900 pt-1">
+                      Browser માં નોટિફિકેશન Block થયેલ છે
+                    </h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      ચાલુ કરવા માટે ઉપર બ્રાઉઝરના URL ની બાજુમાં <strong>તાળા (🔒 Lock)</strong> ના આઇકોન પર ક્લિક કરીને <strong>Notifications: Allow</strong> સિલેક્ટ કરો.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+                  >
+                    સમજાયું (OK)
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* NOT YET ENABLED: PRIMARY TURN ON STATE */}
+                  <div className="w-16 h-16 rounded-full bg-blue-50 border-4 border-blue-100 mx-auto flex items-center justify-center text-blue-600 shadow-inner animate-bounce">
+                    <Smartphone className="w-8 h-8" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <h4 className="text-lg font-black text-slate-900">
+                      Job Notifications ચાલુ કરો
+                    </h4>
+                    <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
+                      નવી ભરતી અપલોડ થતાં જ તમારા મોબાઈલ પર સીધા ફ્રી એલર્ટ મેળવવા માટે નોટિફિકેશન On કરો.
+                    </p>
+                  </div>
+
+                  <div className="pt-2 space-y-2">
+                    <button
+                      type="button"
+                      onClick={requestDeviceNotifications}
+                      className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-sm shadow-lg shadow-blue-500/25 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
+                    >
+                      <Bell className="w-5 h-5 text-amber-300 animate-pulse" />
+                      <span>🔔 Turn ON Notifications (ઓન કરો)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsOpen(false)}
+                      className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-bold transition cursor-pointer"
+                    >
+                      પછી કરીશ (Not Now)
+                    </button>
+                  </div>
+                </>
               )}
+
             </div>
 
-            {/* Bottom Clear / Dismiss */}
-            <div className="bg-slate-50 p-2.5 border-t border-slate-100 text-center">
-              <span className="text-[11px] font-semibold text-slate-500">
-                Personalized for {user?.qualification || 'All Degrees'} • {user?.state || 'National'}
+            {/* Bottom micro note */}
+            <div className="bg-slate-50 px-5 py-3 border-t border-slate-100 text-center">
+              <span className="text-[11px] font-semibold text-slate-500 flex items-center justify-center space-x-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>100% Free Job Alerts • No Spam</span>
               </span>
             </div>
 
           </div>
-        </>
+        </div>
       )}
 
       {/* Floating In-App Real-time Push Alert Banner */}
@@ -413,7 +306,7 @@ export default function NotificationCenter({ user, onSelectJob }) {
               </span>
               <div className="space-y-1">
                 <div className="text-[10px] font-black uppercase tracking-wider text-amber-400">
-                  ⚡ New Job Matching Your Qualification!
+                  ⚡ New Job Posted!
                 </div>
                 <div className="text-xs font-extrabold text-white line-clamp-1">
                   {toastAlert.title}
@@ -429,19 +322,6 @@ export default function NotificationCenter({ user, onSelectJob }) {
               className="text-slate-400 hover:text-white text-xs font-bold p-1 cursor-pointer"
             >
               ✕
-            </button>
-          </div>
-          <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-[11px]">
-            <span className="text-slate-400 font-semibold">Degree: {toastAlert.targetQualification || 'All'}</span>
-            <button
-              type="button"
-              onClick={() => {
-                setToastAlert(null);
-                setIsOpen(true);
-              }}
-              className="text-blue-400 hover:text-blue-300 font-bold cursor-pointer"
-            >
-              View in Notification Center →
             </button>
           </div>
         </div>
