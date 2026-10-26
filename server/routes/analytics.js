@@ -180,6 +180,18 @@ router.get('/stats', async (req, res) => {
       .sort((a, b) => b.percentage - a.percentage)
       .slice(0, 6);
 
+    // 5. RECENT REAL ACTUAL VISITORS STREAM (Last 30 genuine visitors)
+    const recentVisitors = allLogs.slice(0, 30).map(l => ({
+      id: l._id ? l._id.toString() : 'log-' + Math.random(),
+      timestamp: l.createdAt || l.timestamp || new Date(),
+      date: l.date || todayStr,
+      page: l.page || 'home',
+      deviceType: l.deviceType || 'Desktop',
+      browser: l.browser || 'Browser',
+      state: l.state || 'All India',
+      ip: (l.ip && l.ip !== '::1' && l.ip !== '127.0.0.1') ? l.ip : 'Direct Visitor'
+    }));
+
     res.json({
       success: true,
       isRealDataOnly: true,
@@ -195,7 +207,8 @@ router.get('/stats', async (req, res) => {
       dateWise,
       monthWise,
       topPages,
-      topStates
+      topStates,
+      recentVisitors
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

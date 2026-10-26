@@ -426,6 +426,20 @@ export default function AdminDashboard({ setCurrentView, user }) {
     fetchComplaints();
   }, []);
 
+  // Live auto-refresh of visitor analytics every 5 seconds when Dhaval is viewing
+  useEffect(() => {
+    let interval = null;
+    if (activeTab === 'dhaval') {
+      fetchAnalytics();
+      interval = setInterval(() => {
+        fetchAnalytics();
+      }, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [activeTab]);
+
   const handleUploadJobMcqs = async () => {
     if (!selectedJobForMcq) return;
     try {
@@ -1230,50 +1244,133 @@ export default function AdminDashboard({ setCurrentView, user }) {
               </div>
             </div>
 
-            {/* Live Traffic Summary Metric Cards */}
+            {/* Live Traffic Summary Metric Cards (100% REAL DATA FROM MONGODB) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 space-y-1">
-                <div className="text-[11px] font-black uppercase tracking-wider text-blue-600">Total Lifetime Visits</div>
-                <div className="text-2xl sm:text-3xl font-black text-slate-900">
-                  {analyticsData?.summary?.totalLifetimeVisits?.toLocaleString('en-IN') || '88,860'}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 space-y-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-blue-700 flex items-center justify-between">
+                  <span>Total Real Visits</span>
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                 </div>
-                <div className="text-[11px] text-blue-700/80 font-semibold flex items-center space-x-1">
-                  <TrendingUp className="w-3 h-3 text-emerald-600" />
-                  <span>+18.4% month-over-month</span>
+                <div className="text-3xl font-black text-slate-900">
+                  {analyticsData?.summary?.totalLifetimeVisits ?? 0}
+                </div>
+                <div className="text-[11px] text-blue-700 font-semibold">
+                  Actual visitors recorded in database
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 space-y-1">
-                <div className="text-[11px] font-black uppercase tracking-wider text-emerald-700">Today's Live Visitors</div>
-                <div className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center space-x-2">
-                  <span>{analyticsData?.summary?.todayVisits || '580'}</span>
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 space-y-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-emerald-700 flex items-center justify-between">
+                  <span>Today's Real Visitors</span>
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
                 </div>
-                <div className="text-[11px] text-emerald-700/80 font-semibold">
-                  Date: {analyticsData?.summary?.todayDate || '2026-10-26'}
+                <div className="text-3xl font-black text-slate-900">
+                  {analyticsData?.summary?.todayVisits ?? 0}
+                </div>
+                <div className="text-[11px] text-emerald-700 font-semibold">
+                  Live for {analyticsData?.summary?.todayDate || 'Today'}
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 space-y-1">
-                <div className="text-[11px] font-black uppercase tracking-wider text-amber-700">This Month (October 2026)</div>
-                <div className="text-2xl sm:text-3xl font-black text-slate-900">
-                  {analyticsData?.summary?.thisMonthVisits?.toLocaleString('en-IN') || '21,640'}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 space-y-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-amber-700">
+                  This Month's Real Traffic
                 </div>
-                <div className="text-[11px] text-amber-700/80 font-semibold">
-                  Active job seekers across India
+                <div className="text-3xl font-black text-slate-900">
+                  {analyticsData?.summary?.thisMonthVisits ?? 0}
+                </div>
+                <div className="text-[11px] text-amber-700 font-semibold">
+                  Month: {analyticsData?.summary?.currentMonth || 'Current'}
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 space-y-1">
-                <div className="text-[11px] font-black uppercase tracking-wider text-purple-700">Device Platform Ratio</div>
-                <div className="text-xl sm:text-2xl font-black text-slate-900 flex items-center space-x-2">
-                  <span className="text-blue-600">63% 📱</span>
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 space-y-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-purple-700">
+                  Device Breakdown
+                </div>
+                <div className="text-xl font-black text-slate-900 flex items-center space-x-2">
+                  <span className="text-blue-600">{analyticsData?.summary?.mobileRatio ?? 0}% 📱</span>
                   <span className="text-slate-400">/</span>
-                  <span className="text-emerald-600">37% 💻</span>
+                  <span className="text-emerald-600">{analyticsData?.summary?.desktopRatio ?? 0}% 💻</span>
                 </div>
-                <div className="text-[11px] text-purple-700/80 font-semibold">
-                  63% Mobile Phone • 37% Desktop PC
+                <div className="text-[11px] text-purple-700 font-semibold">
+                  {analyticsData?.summary?.mobileRatio ?? 0}% Mobile • {analyticsData?.summary?.desktopRatio ?? 0}% Desktop
                 </div>
+              </div>
+            </div>
+
+            {/* Real Recent Visitors Live Stream */}
+            <div className="space-y-3 p-5 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-white">
+                    🔴 Live Real-Time Visitor Activity Stream (વાસ્તવિક મુલાકાતીઓ)
+                  </h3>
+                </div>
+                <span className="text-[11px] text-emerald-400 font-bold bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-800">
+                  Live Log: Auto-updating every 5s
+                </span>
+              </div>
+
+              <div className="overflow-x-auto max-h-72 overflow-y-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-800/80 text-slate-300 uppercase font-black text-[10px] tracking-wider sticky top-0">
+                    <tr>
+                      <th className="py-2.5 px-3">Visit Time</th>
+                      <th className="py-2.5 px-3">Page Visited</th>
+                      <th className="py-2.5 px-3">Device Platform</th>
+                      <th className="py-2.5 px-3">Candidate State</th>
+                      <th className="py-2.5 px-3">Connection Info</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 font-medium text-[11px]">
+                    {(!analyticsData?.recentVisitors || analyticsData.recentVisitors.length === 0) ? (
+                      <tr>
+                        <td colSpan="5" className="py-6 text-center text-slate-400">
+                          Waiting for live visitors... Open the website on your phone to see your entry appear here!
+                        </td>
+                      </tr>
+                    ) : (
+                      analyticsData.recentVisitors.map((v, i) => (
+                        <tr key={v.id || i} className="hover:bg-slate-800/50 transition">
+                          <td className="py-2 px-3 text-slate-300 font-mono">
+                            {new Date(v.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="font-bold text-amber-300 capitalize">
+                              {v.page === 'home' ? '🏠 Home Page' :
+                               v.page === 'govt' ? '🏛️ Govt Jobs' :
+                               v.page === 'private' ? '🏢 Private Jobs' :
+                               v.page === 'internships' ? '🎓 Internships' :
+                               v.page === 'job-detail' ? '📋 Job Detail Page' :
+                               v.page === 'user-dashboard' ? '👤 Candidate Panel' :
+                               v.page === 'admin' ? '⚙️ Admin Dashboard' :
+                               v.page}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3">
+                            {v.deviceType === 'Mobile' ? (
+                              <span className="inline-flex items-center space-x-1 text-blue-400 font-bold bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/60">
+                                <span>📱 Mobile Phone</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center space-x-1 text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
+                                <span>💻 Desktop PC</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3 text-slate-300 font-semibold">
+                            📍 {v.state || 'All India'}
+                          </td>
+                          <td className="py-2 px-3 text-slate-400 font-mono text-[10px]">
+                            {v.browser} • {v.ip}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
 
@@ -1342,10 +1439,10 @@ export default function AdminDashboard({ setCurrentView, user }) {
                             {d.totalVisits.toLocaleString('en-IN')}
                           </td>
                           <td className="py-2.5 px-4 text-slate-700">
-                            {d.mobileVisits} <span className="text-[10px] text-slate-400">({Math.round((d.mobileVisits/d.totalVisits)*100)}%)</span>
+                            {d.mobileVisits} <span className="text-[10px] text-slate-400">({d.totalVisits ? Math.round((d.mobileVisits/d.totalVisits)*100) : 0}%)</span>
                           </td>
                           <td className="py-2.5 px-4 text-slate-700">
-                            {d.desktopVisits} <span className="text-[10px] text-slate-400">({Math.round((d.desktopVisits/d.totalVisits)*100)}%)</span>
+                            {d.desktopVisits} <span className="text-[10px] text-slate-400">({d.totalVisits ? Math.round((d.desktopVisits/d.totalVisits)*100) : 0}%)</span>
                           </td>
                           <td className="py-2.5 px-4 text-emerald-700 font-bold">
                             {d.uniqueVisitors}

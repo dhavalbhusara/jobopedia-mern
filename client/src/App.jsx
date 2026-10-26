@@ -78,13 +78,17 @@ export default function App() {
   // Auto-track website traffic for Dhaval's Analytics Dashboard
   useEffect(() => {
     try {
-      const deviceType = window.innerWidth < 768 ? 'Mobile' : (window.innerWidth < 1024 ? 'Tablet' : 'Desktop');
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+      const deviceType = isMobileDevice ? 'Mobile' : 'Desktop';
+      const browser = navigator.userAgent.includes('Chrome') ? 'Chrome' : (navigator.userAgent.includes('Firefox') ? 'Firefox' : (navigator.userAgent.includes('Safari') ? 'Safari' : 'Browser'));
+
       fetch('/api/analytics/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           page: currentView,
           deviceType,
+          browser,
           state: user?.state || 'All India'
         })
       }).catch(() => {});
