@@ -3,7 +3,7 @@ import { Briefcase, MapPin, IndianRupee, GraduationCap, Building2, ExternalLink,
 import JobDetailsModal from '../components/JobDetailsModal';
 import { ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function InternshipsPage({ setCurrentView }) {
+export default function InternshipsPage({ setCurrentView, onSelectJob }) {
   const [internships, setInternships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState('ALL');
@@ -218,7 +218,10 @@ export default function InternshipsPage({ setCurrentView }) {
               </span>
               <button
                 type="button"
-                onClick={() => setSelectedJobModal(item)}
+                onClick={() => {
+                  if (onSelectJob) onSelectJob(item);
+                  else setSelectedJobModal(item);
+                }}
                 className="px-4 py-2 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
               >
                 <span>View Scope &amp; Apply</span>

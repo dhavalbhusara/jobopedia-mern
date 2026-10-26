@@ -11,6 +11,8 @@ const JobSchema = new mongoose.Schema({
   vacancies: { type: Number, default: 1 },
   lastDate: { type: String, default: '2026-12-31' },
   dayNumber: { type: Number, default: 1 }, // 1 to 7 for weekly calendar
+  ageLimit: { type: String, default: '18 - 35 Years' },
+  selectionProcess: { type: String, default: 'Online Computer Based Test (CBT) & Document Verification' },
   description: { type: String, required: true },
   eligibility: { type: String, default: 'Any Graduate / Relevant Degree' },
   applyUrl: { type: String, default: 'https://jobopedia.in' },

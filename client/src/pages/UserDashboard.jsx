@@ -10,7 +10,7 @@ import WeeklyGovtJobCalendar from '../components/WeeklyGovtJobCalendar';
 import JobDetailsModal from '../components/JobDetailsModal';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function UserDashboard({ user, setUser, setCurrentView, openResumeModal }) {
+export default function UserDashboard({ user, setUser, setCurrentView, openResumeModal, onSelectJob }) {
   const [activeTab, setActiveTab] = useState('recommended');
   const [jobs, setJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
@@ -455,7 +455,10 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
 
                         <button
                           type="button"
-                          onClick={() => setSelectedJobModal(job)}
+                          onClick={() => {
+                            if (onSelectJob) onSelectJob(job);
+                            else setSelectedJobModal(job);
+                          }}
                           className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
                         >
                           <span>View Details &amp; Apply</span>
@@ -526,7 +529,10 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                         <span className="text-xs font-bold text-rose-600">Deadline: {job.lastDate || 'Ongoing'}</span>
                         <button
                           type="button"
-                          onClick={() => setSelectedJobModal(job)}
+                          onClick={() => {
+                            if (onSelectJob) onSelectJob(job);
+                            else setSelectedJobModal(job);
+                          }}
                           className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
                         >
                           <span>View Official Details</span>
@@ -639,7 +645,7 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
         {/* Tab 5: Weekly Govt Job Calendar (Auto Synced with MongoDB) */}
         {activeTab === 'calendar' && (
           <div className="space-y-4">
-            <WeeklyGovtJobCalendar />
+            <WeeklyGovtJobCalendar onSelectJob={onSelectJob} />
           </div>
         )}
 

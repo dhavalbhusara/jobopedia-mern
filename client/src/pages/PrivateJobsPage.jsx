@@ -3,7 +3,7 @@ import { Building2, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, S
 import JobDetailsModal from '../components/JobDetailsModal';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function PrivateJobsPage({ setCurrentView }) {
+export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -233,7 +233,10 @@ export default function PrivateJobsPage({ setCurrentView }) {
 
             <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
               <button
-                onClick={() => setSelectedJobModal(job)}
+                onClick={() => {
+                  if (onSelectJob) onSelectJob(job);
+                  else setSelectedJobModal(job);
+                }}
                 className="px-5 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
               >
                 <span>View Details &amp; Apply</span>

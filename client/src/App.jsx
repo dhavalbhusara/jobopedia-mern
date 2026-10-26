@@ -14,6 +14,7 @@ import AiAssistant from './components/AiAssistant';
 import ResumeBuilder from './components/ResumeBuilder';
 import AuthModal from './components/AuthModal';
 import JobDetailsModal from './components/JobDetailsModal';
+import JobDetailPage from './pages/JobDetailPage';
 import Footer from './components/Footer';
 
 export default function App() {
@@ -78,14 +79,33 @@ export default function App() {
     } catch (e) {}
   }, [currentView]);
 
+  const handleOpenJobDetail = (job) => {
+    setSelectedJob(job);
+    setCurrentView('job-detail');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const renderCurrentView = () => {
     switch (currentView) {
+      case 'job-detail':
+        return (
+          <JobDetailPage 
+            job={selectedJob} 
+            setCurrentView={setCurrentView}
+            onStartMockTest={(j) => {
+              setSelectedJob(j);
+              setCurrentView('mock-tests');
+            }}
+          />
+        );
       case 'govt':
-        return <GovtJobsPage setCurrentView={setCurrentView} />;
+        return <GovtJobsPage setCurrentView={setCurrentView} onSelectJob={handleOpenJobDetail} />;
       case 'private':
-        return <PrivateJobsPage setCurrentView={setCurrentView} />;
+        return <PrivateJobsPage setCurrentView={setCurrentView} onSelectJob={handleOpenJobDetail} />;
       case 'internships':
-        return <InternshipsPage setCurrentView={setCurrentView} />;
+        return <InternshipsPage setCurrentView={setCurrentView} onSelectJob={handleOpenJobDetail} />;
       case 'mock-tests':
         return <MockTestsPage setCurrentView={setCurrentView} />;
       case 'preparation':
@@ -103,6 +123,7 @@ export default function App() {
             setUser={setUser}
             setCurrentView={setCurrentView} 
             openResumeModal={() => setIsResumeModalOpen(true)}
+            onSelectJob={handleOpenJobDetail}
           />
         );
       case 'home':
@@ -113,6 +134,7 @@ export default function App() {
             setCurrentView={setCurrentView}
             openResumeModal={() => setIsResumeModalOpen(true)}
             openAuthModal={() => handleOpenAuth(true)}
+            onSelectJob={handleOpenJobDetail}
           />
         );
     }
@@ -127,7 +149,7 @@ export default function App() {
         openAuthModal={handleOpenAuth}
         user={user}
         onLogout={handleLogout}
-        onSelectJob={setSelectedJob}
+        onSelectJob={handleOpenJobDetail}
       />
 
       <main className="flex-1 pb-16 md:pb-0">

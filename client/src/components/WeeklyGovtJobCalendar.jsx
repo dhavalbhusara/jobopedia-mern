@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Landmark, Sparkles, DollarSign, FileText, ExternalLink, ArrowRight, X } from 'lucide-react';
 
-export default function WeeklyGovtJobCalendar() {
+export default function WeeklyGovtJobCalendar({ onSelectJob }) {
   const [calendarData, setCalendarData] = useState(null);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
   const [selectedDayNum, setSelectedDayNum] = useState(2);
@@ -272,20 +272,24 @@ export default function WeeklyGovtJobCalendar() {
 
                     <div className="pt-2 border-t border-white/10 flex items-center gap-2">
                       <button
-                        onClick={() => setModalJob(job)}
+                        onClick={() => {
+                          if (onSelectJob) onSelectJob(job);
+                          else setModalJob(job);
+                        }}
                         className="flex-1 py-2 px-3 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-bold text-center transition cursor-pointer"
                       >
                         સંપૂર્ણ વિગતો / View Details
                       </button>
-                      <a
-                        href={job.applyUrl || 'https://jobopedia.in'}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => {
+                          if (onSelectJob) onSelectJob(job);
+                          else setModalJob(job);
+                        }}
                         className="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shrink-0 shadow-md cursor-pointer"
                       >
-                        <span>Apply Official</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                        <span>Apply &amp; Details</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 ))}

@@ -54,14 +54,54 @@ export default function AdminDashboard({ setCurrentView, user }) {
     "category": "govt",
     "sector": "GOVERNMENT",
     "state": "Central",
-    "qualification": "Graduate",
-    "salary": "₹52,000 - ₹1,40,000 / month",
+    "qualification": "Graduate in any stream",
+    "salary": "₹52,000 - ₹1,40,000 / month (Level 7 Pay Matrix)",
     "vacancies": 450,
+    "ageLimit": "20 - 30 Years",
     "lastDate": "2026-11-28",
     "dayNumber": 3,
-    "applyUrl": "https://jobopedia.in",
-    "notificationUrl": "https://mea.gov.in/official-notification.pdf",
-    "description": "Foreign posting allowance, diplomatic consular duties, and administrative coordination in Indian embassies abroad."
+    "applyUrl": "https://ssc.gov.in",
+    "notificationUrl": "https://mea.gov.in/official-recruitment-notification-2026.pdf",
+    "description": "Ministry of External Affairs invites online applications for Assistant Section Officer (ASO) posts. Appointed officers will manage diplomatic consular files, coordinate international summits, and serve postings in Indian Embassies and Consulates abroad with diplomatic passport status, foreign allowances, and government housing.",
+    "eligibility": "Bachelor's Degree from a recognized University. Candidate must have basic computer proficiency and typing speed of 35 wpm in English or 30 wpm in Hindi.",
+    "selectionProcess": "Tier-1 Computer Based Objective Test -> Tier-2 Written Descriptive & Typing Test -> Document Verification & Medical Examination",
+    "tags": ["ASO", "MEA", "SSC CGL", "Central Govt"]
+  },
+  {
+    "title": "Senior Cloud Software Engineer - AWS & React",
+    "department": "Tata Consultancy Services (TCS Digital)",
+    "category": "private",
+    "sector": "IT / SOFTWARE",
+    "state": "Gujarat",
+    "qualification": "B.Tech / B.E / MCA / M.Sc (IT / CS)",
+    "salary": "₹7,50,000 - ₹14,00,000 / year + Performance Bonus",
+    "vacancies": 120,
+    "ageLimit": "21 - 32 Years",
+    "lastDate": "2026-12-15",
+    "applyUrl": "https://www.tcs.com/careers",
+    "notificationUrl": "https://www.tcs.com/careers/job-description-digital.pdf",
+    "description": "TCS Digital is hiring Full Stack Engineers to build enterprise microservices on AWS and Node.js. Responsibilities include building scalable REST APIs, containerization using Docker & Kubernetes, designing responsive frontends in React & Tailwind CSS, and collaborating with global client architects.",
+    "eligibility": "B.E. / B.Tech / MCA with minimum 60% aggregate. Proficiency in JavaScript, React, Node.js, and cloud deployments.",
+    "selectionProcess": "TCS NQT Online Aptitude & Coding Assessment -> Technical Interview Round -> HR Discussion",
+    "tags": ["TCS", "Software Engineer", "Full Stack", "Private MNC"]
+  },
+  {
+    "title": "Public Policy & Urban Governance Internship 2026",
+    "department": "NITI Aayog (Government of India)",
+    "category": "internship",
+    "sector": "PUBLIC POLICY",
+    "state": "Delhi NCR",
+    "qualification": "Graduate / Post Graduate Students",
+    "salary": "₹15,000 / month Stipend + Official Certificate",
+    "vacancies": 60,
+    "ageLimit": "19 - 28 Years",
+    "lastDate": "2026-11-30",
+    "applyUrl": "https://www.niti.gov.in/internship",
+    "notificationUrl": "https://www.niti.gov.in/guidelines-internship-scheme.pdf",
+    "description": "NITI Aayog internship scheme offers students exposure to government policy formulation, data analytics, and socio-economic research. Interns work directly with senior Advisors and Vertical Heads on national flagship initiatives such as Atal Innovation Mission, Aspirational Districts, and Green Energy.",
+    "eligibility": "Undergraduate students appearing for final semester or postgraduate/research scholars studying in recognized institutions.",
+    "selectionProcess": "Scrutiny of Academic Merits & Statement of Purpose (SOP) followed by online interaction.",
+    "tags": ["NITI Aayog", "Internship", "Govt Internship", "Stipend"]
   }
 ]`);
 
@@ -989,16 +1029,31 @@ export default function AdminDashboard({ setCurrentView, user }) {
               <div className="border-b border-slate-100 pb-3">
                 <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
                   <span>📁</span>
-                  <span>Bulk Jobs JSON Uploader</span>
+                  <span>Bulk Jobs JSON Uploader (Full Details &amp; Description)</span>
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">Upload multiple Sarkari &amp; Corporate vacancies to MongoDB Atlas in 1-click.</p>
+                <p className="text-xs text-slate-500 font-medium">Upload multiple Sarkari, Corporate &amp; Internship vacancies with complete descriptions to MongoDB Atlas.</p>
+              </div>
+
+              {/* JSON Field Reference Guide */}
+              <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-2xl text-[11px] space-y-1.5">
+                <div className="font-black text-blue-900 uppercase tracking-wide">Supported JSON Fields:</div>
+                <div className="flex flex-wrap gap-1 text-[10px] font-mono">
+                  {['title', 'department', 'category', 'sector', 'state', 'qualification', 'salary', 'vacancies', 'ageLimit', 'lastDate', 'dayNumber', 'applyUrl', 'notificationUrl', 'description', 'eligibility', 'selectionProcess', 'tags'].map(f => (
+                    <span key={f} className="px-1.5 py-0.5 bg-white border border-blue-200 text-blue-800 rounded font-bold">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[10px] text-blue-700/80">
+                  Tip: <code>description</code>, <code>eligibility</code>, and <code>selectionProcess</code> can include full multi-line details. When candidates click Apply, they redirect to the dedicated Job Detail Page!
+                </p>
               </div>
 
               <textarea
                 value={jobsJson}
                 onChange={(e) => setJobsJson(e.target.value)}
-                rows="10"
-                className="w-full font-mono text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+                rows="14"
+                className="w-full font-mono text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none leading-relaxed"
               />
 
               <button

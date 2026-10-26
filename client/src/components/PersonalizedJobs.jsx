@@ -7,7 +7,7 @@ import {
 import JobDetailsModal from './JobDetailsModal';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function PersonalizedJobs({ externalSearch = '', onStartMockTest }) {
+export default function PersonalizedJobs({ externalSearch = '', onStartMockTest, onSelectJob }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('all'); // all, govt, private, internship
@@ -247,7 +247,10 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest 
                   {/* Title & Dept */}
                   <div>
                     <h3 
-                      onClick={() => setSelectedJobForModal(job)}
+                      onClick={() => {
+                        if (onSelectJob) onSelectJob(job);
+                        else setSelectedJobForModal(job);
+                      }}
                       className="text-base font-black text-slate-900 group-hover:text-blue-600 transition leading-snug cursor-pointer line-clamp-2"
                     >
                       {job.title}
@@ -283,14 +286,17 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest 
                   </p>
                 </div>
 
-                {/* Actions: DIRECTLY OPENS OFFICIAL JOB DETAILS MODAL (NO WHATSAPP!) */}
+                {/* Actions: REDIRECTS TO FULL JOB DETAILS PAGE (NO WHATSAPP!) */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
                   <span className="text-[10px] font-bold text-slate-400">
                     Till: {job.lastDate || 'Closing Soon'}
                   </span>
 
                   <button
-                    onClick={() => setSelectedJobForModal(job)}
+                    onClick={() => {
+                      if (onSelectJob) onSelectJob(job);
+                      else setSelectedJobForModal(job);
+                    }}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-sm cursor-pointer"
                   >
                     <span>View &amp; Apply</span>
