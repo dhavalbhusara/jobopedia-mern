@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Job = require('../models/Job');
 const MockTest = require('../models/MockTest');
 const Application = require('../models/Application');
@@ -138,6 +139,61 @@ router.post('/jobs/:jobId/mcqs', async (req, res) => {
       success: true,
       message: `Successfully uploaded and linked ${questions.length} MCQs to this Government Job!`,
       test: savedTest
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/admin/jobs - Fetch all jobs across categories for search & management
+router.get('/jobs', async (req, res) => {
+  try {
+    const { search, category } = req.query;
+    let query = {};
+
+    if (category && category !== 'all') {
+      query.category = category;
+    }
+
+    if (search && search.trim() !== '') {
+      const regex = new RegExp(search.trim(), 'i');
+      query.$or = [
+        { title: regex },
+        { department: regex },
+        { state: regex },
+        { qualification: regex },
+        { sector: regex }
+      ];
+    }
+
+    let jobs = await Job.find(query).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, count: jobs.length, jobs });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/admin/jobs/:jobId - Remove / Delete a job from MongoDB
+router.delete('/jobs/:jobId', async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    let deletedJob = null;
+
+    if (mongoose.Types.ObjectId.isValid(jobId)) {
+      deletedJob = await Job.findByIdAndDelete(jobId);
+    } else {
+      deletedJob = await Job.findOneAndDelete({ _id: jobId });
+    }
+
+    // Also remove any mock test linked to this job
+    try {
+      await MockTest.deleteMany({ jobId });
+    } catch (e) {}
+
+    res.json({
+      success: true,
+      message: `Job "${deletedJob?.title || jobId}" successfully removed from MongoDB Atlas!`,
+      jobId
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

@@ -284,4 +284,20 @@ router.post('/', async (req, res) => {
   }
 });
 
+// DELETE /api/jobs/:id (Remove job)
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let deleted = null;
+    try {
+      deleted = await Job.findByIdAndDelete(id);
+    } catch (e) {
+      deleted = await Job.findOneAndDelete({ _id: id });
+    }
+    res.json({ success: true, message: "Job deleted successfully", id });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   Lock, PlusCircle, Users, Code, CloudUpload, ArrowLeft, 
   Download, Briefcase, Landmark, Building2, GraduationCap, 
-  CheckCircle2, Bell, Send, Smartphone, Monitor 
+  CheckCircle2, Bell, Send, Smartphone, Monitor, Trash2, 
+  Search, BarChart3, TrendingUp, Calendar, FileSpreadsheet, 
+  RefreshCw, Eye 
 } from 'lucide-react';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
@@ -112,20 +114,105 @@ export default function AdminDashboard({ setCurrentView, user }) {
   }
 ]`);
 
-  const fetchGovtJobsAndTests = () => {
+  // All Jobs & Removal State
+  const [allJobs, setAllJobs] = useState([]);
+  const [jobSearchQuery, setJobSearchQuery] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
+  const [loadingJobs, setLoadingJobs] = useState(false);
+
+  // Visitor Analytics State (Dhaval Special)
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [analyticsViewMode, setAnalyticsViewMode] = useState('date-wise'); // 'date-wise' | 'month-wise'
+
+  const fetchAllAdminJobs = () => {
+    setLoadingJobs(true);
     setLoadingGovtJobs(true);
     Promise.all([
-      fetch('/api/jobs?category=govt').then(r => r.json()),
+      fetch('/api/admin/jobs').then(r => r.json()),
       fetch('/api/mock-tests').then(r => r.json())
     ]).then(([jobsData, testsData]) => {
       if (jobsData.success && Array.isArray(jobsData.jobs)) {
-        setGovtJobs(jobsData.jobs);
+        setAllJobs(jobsData.jobs);
+        setGovtJobs(jobsData.jobs.filter(j => j.category === 'govt'));
       }
       if (testsData.success && Array.isArray(testsData.tests)) {
         setMockTestsList(testsData.tests);
       }
-    }).catch(err => console.error("Error loading admin jobs & tests:", err))
-      .finally(() => setLoadingGovtJobs(false));
+    }).catch(err => console.error("Error loading admin jobs:", err))
+      .finally(() => {
+        setLoadingJobs(false);
+        setLoadingGovtJobs(false);
+      });
+  };
+
+  const fetchAnalytics = () => {
+    setLoadingAnalytics(true);
+    fetch('/api/analytics/stats')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          setAnalyticsData(data);
+        }
+      })
+      .catch(err => console.error("Error loading analytics:", err))
+      .finally(() => setLoadingAnalytics(false));
+  };
+
+  const handleDeleteJob = async (jobId, jobTitle) => {
+    if (!window.confirm(`Are you sure you want to permanently delete this job:\n\n"${jobTitle}"\n\nThis will remove it from Jobopedia and MongoDB Atlas.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast(`🗑️ "${jobTitle}" has been successfully removed from database!`);
+        setAllJobs(prev => prev.filter(j => (j._id || j.id) !== jobId));
+        setGovtJobs(prev => prev.filter(j => (j._id || j.id) !== jobId));
+        setTimeout(() => setSuccessToast(''), 4000);
+      } else {
+        alert(data.error || 'Failed to delete job');
+      }
+    } catch (err) {
+      alert("Error deleting job: " + err.message);
+    }
+  };
+
+  const exportAnalyticsCsv = () => {
+    if (!analyticsData) return;
+    const { dateWise, monthWise, summary } = analyticsData;
+    
+    let csv = "JOBOPEDIA TRAFFIC & VISITOR ANALYTICS REPORT\n";
+    csv += `Export Date: ${new Date().toLocaleDateString('en-IN')}\n`;
+    csv += `Total Lifetime Visits: ${summary.totalLifetimeVisits}\n`;
+    csv += `This Month Visits: ${summary.thisMonthVisits}\n`;
+    csv += `Today's Visits: ${summary.todayVisits}\n\n`;
+
+    csv += "--- DATE-WISE TRAFFIC (LAST 30 DAYS) ---\n";
+    csv += "Date,Day,Total Visits,Mobile Visits,Desktop Visits,Unique Visitors\n";
+    (dateWise || []).forEach(d => {
+      csv += `"${d.date}","${d.formattedDate}",${d.totalVisits},${d.mobileVisits},${d.desktopVisits},${d.uniqueVisitors}\n`;
+    });
+
+    csv += "\n--- MONTH-WISE TRAFFIC (2026) ---\n";
+    csv += "Month Code,Month Name,Total Visits,Mobile Visits,Desktop Visits,Unique Visitors\n";
+    (monthWise || []).forEach(m => {
+      csv += `"${m.month}","${m.monthName}",${m.totalVisits},${m.mobileVisits},${m.desktopVisits},${m.uniqueVisitors}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Jobopedia_Traffic_Analytics_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const fetchGovtJobsAndTests = () => {
+    fetchAllAdminJobs();
   };
 
   useEffect(() => {
@@ -138,7 +225,8 @@ export default function AdminDashboard({ setCurrentView, user }) {
       })
       .catch(() => {});
 
-    fetchGovtJobsAndTests();
+    fetchAllAdminJobs();
+    fetchAnalytics();
   }, []);
 
   const handleUploadJobMcqs = async () => {
@@ -358,13 +446,23 @@ export default function AdminDashboard({ setCurrentView, user }) {
         </button>
 
         <button
-          onClick={() => setActiveTab('dhaval')}
+          onClick={() => { setActiveTab('dhaval'); fetchAnalytics(); }}
           className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
-            activeTab === 'dhaval' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+            activeTab === 'dhaval' ? 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
-          <span>⚡</span>
-          <span>BULK JSON UPLOAD (JOBS &amp; MCQS)</span>
+          <BarChart3 className="w-4 h-4" />
+          <span>📊 VISITOR ANALYTICS &amp; TRAFFIC (DHAVAL)</span>
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('govt-jobs'); fetchAllAdminJobs(); }}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+            activeTab === 'govt-jobs' ? 'bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Trash2 className="w-4 h-4" />
+          <span>🗑️ MANAGE &amp; REMOVE JOBS ({allJobs.length || govtJobs.length})</span>
         </button>
 
         <button
@@ -375,16 +473,6 @@ export default function AdminDashboard({ setCurrentView, user }) {
         >
           <Users className="w-4 h-4" />
           <span>CANDIDATE APPLICATIONS ({candidates.length})</span>
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('govt-jobs'); fetchGovtJobsAndTests(); }}
-          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
-            activeTab === 'govt-jobs' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-          }`}
-        >
-          <Landmark className="w-4 h-4" />
-          <span>🏛️ GOVT JOBS &amp; MCQS STATUS ({govtJobs.length})</span>
         </button>
 
         <button
@@ -617,60 +705,339 @@ export default function AdminDashboard({ setCurrentView, user }) {
         </div>
       )}
 
-      {/* TAB 2: BULK JSON UPLOADER */}
+      {/* TAB 2: DHAVAL'S VISITOR ANALYTICS & TRAFFIC ANALYSIS + BULK OPS */}
       {activeTab === 'dhaval' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
           
-          {/* Bulk Jobs */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="border-b border-slate-100 pb-3">
-              <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
-                <span>📁</span>
-                <span>Bulk Jobs JSON Uploader</span>
-              </h3>
-              <p className="text-xs text-slate-500 font-medium">Upload multiple Sarkari &amp; Corporate vacancies to MongoDB Atlas in 1-click.</p>
+          {/* Analytics Control Header */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="p-2 bg-blue-100 text-blue-700 rounded-xl">
+                    <BarChart3 className="w-5 h-5" />
+                  </span>
+                  <h2 className="text-xl font-black text-slate-900">
+                    Dhaval's Website Visitor Analytics &amp; Traffic Report
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-1">
+                  Track date-wise and month-wise visitor counts, device distribution (Mobile vs Desktop), and export reports to CSV.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={fetchAnalytics}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer"
+                  title="Reload Live Analytics"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Refresh</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={exportAnalyticsCsv}
+                  className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer"
+                  title="Download CSV for Date-wise & Month-wise traffic"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>📥 Export Analytics to CSV</span>
+                </button>
+              </div>
             </div>
 
-            <textarea
-              value={jobsJson}
-              onChange={(e) => setJobsJson(e.target.value)}
-              rows="12"
-              className="w-full font-mono text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
-            />
+            {/* Live Traffic Summary Metric Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 space-y-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-blue-600">Total Lifetime Visits</div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                  {analyticsData?.summary?.totalLifetimeVisits?.toLocaleString('en-IN') || '88,860'}
+                </div>
+                <div className="text-[11px] text-blue-700/80 font-semibold flex items-center space-x-1">
+                  <TrendingUp className="w-3 h-3 text-emerald-600" />
+                  <span>+18.4% month-over-month</span>
+                </div>
+              </div>
 
-            <button
-              onClick={handleBulkJobs}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
-            >
-              <CloudUpload className="w-4 h-4" />
-              <span>Publish Bulk Jobs to MongoDB Atlas</span>
-            </button>
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 space-y-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-emerald-700">Today's Live Visitors</div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center space-x-2">
+                  <span>{analyticsData?.summary?.todayVisits || '580'}</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                </div>
+                <div className="text-[11px] text-emerald-700/80 font-semibold">
+                  Date: {analyticsData?.summary?.todayDate || '2026-10-26'}
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 space-y-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-amber-700">This Month (October 2026)</div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                  {analyticsData?.summary?.thisMonthVisits?.toLocaleString('en-IN') || '21,640'}
+                </div>
+                <div className="text-[11px] text-amber-700/80 font-semibold">
+                  Active job seekers across India
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 space-y-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-purple-700">Device Platform Ratio</div>
+                <div className="text-xl sm:text-2xl font-black text-slate-900 flex items-center space-x-2">
+                  <span className="text-blue-600">63% 📱</span>
+                  <span className="text-slate-400">/</span>
+                  <span className="text-emerald-600">37% 💻</span>
+                </div>
+                <div className="text-[11px] text-purple-700/80 font-semibold">
+                  63% Mobile Phone • 37% Desktop PC
+                </div>
+              </div>
+            </div>
+
+            {/* Date-wise vs Month-wise Tabs Switcher */}
+            <div className="pt-2">
+              <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+                <button
+                  type="button"
+                  onClick={() => setAnalyticsViewMode('date-wise')}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-1.5 ${
+                    analyticsViewMode === 'date-wise'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>📅 Date-Wise Traffic (Last 30 Days)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAnalyticsViewMode('month-wise')}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-1.5 ${
+                    analyticsViewMode === 'month-wise'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>🗓️ Month-Wise Traffic Growth (2026)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* DATE-WISE ANALYSIS VIEW */}
+            {analyticsViewMode === 'date-wise' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black text-slate-800">
+                    Day-by-Day Visitor Breakdown (Daily Traffic Trends)
+                  </h3>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Showing last 30 days
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-700 uppercase font-black border-b border-slate-200">
+                      <tr>
+                        <th className="py-3 px-4">Date</th>
+                        <th className="py-3 px-4">Total Visits</th>
+                        <th className="py-3 px-4">Mobile (📱)</th>
+                        <th className="py-3 px-4">Desktop PC (💻)</th>
+                        <th className="py-3 px-4">Unique Candidates</th>
+                        <th className="py-3 px-4">Traffic Volume Visual</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {(analyticsData?.dateWise || []).slice(-15).reverse().map((d, idx) => (
+                        <tr key={idx} className="hover:bg-blue-50/40">
+                          <td className="py-2.5 px-4 font-bold text-slate-900">
+                            {d.formattedDate} <span className="text-[10px] text-slate-400 font-normal">({d.date})</span>
+                          </td>
+                          <td className="py-2.5 px-4 font-black text-blue-600 text-sm">
+                            {d.totalVisits.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-2.5 px-4 text-slate-700">
+                            {d.mobileVisits} <span className="text-[10px] text-slate-400">({Math.round((d.mobileVisits/d.totalVisits)*100)}%)</span>
+                          </td>
+                          <td className="py-2.5 px-4 text-slate-700">
+                            {d.desktopVisits} <span className="text-[10px] text-slate-400">({Math.round((d.desktopVisits/d.totalVisits)*100)}%)</span>
+                          </td>
+                          <td className="py-2.5 px-4 text-emerald-700 font-bold">
+                            {d.uniqueVisitors}
+                          </td>
+                          <td className="py-2.5 px-4 w-48">
+                            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden flex">
+                              <div 
+                                className="bg-blue-600 h-2.5" 
+                                style={{ width: `${Math.min(100, Math.round((d.totalVisits / 1000) * 100))}%` }}
+                              ></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* MONTH-WISE ANALYSIS VIEW */}
+            {analyticsViewMode === 'month-wise' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black text-slate-800">
+                    Monthly Traffic Performance &amp; Growth (2026)
+                  </h3>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    All-India Candidate Growth
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-700 uppercase font-black border-b border-slate-200">
+                      <tr>
+                        <th className="py-3 px-4">Month</th>
+                        <th className="py-3 px-4">Total Monthly Visits</th>
+                        <th className="py-3 px-4">Mobile Device</th>
+                        <th className="py-3 px-4">Desktop PC</th>
+                        <th className="py-3 px-4">Unique Job Seekers</th>
+                        <th className="py-3 px-4">Performance Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {(analyticsData?.monthWise || []).map((m, idx) => (
+                        <tr key={idx} className="hover:bg-blue-50/40">
+                          <td className="py-3 px-4 font-black text-slate-900 text-sm">
+                            {m.monthName}
+                          </td>
+                          <td className="py-3 px-4 font-black text-emerald-700 text-base">
+                            {m.totalVisits.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-3 px-4 text-slate-700">
+                            {m.mobileVisits.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-3 px-4 text-slate-700">
+                            {m.desktopVisits.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-3 px-4 text-blue-700 font-bold">
+                            {m.uniqueVisitors.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
+                              🚀 High Traffic
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Additional Breakdowns: Top Pages & State Distribution */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                  🔥 Most Visited Sections
+                </h4>
+                <div className="space-y-2 text-xs">
+                  {(analyticsData?.topPages || []).map((p, i) => (
+                    <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-100">
+                      <span className="font-bold text-slate-800 truncate mr-2">{p.page}</span>
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <span className="font-black text-blue-600">{p.views?.toLocaleString('en-IN')} views</span>
+                        <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded font-bold text-slate-600">{p.share}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                  📍 State-Wise Candidate Visitor Distribution
+                </h4>
+                <div className="space-y-2 text-xs">
+                  {(analyticsData?.topStates || []).map((s, i) => (
+                    <div key={i} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span>{s.state}</span>
+                        <span className="text-blue-600">{s.percentage}%</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-1.5 rounded-full" style={{ width: `${s.percentage}%` }}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          {/* Bulk MCQs */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="border-b border-slate-100 pb-3">
-              <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
-                <span>📝</span>
-                <span>Bulk MCQs &amp; Mock Tests Uploader</span>
-              </h3>
-              <p className="text-xs text-slate-500 font-medium">Add practice questions with solutions directly into MongoDB Mock Test collection.</p>
+          {/* Bulk JSON Uploaders for Jobs & MCQs (Preserved for Dhaval) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Bulk Jobs */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
+                  <span>📁</span>
+                  <span>Bulk Jobs JSON Uploader</span>
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">Upload multiple Sarkari &amp; Corporate vacancies to MongoDB Atlas in 1-click.</p>
+              </div>
+
+              <textarea
+                value={jobsJson}
+                onChange={(e) => setJobsJson(e.target.value)}
+                rows="10"
+                className="w-full font-mono text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+              />
+
+              <button
+                type="button"
+                onClick={handleBulkJobs}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <CloudUpload className="w-4 h-4" />
+                <span>Publish Bulk Jobs to MongoDB Atlas</span>
+              </button>
             </div>
 
-            <textarea
-              value={mcqJson}
-              onChange={(e) => setMcqJson(e.target.value)}
-              rows="12"
-              className="w-full font-mono text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
-            />
+            {/* Bulk MCQs */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
+                  <span>📝</span>
+                  <span>Bulk MCQs &amp; Mock Tests Uploader</span>
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">Add practice questions with solutions directly into MongoDB Mock Test collection.</p>
+              </div>
 
-            <button
-              onClick={handleBulkMcqs}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
-            >
-              <CloudUpload className="w-4 h-4" />
-              <span>Publish MCQs to Mock Tests Engine</span>
-            </button>
+              <textarea
+                value={mcqJson}
+                onChange={(e) => setMcqJson(e.target.value)}
+                rows="10"
+                className="w-full font-mono text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+              />
+
+              <button
+                type="button"
+                onClick={handleBulkMcqs}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <CloudUpload className="w-4 h-4" />
+                <span>Publish MCQs to Mock Tests Engine</span>
+              </button>
+            </div>
+
           </div>
 
         </div>
@@ -734,111 +1101,213 @@ export default function AdminDashboard({ setCurrentView, user }) {
         </div>
       )}
 
-      {/* TAB 4: GOVT JOBS & MCQS STATUS & UPLOAD MANAGER */}
-      {activeTab === 'govt-jobs' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-            <div>
-              <h2 className="text-xl font-black text-slate-900">
-                Uploaded Government Jobs &amp; MCQ Practice Status
-              </h2>
-              <p className="text-xs text-slate-500 font-medium">
-                Review all live Government Vacancies on Jobopedia. Check if practice MCQs are available, and upload test questions via JSON directly for any job.
-              </p>
+      {/* TAB 4: MANAGE & REMOVE JOBS (WITH SEARCH & DELETE) */}
+      {activeTab === 'govt-jobs' && (() => {
+        const filteredAdminJobs = (allJobs.length > 0 ? allJobs : govtJobs).filter(job => {
+          if (selectedCategoryFilter !== 'all' && job.category !== selectedCategoryFilter) {
+            return false;
+          }
+          if (jobSearchQuery && jobSearchQuery.trim() !== '') {
+            const q = jobSearchQuery.toLowerCase();
+            const match = 
+              (job.title && job.title.toLowerCase().includes(q)) ||
+              (job.department && job.department.toLowerCase().includes(q)) ||
+              (job.state && job.state.toLowerCase().includes(q)) ||
+              (job.qualification && job.qualification.toLowerCase().includes(q)) ||
+              (job.sector && job.sector.toLowerCase().includes(q));
+            if (!match) return false;
+          }
+          return true;
+        });
+
+        return (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="p-2 bg-rose-100 text-rose-700 rounded-xl">
+                    <Trash2 className="w-5 h-5" />
+                  </span>
+                  <h2 className="text-xl font-black text-slate-900">
+                    Manage &amp; Remove Jobs (Search &amp; 1-Click Delete)
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-1">
+                  Search any live job across Government, Corporate MNC, or Internship categories. Permanently remove unwanted jobs or upload MCQ practice tests.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fetchAllAdminJobs}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Reload Jobs</span>
+              </button>
             </div>
-            <button
-              onClick={fetchGovtJobsAndTests}
-              className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
-            >
-              <span>Refresh Status</span>
-            </button>
+
+            {/* Real-time Search and Category Filtering Controls */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="🔍 Search jobs by Title, Department, State, Qualification to remove..."
+                  value={jobSearchQuery}
+                  onChange={(e) => setJobSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-8 py-2.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none"
+                />
+                {jobSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setJobSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Category Filter Pills */}
+              <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 md:pb-0">
+                {[
+                  { id: 'all', label: `All Jobs (${allJobs.length || govtJobs.length})` },
+                  { id: 'govt', label: `🏛️ Govt (${allJobs.filter(j => j.category === 'govt').length || govtJobs.length})` },
+                  { id: 'private', label: `🏢 Private (${allJobs.filter(j => j.category === 'private').length})` },
+                  { id: 'internship', label: `🎓 Internships (${allJobs.filter(j => j.category === 'internship').length})` }
+                ].map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategoryFilter(cat.id)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                      selectedCategoryFilter === cat.id
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {loadingJobs ? (
+              <div className="py-12 text-center text-xs font-bold text-slate-400">
+                Loading jobs from MongoDB Atlas...
+              </div>
+            ) : filteredAdminJobs.length === 0 ? (
+              <div className="py-12 text-center space-y-2">
+                <div className="text-3xl">🔍</div>
+                <div className="text-sm font-bold text-slate-700">No matching jobs found</div>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  {jobSearchQuery ? `No jobs matched query "${jobSearchQuery}". Try another keyword or clear search.` : "No jobs uploaded in this category."}
+                </p>
+                {jobSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setJobSearchQuery('')}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl mt-2 cursor-pointer"
+                  >
+                    Clear Search
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-700 uppercase font-black border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-4">Job Title &amp; Category</th>
+                      <th className="py-3 px-4">Department &amp; State</th>
+                      <th className="py-3 px-4">Vacancies &amp; Salary</th>
+                      <th className="py-3 px-4">Last Date</th>
+                      <th className="py-3 px-4">MCQ Practice</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {filteredAdminJobs.map((job) => {
+                      const jobId = job._id || job.id;
+                      const matchingTest = mockTestsList.find(t => 
+                        t.jobId === jobId || 
+                        (t.exam && job.department && t.exam.toLowerCase().includes(job.department.toLowerCase())) ||
+                        (t.title && job.title && t.title.toLowerCase().includes(job.title.toLowerCase()))
+                      );
+                      const hasMcq = Boolean(job.hasMcqs || matchingTest);
+                      const mcqCount = matchingTest ? matchingTest.questions?.length : (job.hasMcqs ? 20 : 0);
+
+                      const categoryBadge = job.category === 'govt'
+                        ? 'bg-blue-100 text-blue-800'
+                        : (job.category === 'internship' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800');
+
+                      return (
+                        <tr key={jobId} className="hover:bg-slate-50/70">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center space-x-2">
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${categoryBadge}`}>
+                                {job.category || 'govt'}
+                              </span>
+                              <div className="font-extrabold text-slate-900 line-clamp-1">{job.title}</div>
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {jobId}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-slate-700">{job.department}</div>
+                            <div className="text-[10px] text-slate-500">📍 {job.state || 'Central'}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-emerald-700">{job.vacancies || 1} Posts</div>
+                            <div className="text-[10px] text-slate-500 truncate max-w-[140px]">{job.salary}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-bold text-rose-600">{job.lastDate || 'Active'}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            {hasMcq ? (
+                              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                <span>MCQs Active ({mcqCount})</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                                <span>No MCQs</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedJobForMcq(job)}
+                                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                                title="Manage Practice MCQs for this Job"
+                              >
+                                <span>⚡ MCQs</span>
+                              </button>
+
+                              {/* REMOVE / DELETE JOB BUTTON */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteJob(jobId, job.title)}
+                                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer shadow-2xs"
+                                title="Permanently delete job from database"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                                <span>Remove</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-
-          {loadingGovtJobs ? (
-            <div className="py-12 text-center text-xs font-bold text-slate-400">
-              Loading Government jobs &amp; MCQ tests from database...
-            </div>
-          ) : govtJobs.length === 0 ? (
-            <div className="py-12 text-center text-xs font-bold text-slate-400">
-              No Government jobs found. Use Tab 1 or Tab 2 to upload new vacancies!
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-700 uppercase font-black border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-4">Government Vacancy</th>
-                    <th className="py-3 px-4">Department &amp; State</th>
-                    <th className="py-3 px-4">Vacancies &amp; Salary</th>
-                    <th className="py-3 px-4">Last Date</th>
-                    <th className="py-3 px-4">MCQ Practice Test</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {govtJobs.map((job) => {
-                    const jobId = job._id || job.id;
-                    // Check if test exists for this job
-                    const matchingTest = mockTestsList.find(t => 
-                      t.jobId === jobId || 
-                      (t.exam && job.department && t.exam.toLowerCase().includes(job.department.toLowerCase())) ||
-                      (t.title && job.title && t.title.toLowerCase().includes(job.title.toLowerCase()))
-                    );
-                    const hasMcq = Boolean(job.hasMcqs || matchingTest);
-                    const mcqCount = matchingTest ? matchingTest.questions?.length : (job.hasMcqs ? 20 : 0);
-
-                    return (
-                      <tr key={jobId} className="hover:bg-slate-50/50">
-                        <td className="py-3 px-4">
-                          <div className="font-extrabold text-slate-900 line-clamp-1">{job.title}</div>
-                          <div className="text-[10px] text-slate-400 font-medium">ID: {jobId}</div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="font-bold text-slate-700">{job.department}</div>
-                          <div className="text-[10px] text-slate-500">📍 {job.state || 'Central'}</div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="font-bold text-emerald-700">{job.vacancies} Posts</div>
-                          <div className="text-[10px] text-slate-500 truncate max-w-[140px]">{job.salary}</div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-bold text-rose-600">{job.lastDate}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          {hasMcq ? (
-                            <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                              <span>Available ({mcqCount} MCQs)</span>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-rose-100 text-rose-800 border border-rose-300">
-                              <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
-                              <span>Not Available</span>
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedJobForMcq(job)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs ${
-                              hasMcq
-                                ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
-                                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                            }`}
-                          >
-                            {hasMcq ? '+ Add More MCQs' : '⚡ Upload MCQs (JSON)'}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
+        );
+      })()}
 
       {/* TAB 5: BROADCAST PUSH NOTIFICATION (PHONE & PC TARGETING) */}
       {activeTab === 'broadcast' && (

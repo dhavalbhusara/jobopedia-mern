@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import GovtJobsPage from './pages/GovtJobsPage';
@@ -61,6 +61,22 @@ export default function App() {
     setUser(userData);
     setCurrentView('home');
   };
+
+  // Auto-track website traffic for Dhaval's Analytics Dashboard
+  useEffect(() => {
+    try {
+      const deviceType = window.innerWidth < 768 ? 'Mobile' : (window.innerWidth < 1024 ? 'Tablet' : 'Desktop');
+      fetch('/api/analytics/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          page: currentView,
+          deviceType,
+          state: user?.state || 'All India'
+        })
+      }).catch(() => {});
+    } catch (e) {}
+  }, [currentView]);
 
   const renderCurrentView = () => {
     switch (currentView) {
