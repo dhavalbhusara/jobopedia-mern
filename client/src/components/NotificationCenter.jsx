@@ -31,12 +31,23 @@ export default function NotificationCenter({ user, onSelectJob }) {
     }
   });
 
-  // Fetch notifications
+  const [toastAlert, setToastAlert] = useState(null);
+  const knownIdsRef = React.useRef(new Set());
+  const initialFetchDoneRef = React.useRef(false);
+
+  // Auto-fetch & Poll for newly uploaded jobs matching user's degree and interest
   useEffect(() => {
     fetchNotifications();
+
+    // Poll every 12 seconds for newly published jobs
+    const interval = setInterval(() => {
+      fetchNotifications(true);
+    }, 12000);
+
+    return () => clearInterval(interval);
   }, [user]);
 
-  const fetchNotifications = () => {
+  const fetchNotifications = (isBackgroundPoll = false) => {
     const params = new URLSearchParams();
     if (user?.qualification) params.set('qualification', user.qualification);
     if (user?.state) params.set('state', user.state);
@@ -45,8 +56,43 @@ export default function NotificationCenter({ user, onSelectJob }) {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.notifications)) {
-          setNotifications(data.notifications);
-          setUnreadCount(Math.min(data.notifications.length, 5));
+          const incoming = data.notifications;
+          
+          // Check for newly uploaded jobs that were not seen before
+          if (initialFetchDoneRef.current && isBackgroundPoll) {
+            const newlyAdded = incoming.filter(n => n._id && !knownIdsRef.current.has(n._id));
+            if (newlyAdded.length > 0) {
+              const latestItem = newlyAdded[0];
+              
+              // 1. Device Push Notification (Mobile Phone & PC Desktop)
+              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                try {
+                  new Notification(latestItem.title, {
+                    body: latestItem.message,
+                    icon: '/images/jobopedia-icon.png'
+                  });
+                } catch (e) {}
+              }
+
+              // 2. In-App Floating Toast Alert
+              setToastAlert(latestItem);
+              setTimeout(() => setToastAlert(null), 8000);
+
+              // 3. Increment badge
+              setUnreadCount(prev => prev + newlyAdded.length);
+            }
+          }
+
+          // Update known IDs
+          incoming.forEach(n => {
+            if (n._id) knownIdsRef.current.add(n._id);
+          });
+          initialFetchDoneRef.current = true;
+
+          setNotifications(incoming);
+          if (!isBackgroundPoll) {
+            setUnreadCount(Math.min(incoming.length, 5));
+          }
         }
       })
       .catch(err => console.error("Error loading notifications:", err));
@@ -342,6 +388,50 @@ export default function NotificationCenter({ user, onSelectJob }) {
 
           </div>
         </>
+      )}
+
+      {/* Floating In-App Real-time Push Alert Banner */}
+      {toastAlert && (
+        <div className="fixed top-20 right-4 z-50 max-w-sm w-full bg-slate-950 text-white p-4 rounded-2xl shadow-2xl border border-blue-500/60 animate-in slide-in-from-top-4 duration-200">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start space-x-2.5">
+              <span className="p-1.5 rounded-lg bg-blue-600 text-white shrink-0 mt-0.5">
+                <Bell className="w-4 h-4 animate-bounce" />
+              </span>
+              <div className="space-y-1">
+                <div className="text-[10px] font-black uppercase tracking-wider text-amber-400">
+                  ⚡ New Job Matching Your Qualification!
+                </div>
+                <div className="text-xs font-extrabold text-white line-clamp-1">
+                  {toastAlert.title}
+                </div>
+                <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                  {toastAlert.message}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setToastAlert(null)}
+              className="text-slate-400 hover:text-white text-xs font-bold p-1 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-[11px]">
+            <span className="text-slate-400 font-semibold">Degree: {toastAlert.targetQualification || 'All'}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setToastAlert(null);
+                setIsOpen(true);
+              }}
+              className="text-blue-400 hover:text-blue-300 font-bold cursor-pointer"
+            >
+              View in Notification Center →
+            </button>
+          </div>
+        </div>
       )}
 
     </div>

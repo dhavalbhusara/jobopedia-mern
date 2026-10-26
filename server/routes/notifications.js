@@ -69,28 +69,49 @@ router.get('/', async (req, res) => {
     let combined = [...(dbNotifs || [])];
     if (combined.length === 0) {
       combined = SEED_NOTIFICATIONS;
+    } else {
+      // Append non-duplicate seed items
+      const remainingSeed = SEED_NOTIFICATIONS.filter(s => !combined.some(c => c.title === s.title));
+      combined = [...combined, ...remainingSeed];
     }
 
-    // Filter by user interest/qualification/state if requested
+    // Filter notifications according to candidate's Interest & Degree/Qualification
     let filtered = combined.filter(n => {
+      // Category / Interest filter
       if (category && category !== 'all' && n.category !== category) {
         return false;
       }
-      if (qualification && qualification !== 'all' && n.targetQualification !== 'All') {
-        const qUser = qualification.toLowerCase();
-        const qTarget = (n.targetQualification || '').toLowerCase();
-        if (!qTarget.includes(qUser) && !qUser.includes(qTarget)) {
-          // Allow general graduate matches
-          if (!(qUser.includes('graduate') && qTarget.includes('graduate'))) {
+
+      // State Filter (Pan-India and Central notifications go to everyone)
+      if (state && state !== 'all') {
+        const notifState = (n.targetState || 'All India').toLowerCase();
+        const userState = state.toLowerCase();
+        const isPanIndia = notifState.includes('all india') || notifState.includes('central') || notifState === '';
+        if (!isPanIndia && !notifState.includes(userState) && !userState.includes(notifState)) {
+          return false;
+        }
+      }
+
+      // Qualification / Degree Filter
+      if (qualification && qualification !== 'all') {
+        const notifQ = (n.targetQualification || 'All').toLowerCase();
+        const userQ = qualification.toLowerCase();
+        const isForAll = notifQ.includes('all') || notifQ === '';
+
+        if (!isForAll) {
+          const directMatch = notifQ.includes(userQ) || userQ.includes(notifQ);
+          const bothGraduate = (notifQ.includes('graduat') || notifQ.includes('degree')) && 
+                               (userQ.includes('graduat') || userQ.includes('degree') || userQ.includes('b.tech') || userQ.includes('bca') || userQ.includes('b.sc') || userQ.includes('b.com') || userQ.includes('b.a'));
+          const both12th = notifQ.includes('12th') && userQ.includes('12th');
+          const both10th = notifQ.includes('10th') && userQ.includes('10th');
+          const bothEng = (notifQ.includes('tech') || notifQ.includes('engineer')) && (userQ.includes('tech') || userQ.includes('engineer') || userQ.includes('cs') || userQ.includes('it'));
+
+          if (!directMatch && !bothGraduate && !both12th && !both10th && !bothEng) {
             return false;
           }
         }
       }
-      if (state && state !== 'all' && n.targetState !== 'All India' && n.targetState !== 'Central') {
-        if (n.targetState !== state) {
-          return false;
-        }
-      }
+
       return true;
     });
 

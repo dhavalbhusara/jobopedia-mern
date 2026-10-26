@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Job = require('../models/Job');
+const Notification = require('../models/Notification');
 
 // Fallback Seed Jobs in case DB is newly starting
 const FALLBACK_JOBS = [
@@ -273,12 +274,31 @@ router.get('/weekly-calendar', async (req, res) => {
   }
 });
 
-// POST /api/jobs (Publish new job)
+// POST /api/jobs (Publish new job & trigger auto-notification)
 router.post('/', async (req, res) => {
   try {
     const job = new Job(req.body);
     await job.save();
-    res.status(201).json({ success: true, message: "Job created successfully", job });
+
+    // AUTOMATIC NOTIFICATION DISPATCH (Matching Candidate Interest & Degree)
+    try {
+      const typeLabel = job.category === 'govt' ? 'Govt Job' : (job.category === 'internship' ? 'Internship' : 'Corporate Job');
+      await Notification.create({
+        title: `⚡ New ${typeLabel}: ${job.title}`,
+        message: `${job.department} announced ${job.vacancies || 1} posts for ${job.qualification}. Salary: ${job.salary}. Last Date: ${job.lastDate}. Apply online now!`,
+        category: job.category || 'govt',
+        targetQualification: job.qualification || 'All',
+        targetState: job.state || 'All India',
+        jobId: job._id ? job._id.toString() : null,
+        url: job.applyUrl || 'https://jobopedia.in',
+        sentBy: 'System Auto-Trigger'
+      });
+      console.log(`[Auto-Notification] Sent alert for job: "${job.title}" matching [${job.state} | ${job.qualification}]`);
+    } catch (notifErr) {
+      console.error("[Auto-Notification] Error:", notifErr.message);
+    }
+
+    res.status(201).json({ success: true, message: "Job created successfully and notifications dispatched to matched candidates!", job });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }

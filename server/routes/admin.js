@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Job = require('../models/Job');
 const MockTest = require('../models/MockTest');
 const Application = require('../models/Application');
+const Notification = require('../models/Notification');
 
 const SAMPLE_CANDIDATES = [
   {
@@ -38,7 +39,7 @@ const SAMPLE_CANDIDATES = [
   }
 ];
 
-// POST /api/admin/jobs/bulk (Bulk JSON upload of jobs)
+// POST /api/admin/jobs/bulk (Bulk JSON upload of jobs & automatic targeted notification dispatch)
 router.post('/jobs/bulk', async (req, res) => {
   try {
     const jobsArray = req.body;
@@ -46,11 +47,38 @@ router.post('/jobs/bulk', async (req, res) => {
       return res.status(400).json({ success: false, error: "Input must be an array of jobs." });
     }
 
+    let insertedJobs = [];
     try {
-      await Job.insertMany(jobsArray);
-    } catch (e) {}
+      insertedJobs = await Job.insertMany(jobsArray);
 
-    res.json({ success: true, count: jobsArray.length, message: `Successfully uploaded ${jobsArray.length} jobs to Jobopedia!` });
+      // AUTOMATIC NOTIFICATION DISPATCH FOR EACH UPLOADED JOB
+      const notifs = insertedJobs.map(job => {
+        const typeLabel = job.category === 'govt' ? 'Govt Job' : (job.category === 'internship' ? 'Internship' : 'Corporate Job');
+        return {
+          title: `⚡ New ${typeLabel}: ${job.title}`,
+          message: `${job.department} announced ${job.vacancies || 1} posts for ${job.qualification}. Salary: ${job.salary}. Last Date: ${job.lastDate}.`,
+          category: job.category || 'govt',
+          targetQualification: job.qualification || 'All',
+          targetState: job.state || 'All India',
+          jobId: job._id ? job._id.toString() : null,
+          url: job.applyUrl || 'https://jobopedia.in',
+          sentBy: 'System Bulk Auto-Trigger'
+        };
+      });
+
+      if (notifs.length > 0) {
+        await Notification.insertMany(notifs);
+        console.log(`[Auto-Notification] Dispatched ${notifs.length} notifications for bulk uploaded jobs!`);
+      }
+    } catch (e) {
+      console.error("Bulk upload / notification error:", e.message);
+    }
+
+    res.json({
+      success: true,
+      count: jobsArray.length,
+      message: `Successfully uploaded ${jobsArray.length} jobs to Jobopedia and dispatched automated notifications to matched candidates!`
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
