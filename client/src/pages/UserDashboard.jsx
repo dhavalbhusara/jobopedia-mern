@@ -7,12 +7,14 @@ import {
   Search, Bell, AlertCircle, ChevronRight, Calendar
 } from 'lucide-react';
 import WeeklyGovtJobCalendar from '../components/WeeklyGovtJobCalendar';
-import { ALL_STATES, QUALIFICATION_CATEGORIES } from '../constants/masterData';
+import JobDetailsModal from '../components/JobDetailsModal';
+import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function UserDashboard({ user, setUser, setCurrentView, openResumeModal, onSelectJob }) {
+export default function UserDashboard({ user, setUser, setCurrentView, openResumeModal }) {
   const [activeTab, setActiveTab] = useState('recommended');
   const [jobs, setJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
+  const [selectedJobModal, setSelectedJobModal] = useState(null);
   const [savedJobs, setSavedJobs] = useState(() => {
     try {
       const stored = localStorage.getItem('jobopedia_saved_jobs');
@@ -213,30 +215,26 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Highest Qualification / Degree</label>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Highest Qualification (A to Z)</label>
                   <select
                     value={profileForm.qualification}
                     onChange={e => setProfileForm({ ...profileForm, qualification: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-white text-xs font-semibold focus:ring-2 focus:ring-blue-500 outline-none"
                   >
-                    {QUALIFICATION_CATEGORIES.map(cat => (
-                      <optgroup key={cat.category} label={cat.category}>
-                        {cat.degrees.map(deg => (
-                          <option key={deg} value={deg}>{deg}</option>
-                        ))}
-                      </optgroup>
+                    {ALL_QUALIFICATIONS.map(q => (
+                      <option key={q} value={q}>{q}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Home State / UT</label>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Home State (All States &amp; UTs)</label>
                   <select
                     value={profileForm.state}
                     onChange={e => setProfileForm({ ...profileForm, state: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-white text-xs font-semibold focus:ring-2 focus:ring-blue-500 outline-none"
                   >
-                    {ALL_STATES.map(st => (
-                      <option key={st} value={st}>{st}</option>
+                    {ALL_INDIAN_STATES.map(s => (
+                      <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
                 </div>
@@ -357,7 +355,7 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Calendar className="w-4 h-4 text-rose-500" />
+            <Calendar className="w-4 h-4 text-blue-500" />
             <span>Weekly Govt Calendar</span>
           </button>
         </div>
@@ -456,13 +454,11 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                         </div>
 
                         <button
-                          onClick={() => {
-                            if (onSelectJob) onSelectJob(job);
-                            else window.open(job.applyUrl || job.applyLink || 'https://ojas.gujarat.gov.in', '_blank');
-                          }}
+                          type="button"
+                          onClick={() => setSelectedJobModal(job)}
                           className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
                         >
-                          <span>Apply &amp; Details</span>
+                          <span>View Details &amp; Apply</span>
                           <ArrowRight className="w-3 h-3" />
                         </button>
                       </div>
@@ -529,14 +525,12 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                       <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                         <span className="text-xs font-bold text-rose-600">Deadline: {job.lastDate || 'Ongoing'}</span>
                         <button
-                          onClick={() => {
-                            if (onSelectJob) onSelectJob(job);
-                            else window.open(job.applyUrl || job.applyLink || 'https://ojas.gujarat.gov.in', '_blank');
-                          }}
+                          type="button"
+                          onClick={() => setSelectedJobModal(job)}
                           className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
                         >
-                          <span>Full Details</span>
-                          <ArrowRight className="w-3 h-3" />
+                          <span>View Official Details</span>
+                          <ExternalLink className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -604,21 +598,6 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
           </div>
         )}
 
-        {/* Tab 5: Weekly Govt Job Calendar */}
-        {activeTab === 'calendar' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
-              <h2 className="text-base font-extrabold text-slate-900 mb-1">
-                📅 Live Weekly Government Jobs Calendar
-              </h2>
-              <p className="text-xs text-slate-500 mb-4">
-                Auto-updated dates with pay scales, vacancies, and official notifications for all 4 weeks of the month.
-              </p>
-              <WeeklyGovtJobCalendar onSelectJob={onSelectJob} />
-            </div>
-          </div>
-        )}
-
         {/* Tab 4: ATS Resume & Documents */}
         {activeTab === 'resume' && (
           <div className="space-y-5">
@@ -657,22 +636,22 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
           </div>
         )}
 
-        {/* Tab 5: Weekly Govt Job Calendar */}
+        {/* Tab 5: Weekly Govt Job Calendar (Auto Synced with MongoDB) */}
         {activeTab === 'calendar' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
-              <h2 className="text-base font-extrabold text-slate-900 mb-1">
-                📅 Live Weekly Government Jobs Calendar
-              </h2>
-              <p className="text-xs text-slate-500 mb-4">
-                Auto-updated dates with pay scales, vacancies, and official notifications for all 4 weeks of the month.
-              </p>
-              <WeeklyGovtJobCalendar onSelectJob={onSelectJob} />
-            </div>
+            <WeeklyGovtJobCalendar />
           </div>
         )}
 
       </div>
+
+      {/* Official Job Details Modal */}
+      <JobDetailsModal
+        job={selectedJobModal}
+        isOpen={Boolean(selectedJobModal)}
+        onClose={() => setSelectedJobModal(null)}
+      />
+
     </div>
   );
 }

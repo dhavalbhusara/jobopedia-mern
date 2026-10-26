@@ -14,6 +14,9 @@ const JobSchema = new mongoose.Schema({
   description: { type: String, required: true },
   eligibility: { type: String, default: 'Any Graduate / Relevant Degree' },
   applyUrl: { type: String, default: 'https://jobopedia.in' },
+  notificationUrl: { type: String },
+  hasMcqs: { type: Boolean, default: false },
+  mcqTestId: { type: String },
   tags: [{ type: String }],
   isNewJob: { type: Boolean, default: true }
 }, { timestamps: true });

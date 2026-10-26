@@ -99,49 +99,46 @@ router.get('/candidates', async (req, res) => {
   }
 });
 
-// GET /api/admin/govt-jobs-mcqs (All Government jobs with MCQ practice availability status)
-router.get('/govt-jobs-mcqs', async (req, res) => {
+// POST /api/admin/jobs/:jobId/mcqs (Upload MCQs specifically for a job)
+router.post('/jobs/:jobId/mcqs', async (req, res) => {
   try {
-    let jobs = [];
-    let mockTests = [];
+    const { jobId } = req.params;
+    const { questions, exam, title, durationMinutes } = req.body;
 
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ success: false, error: "Questions must be a non-empty array." });
+    }
+
+    const testId = `test-job-${jobId}`;
+    
+    // Create or update mock test in MongoDB
+    let savedTest = null;
     try {
-      jobs = await Job.find({ 
-        $or: [
-          { category: 'govt' },
-          { sector: 'GOVERNMENT' },
-          { sector: 'Govt' }
-        ]
-      }).lean();
-    } catch (e) {}
+      savedTest = await MockTest.findOneAndUpdate(
+        { testId },
+        {
+          testId,
+          jobId,
+          exam: exam || 'Govt Recruitment CBT',
+          title: title || 'Job Specific Practice MCQs',
+          durationMinutes: durationMinutes || 15,
+          totalQuestions: questions.length,
+          questions: questions
+        },
+        { upsert: true, new: true }
+      );
 
-    try {
-      mockTests = await MockTest.find().lean();
-    } catch (e) {}
+      // Update Job with hasMcqs flag
+      await Job.findByIdAndUpdate(jobId, { hasMcqs: true, mcqTestId: testId });
+    } catch (e) {
+      console.error("MongoDB mock test save error:", e.message);
+    }
 
-    const result = (jobs || []).map(j => {
-      const jTitle = (j.title || '').toLowerCase();
-      const jDept = (j.department || '').toLowerCase();
-
-      const matchingTest = (mockTests || []).find(m => {
-        const mExam = (m.exam || '').toLowerCase();
-        const mTitle = (m.title || '').toLowerCase();
-        return (
-          (mExam && (jTitle.includes(mExam) || jDept.includes(mExam))) ||
-          (mTitle && (jTitle.includes(mTitle) || mTitle.includes(jTitle)))
-        );
-      });
-
-      return {
-        ...j,
-        hasMcq: !!matchingTest,
-        mcqCount: matchingTest ? (matchingTest.questions?.length || 0) : 0,
-        testId: matchingTest ? matchingTest.testId : null,
-        examName: matchingTest ? matchingTest.exam : null
-      };
+    res.json({
+      success: true,
+      message: `Successfully uploaded and linked ${questions.length} MCQs to this Government Job!`,
+      test: savedTest
     });
-
-    res.json({ success: true, count: result.length, jobs: result, allTests: mockTests });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -10,6 +10,7 @@ const QuestionSchema = new mongoose.Schema({
 
 const MockTestSchema = new mongoose.Schema({
   testId: { type: String, required: true, unique: true },
+  jobId: { type: String },
   exam: { type: String, required: true },
   title: { type: String, required: true },
   category: { type: String, default: 'General' },

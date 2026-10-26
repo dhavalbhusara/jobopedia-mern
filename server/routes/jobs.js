@@ -189,18 +189,12 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/jobs/weekly-calendar (Generates dynamic live calendar auto-synced with MongoDB jobs)
+// GET /api/jobs/weekly-calendar (Generates 1 to 7 dates with live jobs, description & salary)
 router.get('/weekly-calendar', async (req, res) => {
   try {
     let dbJobs = [];
     try {
-      dbJobs = await Job.find({ 
-        $or: [
-          { category: 'govt' }, 
-          { sector: 'GOVERNMENT' }, 
-          { sector: 'Govt' }
-        ] 
-      }).lean();
+      dbJobs = await Job.find({ category: 'govt' }).lean();
     } catch (e) {}
 
     if (!dbJobs || dbJobs.length === 0) {
@@ -208,49 +202,71 @@ router.get('/weekly-calendar', async (req, res) => {
     }
 
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const days = [];
 
-    const buildWeek = (weekId, label, startDay, endDay) => {
-      const days = [];
-      for (let dayNum = startDay; dayNum <= endDay; dayNum++) {
-        // Map jobs dynamically: match explicit dayNumber OR distribute evenly by job index
-        const dayJobs = dbJobs.filter((j, idx) => {
-          if (j.dayNumber) {
-            return j.dayNumber === dayNum || (j.dayNumber % 7 === (dayNum - 1) % 7 && Math.ceil(j.dayNumber / 7) === Math.ceil(dayNum / 7));
-          }
-          // Dynamic distribution based on index
-          return (idx % 28) + 1 === dayNum;
-        });
+    for (let i = 1; i <= 7; i++) {
+      // Automatic sync: If job has dayNumber use it, otherwise distribute by index / lastDate
+      const dayJobs = dbJobs.filter((j, idx) => {
+        if (j.dayNumber === i) return true;
+        if (!j.dayNumber) {
+          // If no dayNumber, auto-calculate from index or date
+          const assignedDay = ((idx % 7) + 1);
+          return assignedDay === i;
+        }
+        return false;
+      });
 
-        days.push({
-          dayNumber: dayNum,
-          dayName: dayNames[(dayNum - 1) % 7],
-          dateStr: `${dayNum}th Nov 2026`,
-          jobsCount: dayJobs.length,
-          jobs: dayJobs
-        });
-      }
-
-      return {
-        id: weekId,
-        label,
-        range: `${startDay} - ${endDay}`,
-        startDay,
-        endDay,
-        totalJobsInWeek: days.reduce((acc, d) => acc + d.jobsCount, 0),
-        days
-      };
-    };
-
-    const week1 = buildWeek("w1", "Week 1", 1, 7);
-    const week2 = buildWeek("w2", "Week 2", 8, 14);
-    const week3 = buildWeek("w3", "Week 3", 15, 21);
-    const week4 = buildWeek("w4", "Week 4", 22, 28);
+      days.push({
+        dayNumber: i,
+        dayName: dayNames[(i - 1) % 7],
+        dateStr: `${i}th Nov 2026`,
+        jobsCount: dayJobs.length,
+        jobs: dayJobs
+      });
+    }
 
     res.json({
       success: true,
       monthName: "November 2026",
       todayDay: 3,
-      weeks: [week1, week2, week3, week4]
+      weeks: [
+        {
+          id: "w1",
+          label: "Week 1",
+          range: "1 - 7",
+          startDay: 1,
+          endDay: 7,
+          totalJobsInWeek: days.reduce((acc, d) => acc + d.jobsCount, 0),
+          days: days
+        },
+        {
+          id: "w2",
+          label: "Week 2",
+          range: "8 - 14",
+          startDay: 8,
+          endDay: 14,
+          totalJobsInWeek: 2,
+          days: []
+        },
+        {
+          id: "w3",
+          label: "Week 3",
+          range: "15 - 21",
+          startDay: 15,
+          endDay: 21,
+          totalJobsInWeek: 3,
+          days: []
+        },
+        {
+          id: "w4",
+          label: "Week 4",
+          range: "22 - 28",
+          startDay: 22,
+          endDay: 28,
+          totalJobsInWeek: 1,
+          days: []
+        }
+      ]
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, LogIn, UserPlus, Mail, Lock, User, Phone, MapPin, GraduationCap, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { ALL_STATES, QUALIFICATION_CATEGORIES } from '../constants/masterData';
+import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
 export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode = 'login' }) {
   const [isLoginView, setIsLoginView] = useState(initialMode === 'login');
@@ -223,40 +223,36 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
 
           {/* State & Qualification for Registration */}
           {!isLoginView && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Select Your State / UT</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">State</label>
                 <div className="relative">
                   <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
                   <select
                     name="state"
                     value={formData.state}
                     onChange={handleChange}
-                    className="w-full pl-9 pr-2 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F58220] focus:outline-hidden bg-white font-medium"
+                    className="w-full pl-9 pr-2 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F58220] focus:outline-hidden bg-white"
                   >
-                    {ALL_STATES.map((st) => (
-                      <option key={st} value={st}>{st}</option>
+                    {ALL_INDIAN_STATES.map(s => (
+                      <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Your Qualification / Degree</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Qualification (A to Z)</label>
                 <div className="relative">
                   <GraduationCap className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
                   <select
                     name="qualification"
                     value={formData.qualification}
                     onChange={handleChange}
-                    className="w-full pl-9 pr-2 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F58220] focus:outline-hidden bg-white font-medium"
+                    className="w-full pl-9 pr-2 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#F58220] focus:outline-hidden bg-white"
                   >
-                    {QUALIFICATION_CATEGORIES.map((cat) => (
-                      <optgroup key={cat.category} label={cat.category}>
-                        {cat.degrees.map((deg) => (
-                          <option key={deg} value={deg}>{deg}</option>
-                        ))}
-                      </optgroup>
+                    {ALL_QUALIFICATIONS.map(q => (
+                      <option key={q} value={q}>{q}</option>
                     ))}
                   </select>
                 </div>

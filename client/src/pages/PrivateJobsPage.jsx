@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, Briefcase, Sparkles, FileText } from 'lucide-react';
-import { ALL_STATES, QUALIFICATION_CATEGORIES } from '../constants/masterData';
+import { Building2, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, Briefcase, Sparkles } from 'lucide-react';
+import JobDetailsModal from '../components/JobDetailsModal';
+import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
+export default function PrivateJobsPage({ setCurrentView }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
   const [qualFilter, setQualFilter] = useState('all');
+  const [selectedJobModal, setSelectedJobModal] = useState(null);
 
   const samplePrivateJobs = [
     {
@@ -164,10 +166,10 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
               onChange={(e) => setStateFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white font-semibold text-slate-700"
             >
-              <option value="all">📍 All States</option>
-              {ALL_STATES.map(st => (
-                <option key={st} value={st}>{st}</option>
-              ))}
+              <option value="all">All States</option>
+              <option value="Gujarat">📍 Gujarat (Ahmedabad, Vadodara, Surat)</option>
+              <option value="Maharashtra">📍 Maharashtra (Mumbai, Pune)</option>
+              <option value="Karnataka">📍 Karnataka (Bengaluru)</option>
             </select>
           </div>
 
@@ -177,14 +179,11 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
               onChange={(e) => setQualFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white font-semibold text-slate-700"
             >
-              <option value="all">🎓 All Qualifications</option>
-              {QUALIFICATION_CATEGORIES.map(cat => (
-                <optgroup key={cat.category} label={cat.category}>
-                  {cat.degrees.map(deg => (
-                    <option key={deg} value={deg}>{deg}</option>
-                  ))}
-                </optgroup>
-              ))}
+              <option value="all">All Qualifications</option>
+              <option value="Graduate">Any Graduate</option>
+              <option value="B.Tech">B.E. / B.Tech / BCA / MCA</option>
+              <option value="Pharma">B.Pharm / M.Pharm</option>
+              <option value="MBA">B.Com / BBA / MBA</option>
             </select>
           </div>
 
@@ -233,30 +232,33 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
             </div>
 
             <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
-              <button 
-                onClick={() => {
-                  if (onSelectJob) onSelectJob(job);
-                  else window.open(job.applyUrl || 'https://jobopedia.in', '_blank');
-                }}
+              <button
+                onClick={() => setSelectedJobModal(job)}
                 className="px-5 py-2.5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
               >
-                <span>Full Details &amp; Apply</span>
+                <span>View Details &amp; Apply</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
 
-              <a
+              <a 
                 href={job.applyUrl || 'https://jobopedia.in'}
                 target="_blank"
                 rel="noreferrer"
-                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 border border-emerald-200"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 cursor-pointer border border-slate-200"
               >
+                <span>Direct Careers Portal</span>
                 <ExternalLink className="w-3 h-3" />
-                <span>Company Careers</span>
               </a>
             </div>
           </div>
         ))}
       </div>
+
+      <JobDetailsModal
+        job={selectedJobModal}
+        isOpen={Boolean(selectedJobModal)}
+        onClose={() => setSelectedJobModal(null)}
+      />
 
     </div>
   );

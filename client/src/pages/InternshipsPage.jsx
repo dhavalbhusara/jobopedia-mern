@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Briefcase, MapPin, IndianRupee, GraduationCap, Building2, ExternalLink, Search, Filter, ArrowLeft, ArrowRight } from 'lucide-react';
+import JobDetailsModal from '../components/JobDetailsModal';
+import { ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function InternshipsPage({ setCurrentView, onSelectJob }) {
+export default function InternshipsPage({ setCurrentView }) {
   const [internships, setInternships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState('ALL');
   const [search, setSearch] = useState('');
+  const [selectedJobModal, setSelectedJobModal] = useState(null);
 
   const sampleInternships = [
     {
@@ -213,20 +216,24 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
               <span className="text-[11px] font-bold text-slate-400">
                 100% Verified Trainee Posting
               </span>
-              <button 
-                onClick={() => {
-                  if (onSelectJob) onSelectJob({ ...item, category: 'internship' });
-                  else window.open(item.applyUrl || 'https://jobopedia.in', '_blank');
-                }}
+              <button
+                type="button"
+                onClick={() => setSelectedJobModal(item)}
                 className="px-4 py-2 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
               >
-                <span>View Details &amp; Apply</span>
+                <span>View Scope &amp; Apply</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      <JobDetailsModal
+        job={selectedJobModal}
+        isOpen={Boolean(selectedJobModal)}
+        onClose={() => setSelectedJobModal(null)}
+      />
 
     </div>
   );

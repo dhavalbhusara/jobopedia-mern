@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Landmark, Sparkles, DollarSign, FileText, ExternalLink, ArrowRight, X } from 'lucide-react';
 
-export default function WeeklyGovtJobCalendar({ onSelectJob }) {
+export default function WeeklyGovtJobCalendar() {
   const [calendarData, setCalendarData] = useState(null);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
   const [selectedDayNum, setSelectedDayNum] = useState(2);
@@ -272,24 +272,20 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
 
                     <div className="pt-2 border-t border-white/10 flex items-center gap-2">
                       <button
-                        onClick={() => {
-                          if (onSelectJob) onSelectJob(job);
-                          else setModalJob(job);
-                        }}
+                        onClick={() => setModalJob(job)}
                         className="flex-1 py-2 px-3 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-bold text-center transition cursor-pointer"
                       >
-                        સંપૂર્ણ વિગતો / Details
+                        સંપૂર્ણ વિગતો / View Details
                       </button>
-                      <button
-                        onClick={() => {
-                          if (onSelectJob) onSelectJob(job);
-                          else window.open(job.applyUrl || 'https://ojas.gujarat.gov.in', '_blank');
-                        }}
+                      <a
+                        href={job.applyUrl || 'https://jobopedia.in'}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shrink-0 shadow-md cursor-pointer"
                       >
                         <span>Apply Official</span>
                         <ExternalLink className="w-3 h-3" />
-                      </button>
+                      </a>
                     </div>
                   </div>
                 ))}
@@ -343,21 +339,19 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
 
             <div className="flex items-center justify-between gap-4 pt-4 border-t border-white/10">
               <button 
-                onClick={() => {
-                  setModalJob(null);
-                  if (onSelectJob) onSelectJob(modalJob);
-                }} 
-                className="px-5 py-2.5 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                onClick={() => setModalJob(null)} 
+                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition cursor-pointer"
               >
-                📄 Full Details &amp; Eligibility
+                Close
               </button>
               <a 
-                href={modalJob.applyUrl || 'https://ojas.gujarat.gov.in'} 
+                href={modalJob.applyUrl || 'https://jobopedia.in'} 
                 target="_blank" 
                 rel="noreferrer"
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow-lg transition flex items-center space-x-1.5"
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black shadow-lg transition flex items-center space-x-2 cursor-pointer"
               >
-                <span>Apply on Official Portal ↗</span>
+                <span>Submit Form on Official Portal</span>
+                <ExternalLink className="w-4 h-4" />
               </a>
             </div>
           </div>

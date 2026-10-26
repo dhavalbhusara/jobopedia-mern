@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Landmark, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, ShieldCheck, FileText } from 'lucide-react';
-import { ALL_STATES, QUALIFICATION_CATEGORIES } from '../constants/masterData';
+import { Landmark, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, ShieldCheck, Eye } from 'lucide-react';
+import JobDetailsModal from '../components/JobDetailsModal';
+import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
+export default function GovtJobsPage({ setCurrentView }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
   const [qualFilter, setQualFilter] = useState('all');
+  const [selectedJobModal, setSelectedJobModal] = useState(null);
 
   useEffect(() => {
     fetchJobs();
@@ -169,10 +171,11 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
               onChange={(e) => setStateFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none bg-white font-semibold text-slate-700"
             >
-              <option value="all">📍 All States &amp; Central</option>
-              {ALL_STATES.map(st => (
-                <option key={st} value={st}>{st}</option>
-              ))}
+              <option value="all">All States &amp; Central</option>
+              <option value="Central">🏛️ All India (Central)</option>
+              <option value="Gujarat">📍 Gujarat</option>
+              <option value="Maharashtra">📍 Maharashtra</option>
+              <option value="Rajasthan">📍 Rajasthan</option>
             </select>
           </div>
 
@@ -182,14 +185,12 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
               onChange={(e) => setQualFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none bg-white font-semibold text-slate-700"
             >
-              <option value="all">🎓 All Qualifications</option>
-              {QUALIFICATION_CATEGORIES.map(cat => (
-                <optgroup key={cat.category} label={cat.category}>
-                  {cat.degrees.map(deg => (
-                    <option key={deg} value={deg}>{deg}</option>
-                  ))}
-                </optgroup>
-              ))}
+              <option value="all">All Qualifications</option>
+              <option value="10th Pass">10th Pass</option>
+              <option value="12th Pass">12th Pass</option>
+              <option value="Graduate">Any Graduate</option>
+              <option value="Post Graduate">Post Graduate</option>
+              <option value="Engineering">B.E. / B.Tech</option>
             </select>
           </div>
 
@@ -238,30 +239,33 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
             </div>
 
             <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
-              <button 
-                onClick={() => {
-                  if (onSelectJob) onSelectJob(job);
-                  else window.open(job.applyUrl || 'https://ojas.gujarat.gov.in', '_blank');
-                }}
+              <button
+                onClick={() => setSelectedJobModal(job)}
                 className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
               >
-                <span>View Full Details</span>
+                <span>View Full Details &amp; Apply</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
 
-              <a
-                href={job.applyUrl || 'https://ojas.gujarat.gov.in'}
+              <a 
+                href={job.applyUrl || 'https://jobopedia.in'}
                 target="_blank"
                 rel="noreferrer"
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer border border-slate-200"
               >
+                <span>Direct Official Portal</span>
                 <ExternalLink className="w-3 h-3" />
-                <span>Apply Official</span>
               </a>
             </div>
           </div>
         ))}
       </div>
+
+      <JobDetailsModal 
+        job={selectedJobModal}
+        isOpen={Boolean(selectedJobModal)}
+        onClose={() => setSelectedJobModal(null)}
+      />
 
     </div>
   );

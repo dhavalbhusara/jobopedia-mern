@@ -10,7 +10,6 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
-import JobDetailsPage from './pages/JobDetailsPage';
 import AiAssistant from './components/AiAssistant';
 import ResumeBuilder from './components/ResumeBuilder';
 import AuthModal from './components/AuthModal';
@@ -19,7 +18,6 @@ import Footer from './components/Footer';
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
   
   // Auth User State from localStorage
   const [user, setUser] = useState(() => {
@@ -59,35 +57,17 @@ export default function App() {
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
-    if (userData.role === 'ADMIN') {
-      setCurrentView('admin');
-    } else {
-      setCurrentView('home');
-    }
-  };
-
-  const handleOpenJobDetails = (job) => {
-    setSelectedJob(job);
-    setCurrentView('job-details');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentView('home');
   };
 
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'job-details':
-        return (
-          <JobDetailsPage 
-            job={selectedJob} 
-            setCurrentView={setCurrentView}
-            onStartMockTest={() => setCurrentView('mock-tests')}
-          />
-        );
       case 'govt':
-        return <GovtJobsPage setCurrentView={setCurrentView} onSelectJob={handleOpenJobDetails} />;
+        return <GovtJobsPage setCurrentView={setCurrentView} />;
       case 'private':
-        return <PrivateJobsPage setCurrentView={setCurrentView} onSelectJob={handleOpenJobDetails} />;
+        return <PrivateJobsPage setCurrentView={setCurrentView} />;
       case 'internships':
-        return <InternshipsPage setCurrentView={setCurrentView} onSelectJob={handleOpenJobDetails} />;
+        return <InternshipsPage setCurrentView={setCurrentView} />;
       case 'mock-tests':
         return <MockTestsPage setCurrentView={setCurrentView} />;
       case 'preparation':
@@ -105,7 +85,6 @@ export default function App() {
             setUser={setUser}
             setCurrentView={setCurrentView} 
             openResumeModal={() => setIsResumeModalOpen(true)}
-            onSelectJob={handleOpenJobDetails}
           />
         );
       case 'home':
@@ -116,7 +95,6 @@ export default function App() {
             setCurrentView={setCurrentView}
             openResumeModal={() => setIsResumeModalOpen(true)}
             openAuthModal={() => handleOpenAuth(true)}
-            onSelectJob={handleOpenJobDetails}
           />
         );
     }
