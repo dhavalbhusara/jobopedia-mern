@@ -55,7 +55,7 @@ export default function ContactPage({ setCurrentView }) {
             <div className="flex items-start space-x-3">
               <Phone className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <div className="text-slate-400">Cyber Cafe WhatsApp Helpline:</div>
+                <div className="text-slate-400">Help Desk WhatsApp Helpline:</div>
                 <div className="font-bold text-white text-sm">+91 98765 43210</div>
               </div>
             </div>

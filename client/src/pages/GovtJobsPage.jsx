@@ -106,8 +106,8 @@ export default function GovtJobsPage({ setCurrentView }) {
       .finally(() => setLoading(false));
   };
 
-  const triggerCyberCafe = (jobTitle) => {
-    const text = encodeURIComponent(`Namaste Jobopedia Cyber Cafe Helpline,\n\nI want assistance applying for Government Job: *${jobTitle}*.\nPlease guide me on WhatsApp.`);
+  const triggerHelpDesk = (jobTitle) => {
+    const text = encodeURIComponent(`Namaste Jobopedia Help Desk,\n\nI want assistance applying for Government Job: *${jobTitle}*.\nPlease guide me.`);
     window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
   };
 

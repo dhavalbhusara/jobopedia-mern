@@ -13,11 +13,13 @@ import UserDashboard from './pages/UserDashboard';
 import AiAssistant from './components/AiAssistant';
 import ResumeBuilder from './components/ResumeBuilder';
 import AuthModal from './components/AuthModal';
+import JobDetailsModal from './components/JobDetailsModal';
 import Footer from './components/Footer';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
   
   // Auth User State from localStorage
   const [user, setUser] = useState(() => {
@@ -109,6 +111,7 @@ export default function App() {
         openAuthModal={handleOpenAuth}
         user={user}
         onLogout={handleLogout}
+        onSelectJob={setSelectedJob}
       />
 
       <main className="flex-1 pb-16 md:pb-0">
@@ -129,6 +132,12 @@ export default function App() {
         onClose={() => setIsAuthModalOpen(false)} 
         onLoginSuccess={handleLoginSuccess}
         initialMode={authMode}
+      />
+
+      {/* Global Job Details Modal for notifications & universal job viewing */}
+      <JobDetailsModal 
+        job={selectedJob} 
+        onClose={() => setSelectedJob(null)} 
       />
     </div>
   );

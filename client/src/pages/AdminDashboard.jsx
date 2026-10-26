@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, PlusCircle, Users, Code, CloudUpload, ArrowLeft, Download, Briefcase, Landmark, Building2, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { 
+  Lock, PlusCircle, Users, Code, CloudUpload, ArrowLeft, 
+  Download, Briefcase, Landmark, Building2, GraduationCap, 
+  CheckCircle2, Bell, Send, Smartphone, Monitor 
+} from 'lucide-react';
+import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
 export default function AdminDashboard({ setCurrentView, user }) {
   const [activeTab, setActiveTab] = useState('hr');
   const [candidates, setCandidates] = useState([]);
   const [successToast, setSuccessToast] = useState('');
+
+  // Push Notification Broadcast State
+  const [broadcastForm, setBroadcastForm] = useState({
+    title: '',
+    message: '',
+    category: 'govt',
+    targetQualification: 'All',
+    targetState: 'All India',
+    url: 'https://jobopedia.in'
+  });
+  const [broadcastLoading, setBroadcastLoading] = useState(false);
 
   // Security Guard: Only users with role === 'ADMIN' can view the control center
   if (!user || user.role !== 'ADMIN') {
@@ -150,6 +166,41 @@ export default function AdminDashboard({ setCurrentView, user }) {
       }
     } catch (err) {
       alert('Invalid JSON syntax: ' + err.message);
+    }
+  };
+
+  const handleSendBroadcast = async (e) => {
+    e.preventDefault();
+    if (!broadcastForm.title || !broadcastForm.message) {
+      alert("Please enter title and message.");
+      return;
+    }
+    setBroadcastLoading(true);
+    try {
+      const res = await fetch('/api/notifications/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(broadcastForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast(`📢 ${data.message}`);
+        setBroadcastForm({
+          title: '',
+          message: '',
+          category: 'govt',
+          targetQualification: 'All',
+          targetState: 'All India',
+          url: 'https://jobopedia.in'
+        });
+        setTimeout(() => setSuccessToast(''), 6000);
+      } else {
+        alert(data.error || 'Failed to broadcast notification');
+      }
+    } catch (err) {
+      alert('Broadcast Error: ' + err.message);
+    } finally {
+      setBroadcastLoading(false);
     }
   };
 
@@ -334,6 +385,16 @@ export default function AdminDashboard({ setCurrentView, user }) {
         >
           <Landmark className="w-4 h-4" />
           <span>🏛️ GOVT JOBS &amp; MCQS STATUS ({govtJobs.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('broadcast')}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+            activeTab === 'broadcast' ? 'bg-gradient-to-r from-amber-500 to-rose-600 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Bell className="w-4 h-4" />
+          <span>📢 BROADCAST PUSH NOTIFICATION</span>
         </button>
 
       </div>
@@ -776,6 +837,143 @@ export default function AdminDashboard({ setCurrentView, user }) {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* TAB 5: BROADCAST PUSH NOTIFICATION (PHONE & PC TARGETING) */}
+      {activeTab === 'broadcast' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="p-1.5 rounded-lg bg-rose-100 text-rose-700">
+                  <Bell className="w-5 h-5" />
+                </span>
+                <h2 className="text-xl font-black text-slate-900">
+                  Send Targeted Push Notification (Phone &amp; PC)
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Deliver real-time job alerts directly to candidates' mobile phones and computers filtered by their exact State and Qualification degrees.
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-2xl text-[11px] font-bold text-slate-600">
+              <span className="flex items-center space-x-1"><Smartphone className="w-3.5 h-3.5 text-blue-600" /><span>Mobile</span></span>
+              <span>•</span>
+              <span className="flex items-center space-x-1"><Monitor className="w-3.5 h-3.5 text-emerald-600" /><span>Desktop PC</span></span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSendBroadcast} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Alert Title <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. ⚡ Gujarat Police Constable 12,472 Vacancies Live"
+                  value={broadcastForm.title}
+                  onChange={(e) => setBroadcastForm({ ...broadcastForm, title: e.target.value })}
+                  className="w-full p-3 text-xs bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Alert Category
+                </label>
+                <select
+                  value={broadcastForm.category}
+                  onChange={(e) => setBroadcastForm({ ...broadcastForm, category: e.target.value })}
+                  className="w-full p-3 text-xs bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="govt">🏛️ Government Job Alert</option>
+                  <option value="private">🏢 Private / MNC Vacancy</option>
+                  <option value="internship">🎓 Fresher / Student Internship</option>
+                  <option value="mock-test">📝 Mock Test / CBT Exam</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Notification Message Details <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={3}
+                required
+                placeholder="e.g. OJAS portal registration is now active. Salary ₹26,000/mo. 12th pass eligible. Apply before 15th December."
+                value={broadcastForm.message}
+                onChange={(e) => setBroadcastForm({ ...broadcastForm, message: e.target.value })}
+                className="w-full p-3 text-xs bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none leading-relaxed"
+              />
+            </div>
+
+            {/* Targeting Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1">
+                  Target State / Region
+                </label>
+                <select
+                  value={broadcastForm.targetState}
+                  onChange={(e) => setBroadcastForm({ ...broadcastForm, targetState: e.target.value })}
+                  className="w-full p-2.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="All India">🇮🇳 All India / Central (Pan-India)</option>
+                  {ALL_INDIAN_STATES.map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
+                </select>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Only candidates from this state receive alert</span>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1">
+                  Target Qualification / Degree
+                </label>
+                <select
+                  value={broadcastForm.targetQualification}
+                  onChange={(e) => setBroadcastForm({ ...broadcastForm, targetQualification: e.target.value })}
+                  className="w-full p-2.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="All">🎓 All Qualifications (Everyone)</option>
+                  {ALL_QUALIFICATIONS.map(q => (
+                    <option key={q} value={q}>{q}</option>
+                  ))}
+                </select>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Matched with user education profile</span>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1">
+                  Official Apply / Notification URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://jobopedia.in"
+                  value={broadcastForm.url}
+                  onChange={(e) => setBroadcastForm({ ...broadcastForm, url: e.target.value })}
+                  className="w-full p-2.5 text-xs bg-white rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Direct link opened on clicking alert</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end pt-2">
+              <button
+                type="submit"
+                disabled={broadcastLoading}
+                className="px-6 py-3 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white rounded-2xl text-xs font-black shadow-lg transition flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+              >
+                <Send className="w-4 h-4" />
+                <span>{broadcastLoading ? 'Broadcasting Alert...' : '🚀 Send Notification to Phone & PC Users'}</span>
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

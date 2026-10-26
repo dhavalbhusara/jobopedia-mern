@@ -5,6 +5,7 @@ import {
   Menu, X, Home, Landmark, Building2, GraduationCap, 
   ChevronRight, Phone, ShieldCheck
 } from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
 
 export default function Navbar({ 
   currentView, 
@@ -12,7 +13,8 @@ export default function Navbar({
   openResumeModal, 
   openAuthModal, 
   user, 
-  onLogout 
+  onLogout,
+  onSelectJob 
 }) {
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,12 +46,12 @@ export default function Navbar({
           </div>
           <div className="hidden sm:flex items-center space-x-3 text-slate-300 text-[11px]">
             <a 
-              href="https://wa.me/919876543210?text=Namaste%20Jobopedia%20Cyber%20Cafe%20Helpline" 
+              href="https://wa.me/919876543210?text=Namaste%20Jobopedia%20Help%20Desk" 
               target="_blank" 
               rel="noreferrer"
               className="hover:text-amber-400 transition flex items-center space-x-1"
             >
-              <span>📞 Cyber Cafe Helpline:</span>
+              <span>📞 Help Desk:</span>
               <strong className="text-white">+91 98765 43210</strong>
             </a>
           </div>
@@ -255,9 +257,12 @@ export default function Navbar({
 
             </nav>
 
-            {/* Right Side Actions: Search, Login, Register & (ADMIN ONLY PORTAL) */}
-            <div className="flex items-center space-x-3">
+            {/* Right Side Actions: Notifications, Search, Login & (ADMIN ONLY PORTAL) */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
               
+              {/* Notification Center (Push alerts for Phone & PC) */}
+              <NotificationCenter user={user} onSelectJob={onSelectJob} />
+
               {/* Search Icon */}
               <button 
                 onClick={() => navigateTo('home', 'jobs-section')}
@@ -318,20 +323,13 @@ export default function Navbar({
                   )}
                 </div>
               ) : (
-                /* Guest View: Clean Login & Register Buttons (No Admin Portal visible) */
-                <div className="flex items-center space-x-2.5">
+                /* Guest View: Clean Unified Login Button (No Register button needed) */
+                <div className="flex items-center space-x-2">
                   <button
                     onClick={() => openAuthModal(true)}
-                    className="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors cursor-pointer px-2 py-1.5"
+                    className="px-4 py-2 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-xs hover:shadow-md transition cursor-pointer flex items-center space-x-1.5"
                   >
-                    Login
-                  </button>
-
-                  <button
-                    onClick={() => openAuthModal(false)}
-                    className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs transition-colors cursor-pointer"
-                  >
-                    Register
+                    <span>Login</span>
                   </button>
                 </div>
               )}
@@ -392,18 +390,12 @@ export default function Navbar({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100">
+              <div className="pb-2 border-b border-slate-100">
                 <button
                   onClick={() => { openAuthModal(true); setMobileMenuOpen(false); }}
-                  className="w-full py-2.5 text-center text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+                  className="w-full py-2.5 text-center text-xs font-black text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-xs transition cursor-pointer"
                 >
-                  Login
-                </button>
-                <button
-                  onClick={() => { openAuthModal(false); setMobileMenuOpen(false); }}
-                  className="w-full py-2.5 text-center text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer"
-                >
-                  Register Free
+                  🔐 Login to Jobopedia
                 </button>
               </div>
             )}

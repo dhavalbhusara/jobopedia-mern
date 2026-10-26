@@ -35,8 +35,8 @@ export default function WeeklyGovtJobCalendar() {
   const days = activeWeek.days || [];
   const activeDay = days.find(d => d.dayNumber === selectedDayNum) || days[0];
 
-  const triggerCyberCafeHelp = (title) => {
-    const text = encodeURIComponent(`Namaste Jobopedia Cyber Cafe Helpline,\n\nI want to apply for: *${title}*.\nPlease assist me in online application submission.`);
+  const triggerHelpDesk = (title) => {
+    const text = encodeURIComponent(`Namaste Jobopedia Help Desk,\n\nI want assistance applying for: *${title}*.\nPlease guide me.`);
     window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
   };
 

@@ -1,8 +1,8 @@
 import React from 'react';
 
 export default function Footer({ setCurrentView }) {
-  const triggerCyberCafeHelp = () => {
-    const text = encodeURIComponent("Namaste Jobopedia Cyber Cafe Helpline,\n\nI want assistance with online form submission.");
+  const triggerHelpDesk = () => {
+    const text = encodeURIComponent("Namaste Jobopedia Help Desk,\n\nI want assistance with online form submission.");
     window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
   };
 
@@ -29,7 +29,7 @@ export default function Footer({ setCurrentView }) {
               </span>
             </div>
             <p className="text-slate-400 leading-relaxed font-medium">
-              India's premier verified employment ecosystem providing automated daily government notifications, corporate placements, and certified cyber cafe application assistance.
+              India's premier verified employment ecosystem providing automated daily government notifications, corporate placements, and certified online application assistance.
             </p>
             <div className="text-slate-400">
               Official Helpline: <strong>support@jobopedia.in</strong>
@@ -59,12 +59,12 @@ export default function Footer({ setCurrentView }) {
           </div>
 
           <div className="space-y-2">
-            <h4 className="font-black text-white text-sm">Cyber Cafe Desk</h4>
+            <h4 className="font-black text-white text-sm">Help Desk</h4>
             <p className="text-slate-400 leading-relaxed font-medium">
               Ghar baithe WhatsApp se online form bharwayen bina kisi mistake ya rejection risk ke.
             </p>
             <button
-              onClick={triggerCyberCafeHelp}
+              onClick={triggerHelpDesk}
               className="mt-2 px-4 py-2 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-xl font-bold flex items-center space-x-1.5 shadow-sm transition cursor-pointer"
             >
               <i className="fa-brands fa-whatsapp text-sm"></i>
