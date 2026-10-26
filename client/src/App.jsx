@@ -66,6 +66,34 @@ export default function App() {
     setCurrentView('home');
   };
 
+  // Handle direct notification clicks (e.g. Chrome push notification opens /?jobId=123)
+  useEffect(() => {
+    const handleUrlJobParam = () => {
+      try {
+        if (typeof window === 'undefined') return;
+        const params = new URLSearchParams(window.location.search);
+        const jobId = params.get('jobId');
+        if (jobId) {
+          fetch(`/api/jobs/${jobId}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.success && data.job) {
+                setSelectedJob(data.job);
+                setCurrentView('job-detail');
+                setIsAuthModalOpen(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            })
+            .catch(() => {});
+        }
+      } catch (e) {}
+    };
+
+    handleUrlJobParam();
+    window.addEventListener('popstate', handleUrlJobParam);
+    return () => window.removeEventListener('popstate', handleUrlJobParam);
+  }, []);
+
   // Automatically request browser notification permission on website load
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
