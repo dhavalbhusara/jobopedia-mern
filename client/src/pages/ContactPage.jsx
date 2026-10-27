@@ -12,7 +12,7 @@ export default function ContactPage({ setCurrentView }) {
 
   const triggerWhatsApp = () => {
     const text = encodeURIComponent("Namaste Jobopedia Support Desk,\n\nI have an inquiry regarding job postings and application guidance.");
-    window.open("https://wa.me/919510442584?text=" + text, "_blank");
+    window.open("https://wa.me/918487944035?text=" + text, "_blank");
   };
 
   return (
@@ -56,8 +56,8 @@ export default function ContactPage({ setCurrentView }) {
               <Phone className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <div className="text-slate-400">Helpline &amp; WhatsApp:</div>
-                <a href="tel:+919510442584" className="font-bold text-white text-sm hover:text-amber-400 transition block">
-                  +91 95104 42584
+                <a href="tel:+918487944035" className="font-bold text-white text-sm hover:text-amber-400 transition block">
+                  +91 84879 44035
                 </a>
               </div>
             </div>
@@ -103,7 +103,7 @@ export default function ContactPage({ setCurrentView }) {
               className="w-full py-3 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-2xl text-xs font-black shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer"
             >
               <i className="fa-brands fa-whatsapp text-base"></i>
-              <span>WhatsApp Helpline (+91 95104 42584)</span>
+              <span>WhatsApp Helpline (+91 84879 44035)</span>
             </button>
 
             <a
@@ -169,7 +169,7 @@ export default function ContactPage({ setCurrentView }) {
                     required
                     value={formData.mobile}
                     onChange={(e) => setFormData({...formData, mobile: e.target.value})}
-                    placeholder="e.g. 9510442584" 
+                    placeholder="e.g. 8487944035" 
                     className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>

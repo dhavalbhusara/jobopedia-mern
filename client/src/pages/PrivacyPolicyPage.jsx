@@ -183,7 +183,7 @@ export default function PrivacyPolicyPage({ setCurrentView }) {
                 <Phone className="w-3.5 h-3.5 text-emerald-600" />
                 <span>વોટ્સએપ હેલ્પ ડેસ્ક &amp; ફોન:</span>
               </div>
-              <div className="text-slate-600 font-mono font-bold">+91 95104 42584</div>
+              <div className="text-slate-600 font-mono font-bold">+91 84879 44035</div>
               <div className="text-slate-500 text-[11px]">સોમવાર - શનિવાર (સવારે 9:00 થી સાંજે 8:00)</div>
             </div>
           </div>

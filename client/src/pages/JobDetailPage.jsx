@@ -42,7 +42,7 @@ export default function JobDetailPage({ job, setCurrentView, onStartMockTest }) 
 
   const handleWhatsAppHelp = () => {
     const text = encodeURIComponent(`Namaste Jobopedia Help Desk,\n\nI want assistance applying online for:\n*${currentJob.title}*\nDepartment: ${currentJob.department}\n\nPlease guide me with the application form submission.`);
-    window.open(`https://wa.me/919510442584?text=${text}`, "_blank");
+    window.open(`https://wa.me/918487944035?text=${text}`, "_blank");
   };
 
   return (

@@ -71,13 +71,13 @@ export default function Navbar({
 
             {/* Help Desk Phone */}
             <a 
-              href="https://wa.me/919510442584?text=Namaste%20Jobopedia%20Help%20Desk" 
+              href="https://wa.me/918487944035?text=Namaste%20Jobopedia%20Help%20Desk" 
               target="_blank" 
               rel="noreferrer"
               className="hidden md:flex hover:text-amber-400 transition items-center space-x-1"
             >
               <span>📞</span>
-              <strong className="text-white">+91 95104 42584</strong>
+              <strong className="text-white">+91 84879 44035</strong>
             </a>
 
             {/* Grievance button */}

@@ -198,12 +198,12 @@ router.post('/login', async (req, res) => {
     // 3. User Not Found
     if (!foundUser) {
       // Special fallback for Dhaval Admin credentials
-      if ((cleanIdentifier.includes('admin') || cleanIdentifier.includes('dhaval') || identifier === '9510443584') && password === 'Admin@123456') {
+      if ((cleanIdentifier.includes('admin') || cleanIdentifier.includes('dhaval') || identifier === '9510443584' || identifier === '8487944035') && password === 'Admin@123456') {
         const adminPayload = { 
           id: 'admin_dhaval_master', 
           fullName: 'Dhaval Bhusara (Admin)', 
           email: cleanIdentifier.includes('@') ? cleanIdentifier : 'dhavalbhusara0123@gmail.com', 
-          mobileNumber: '9510443584',
+          mobileNumber: '8487944035',
           role: 'ADMIN',
           state: 'Gujarat',
           qualification: 'Graduate'
@@ -231,7 +231,9 @@ router.post('/login', async (req, res) => {
        foundUser.email?.includes('dhaval') || 
        cleanIdentifier.includes('dhaval') ||
        foundUser.mobileNumber === '9510443584' ||
-       identifier === '9510443584') && 
+       foundUser.mobileNumber === '8487944035' ||
+       identifier === '9510443584' ||
+       identifier === '8487944035') && 
       password === 'Admin@123456'
     );
 

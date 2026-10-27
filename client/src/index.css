@@ -55,15 +55,41 @@ html, body {
   background: #94a3b8;
 }
 
-/* Dedicated ATS Resume Print Stylesheet */
+/* Dedicated ATS Resume Multi-Page Print Stylesheet */
 @media print {
-  /* Hide all website elements */
-  body {
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   
-  header, footer, nav, .print\:hidden, .no-print, [role="dialog"] > div:not(#printable-resume-container) {
+  /* Reset all modal containers and fixed overlays */
+  .fixed,
+  .fixed.inset-0,
+  [role="dialog"],
+  .overflow-hidden,
+  .overflow-y-auto {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide all website elements, headers, footers and builder UI */
+  header, footer, nav, .print\:hidden, .no-print {
     display: none !important;
   }
 
@@ -76,21 +102,32 @@ html, body {
   }
 
   #printable-resume {
-    position: fixed;
-    left: 0;
-    top: 0;
+    position: static !important;
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
-    padding: 20mm !important;
+    padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;
-    page-break-after: always;
+  }
+
+  .resume-section {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 10px !important;
+  }
+
+  .resume-item {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   @page {
-    size: A4;
+    size: A4 portrait;
     margin: 12mm 15mm 15mm 15mm;
   }
 }

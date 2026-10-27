@@ -4,7 +4,7 @@ import { Mail, Phone, Instagram } from 'lucide-react';
 export default function Footer({ setCurrentView }) {
   const triggerHelpDesk = () => {
     const text = encodeURIComponent("Namaste Jobopedia Help Desk,\n\nI want assistance with online form submission.");
-    window.open("https://wa.me/919510442584?text=" + text, "_blank");
+    window.open("https://wa.me/918487944035?text=" + text, "_blank");
   };
 
   const navigateTo = (view, sectionId) => {
@@ -39,7 +39,7 @@ export default function Footer({ setCurrentView }) {
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <a href="tel:+919510442584" className="hover:text-amber-400 transition font-medium">+91 95104 42584</a>
+                <a href="tel:+918487944035" className="hover:text-amber-400 transition font-medium">+91 84879 44035</a>
               </div>
               <div className="flex items-center space-x-2">
                 <Instagram className="w-3.5 h-3.5 text-pink-400 shrink-0" />
@@ -90,7 +90,7 @@ export default function Footer({ setCurrentView }) {
                 className="w-full px-3 py-2 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-xl font-bold flex items-center justify-center space-x-1.5 shadow-sm transition cursor-pointer"
               >
                 <i className="fa-brands fa-whatsapp text-sm"></i>
-                <span>WhatsApp: +91 95104 42584</span>
+                <span>WhatsApp: +91 84879 44035</span>
               </button>
               <a
                 href="https://www.instagram.com/jobopedia.in/"

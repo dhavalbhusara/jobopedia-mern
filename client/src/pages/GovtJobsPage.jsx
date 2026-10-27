@@ -108,7 +108,7 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
 
   const triggerHelpDesk = (jobTitle) => {
     const text = encodeURIComponent(`Namaste Jobopedia Help Desk,\n\nI want assistance applying for Government Job: *${jobTitle}*.\nPlease guide me.`);
-    window.open(`https://wa.me/919510442584?text=${text}`, "_blank");
+    window.open(`https://wa.me/918487944035?text=${text}`, "_blank");
   };
 
   const filtered = jobs.filter(j => 

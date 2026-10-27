@@ -37,7 +37,7 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
 
   const triggerHelpDesk = (title) => {
     const text = encodeURIComponent(`Namaste Jobopedia Help Desk,\n\nI want assistance applying for: *${title}*.\nPlease guide me.`);
-    window.open(`https://wa.me/919510442584?text=${text}`, "_blank");
+    window.open(`https://wa.me/918487944035?text=${text}`, "_blank");
   };
 
   return (
