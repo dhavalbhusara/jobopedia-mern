@@ -3,7 +3,7 @@ import {
   Search, ChevronDown, Lock, LogOut, User, Sparkles, 
   BookOpen, FileText, Award, Calendar, ExternalLink, 
   Menu, X, Home, Landmark, Building2, GraduationCap, 
-  ChevronRight, Phone, ShieldCheck, MessageSquare
+  ChevronRight, Phone, ShieldCheck, MessageSquare, Instagram
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 
@@ -47,13 +47,23 @@ export default function Navbar({
           </div>
           <div className="hidden sm:flex items-center space-x-3 text-slate-300 text-[11px]">
             <a 
-              href="https://wa.me/919876543210?text=Namaste%20Jobopedia%20Help%20Desk" 
+              href="https://wa.me/919510442584?text=Namaste%20Jobopedia%20Help%20Desk" 
               target="_blank" 
               rel="noreferrer"
               className="hover:text-amber-400 transition flex items-center space-x-1"
             >
               <span>📞 Help Desk:</span>
-              <strong className="text-white">+91 98765 43210</strong>
+              <strong className="text-white">+91 95104 42584</strong>
+            </a>
+            <span>•</span>
+            <a
+              href="https://www.instagram.com/jobopedia.in/"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-pink-400 text-pink-300 transition flex items-center space-x-1 font-semibold"
+            >
+              <Instagram className="w-3 h-3 text-pink-400" />
+              <span>@jobopedia.in</span>
             </a>
             <span>•</span>
             <button
@@ -61,7 +71,7 @@ export default function Navbar({
               className="hover:text-rose-400 text-rose-300 transition flex items-center space-x-1 cursor-pointer bg-white/10 hover:bg-white/15 px-2 py-0.5 rounded-md font-bold"
             >
               <MessageSquare className="w-3 h-3 text-rose-400" />
-              <span>📢 Submit Complaint / Grievance (ફરિયાદ)</span>
+              <span>📢 Grievance</span>
             </button>
           </div>
         </div>

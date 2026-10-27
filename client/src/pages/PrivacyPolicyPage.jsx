@@ -174,17 +174,17 @@ export default function PrivacyPolicyPage({ setCurrentView }) {
                 <Mail className="w-3.5 h-3.5 text-blue-600" />
                 <span>સત્તાવાર ઈમેઈલ હેલ્પલાઇન:</span>
               </div>
-              <div className="text-slate-600 font-mono">support@jobopedia.in</div>
-              <div className="text-slate-600 font-mono">dhavalbhusara0123@gmail.com</div>
+              <div className="text-slate-600 font-mono">jobopedia.careers@gmail.com</div>
+              <div className="text-slate-500 font-mono text-[11px]">Instagram: @jobopedia.in</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-xs">
               <div className="font-bold text-slate-900 flex items-center space-x-1.5">
                 <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                <span>વોટ્સએપ હેલ્પ ડેસ્ક:</span>
+                <span>વોટ્સએપ હેલ્પ ડેસ્ક &amp; ફોન:</span>
               </div>
-              <div className="text-slate-600 font-mono">+91 98765 43210 / +91 95104 43584</div>
-              <div className="text-slate-500 text-[11px]">સોમવાર - શનિવાર (સવારે 9:00 થી સાંજે 7:00)</div>
+              <div className="text-slate-600 font-mono font-bold">+91 95104 42584</div>
+              <div className="text-slate-500 text-[11px]">સોમવાર - શનિવાર (સવારે 9:00 થી સાંજે 8:00)</div>
             </div>
           </div>
         </section>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, ArrowLeft, Instagram } from 'lucide-react';
 
 export default function ContactPage({ setCurrentView }) {
   const [formData, setFormData] = useState({ name: '', email: '', mobile: '', message: '' });
@@ -12,7 +12,7 @@ export default function ContactPage({ setCurrentView }) {
 
   const triggerWhatsApp = () => {
     const text = encodeURIComponent("Namaste Jobopedia Support Desk,\n\nI have an inquiry regarding job postings and application guidance.");
-    window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
+    window.open("https://wa.me/919510442584?text=" + text, "_blank");
   };
 
   return (
@@ -55,8 +55,10 @@ export default function ContactPage({ setCurrentView }) {
             <div className="flex items-start space-x-3">
               <Phone className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <div className="text-slate-400">Help Desk WhatsApp Helpline:</div>
-                <div className="font-bold text-white text-sm">+91 98765 43210</div>
+                <div className="text-slate-400">Helpline &amp; WhatsApp:</div>
+                <a href="tel:+919510442584" className="font-bold text-white text-sm hover:text-amber-400 transition block">
+                  +91 95104 42584
+                </a>
               </div>
             </div>
 
@@ -64,7 +66,25 @@ export default function ContactPage({ setCurrentView }) {
               <Mail className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <div>
                 <div className="text-slate-400">Official Support Email:</div>
-                <div className="font-bold text-white text-sm">support@jobopedia.in</div>
+                <a href="mailto:jobopedia.careers@gmail.com" className="font-bold text-white text-sm hover:text-emerald-400 transition break-all block">
+                  jobopedia.careers@gmail.com
+                </a>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <Instagram className="w-4 h-4 text-pink-400 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-slate-400">Official Instagram Page:</div>
+                <a 
+                  href="https://www.instagram.com/jobopedia.in/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="font-bold text-pink-300 text-sm hover:text-pink-200 transition flex items-center space-x-1"
+                >
+                  <span>@jobopedia.in</span>
+                  <span className="text-[10px] bg-pink-500/20 text-pink-300 px-1.5 py-0.5 rounded-full ml-1">Follow</span>
+                </a>
               </div>
             </div>
 
@@ -72,18 +92,30 @@ export default function ContactPage({ setCurrentView }) {
               <MapPin className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
               <div>
                 <div className="text-slate-400">Headquarters:</div>
-                <div className="font-bold text-white">Gandhinagar, Gujarat, India</div>
+                <div className="font-bold text-white">Gandhinagar &amp; Ahmedabad, Gujarat, India</div>
               </div>
             </div>
           </div>
 
-          <button
-            onClick={triggerWhatsApp}
-            className="w-full py-3 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-2xl text-xs font-black shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer"
-          >
-            <i className="fa-brands fa-whatsapp text-base"></i>
-            <span>WhatsApp Helpline પર વાત કરો</span>
-          </button>
+          <div className="space-y-2.5 pt-2">
+            <button
+              onClick={triggerWhatsApp}
+              className="w-full py-3 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-2xl text-xs font-black shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer"
+            >
+              <i className="fa-brands fa-whatsapp text-base"></i>
+              <span>WhatsApp Helpline (+91 95104 42584)</span>
+            </button>
+
+            <a
+              href="https://www.instagram.com/jobopedia.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-500 hover:opacity-95 text-white rounded-2xl text-xs font-black shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer"
+            >
+              <Instagram className="w-4 h-4" />
+              <span>Instagram પર જોડાઓ (@jobopedia.in)</span>
+            </a>
+          </div>
         </div>
 
         {/* Contact Form */}
@@ -137,7 +169,7 @@ export default function ContactPage({ setCurrentView }) {
                     required
                     value={formData.mobile}
                     onChange={(e) => setFormData({...formData, mobile: e.target.value})}
-                    placeholder="9876543210" 
+                    placeholder="e.g. 9510442584" 
                     className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>

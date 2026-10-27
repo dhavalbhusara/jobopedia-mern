@@ -1,9 +1,10 @@
 import React from 'react';
+import { Mail, Phone, Instagram } from 'lucide-react';
 
 export default function Footer({ setCurrentView }) {
   const triggerHelpDesk = () => {
     const text = encodeURIComponent("Namaste Jobopedia Help Desk,\n\nI want assistance with online form submission.");
-    window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
+    window.open("https://wa.me/919510442584?text=" + text, "_blank");
   };
 
   const navigateTo = (view, sectionId) => {
@@ -31,8 +32,27 @@ export default function Footer({ setCurrentView }) {
             <p className="text-slate-400 leading-relaxed font-medium">
               India's premier verified employment ecosystem providing automated daily government notifications, corporate placements, and certified online application assistance.
             </p>
-            <div className="text-slate-400">
-              Official Helpline: <strong>support@jobopedia.in</strong>
+            <div className="space-y-1.5 pt-1 text-slate-300">
+              <div className="flex items-center space-x-2">
+                <Mail className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <a href="mailto:jobopedia.careers@gmail.com" className="hover:text-amber-400 transition font-medium">jobopedia.careers@gmail.com</a>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <a href="tel:+919510442584" className="hover:text-amber-400 transition font-medium">+91 95104 42584</a>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Instagram className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                <a 
+                  href="https://www.instagram.com/jobopedia.in/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-pink-300 hover:text-pink-200 transition font-semibold flex items-center space-x-1"
+                >
+                  <span>@jobopedia.in</span>
+                  <span className="text-[10px] bg-pink-500/20 text-pink-300 px-1 rounded">Instagram</span>
+                </a>
+              </div>
             </div>
           </div>
 
@@ -64,13 +84,24 @@ export default function Footer({ setCurrentView }) {
             <p className="text-slate-400 leading-relaxed font-medium">
               Ghar baithe WhatsApp se online form bharwayen bina kisi mistake ya rejection risk ke.
             </p>
-            <button
-              onClick={triggerHelpDesk}
-              className="mt-2 px-4 py-2 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-xl font-bold flex items-center space-x-1.5 shadow-sm transition cursor-pointer"
-            >
-              <i className="fa-brands fa-whatsapp text-sm"></i>
-              <span>Connect on WhatsApp</span>
-            </button>
+            <div className="space-y-2 pt-1">
+              <button
+                onClick={triggerHelpDesk}
+                className="w-full px-3 py-2 bg-[#F58220] hover:bg-[#ea580c] text-white rounded-xl font-bold flex items-center justify-center space-x-1.5 shadow-sm transition cursor-pointer"
+              >
+                <i className="fa-brands fa-whatsapp text-sm"></i>
+                <span>WhatsApp: +91 95104 42584</span>
+              </button>
+              <a
+                href="https://www.instagram.com/jobopedia.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-95 text-white rounded-xl font-bold flex items-center justify-center space-x-1.5 shadow-sm transition cursor-pointer block text-center"
+              >
+                <Instagram className="w-3.5 h-3.5 inline-block mr-1" />
+                <span>Instagram: @jobopedia.in</span>
+              </a>
+            </div>
           </div>
 
         </div>
