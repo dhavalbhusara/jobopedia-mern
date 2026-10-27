@@ -153,7 +153,7 @@ export default function App() {
       case 'privacy-policy':
         return <PrivacyPolicyPage setCurrentView={setCurrentView} />;
       case 'admin':
-        return <AdminDashboard setCurrentView={setCurrentView} user={user} />;
+        return <AdminDashboard setCurrentView={setCurrentView} user={user} onLogout={handleLogout} />;
       case 'user-dashboard':
         return (
           <UserDashboard 
@@ -162,6 +162,7 @@ export default function App() {
             setCurrentView={setCurrentView} 
             openResumeModal={() => setIsResumeModalOpen(true)}
             onSelectJob={handleOpenJobDetail}
+            onLogout={handleLogout}
           />
         );
       case 'home':

@@ -4,13 +4,13 @@ import {
   Bookmark, CheckCircle2, Award, Clock, ArrowRight, 
   Sparkles, FileText, Settings, ShieldCheck, ExternalLink, 
   Building2, Landmark, RefreshCw, Edit3, Trash2, Check,
-  Search, Bell, AlertCircle, ChevronRight, Calendar, MessageSquare, Send
+  Search, Bell, AlertCircle, ChevronRight, Calendar, MessageSquare, Send, LogOut
 } from 'lucide-react';
 import WeeklyGovtJobCalendar from '../components/WeeklyGovtJobCalendar';
 import JobDetailsModal from '../components/JobDetailsModal';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function UserDashboard({ user, setUser, setCurrentView, openResumeModal, onSelectJob }) {
+export default function UserDashboard({ user, setUser, setCurrentView, openResumeModal, onSelectJob, onLogout }) {
   const [activeTab, setActiveTab] = useState('recommended');
   const [jobs, setJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
@@ -236,10 +236,10 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
             </div>
 
             {/* Header Right Actions */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
               <button
                 onClick={() => setIsEditingProfile(!isEditingProfile)}
-                className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold text-white transition flex items-center space-x-2 cursor-pointer"
+                className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold text-white transition flex items-center space-x-1.5 cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>{isEditingProfile ? 'Cancel Edit' : 'Edit Profile'}</span>
@@ -247,11 +247,23 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
 
               <button
                 onClick={openResumeModal}
-                className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 rounded-xl text-xs font-black text-white shadow-md transition flex items-center space-x-2 cursor-pointer"
+                className="px-3.5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 rounded-xl text-xs font-black text-white shadow-md transition flex items-center space-x-1.5 cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-100" />
-                <span>Open ATS Resume Builder</span>
+                <span className="hidden sm:inline">Open ATS Resume Builder</span>
+                <span className="sm:hidden">Resume</span>
               </button>
+
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 border border-rose-500 rounded-xl text-xs font-black text-white shadow-md transition flex items-center space-x-1.5 cursor-pointer"
+                  title="Logout from Account"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Logout</span>
+                </button>
+              )}
             </div>
           </div>
 

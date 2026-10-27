@@ -4,11 +4,11 @@ import {
   Download, Briefcase, Landmark, Building2, GraduationCap, 
   CheckCircle2, Bell, Send, Smartphone, Monitor, Trash2, 
   Search, BarChart3, TrendingUp, Calendar, FileSpreadsheet, 
-  RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles, MessageSquare 
+  RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles, MessageSquare, LogOut
 } from 'lucide-react';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
-export default function AdminDashboard({ setCurrentView, user }) {
+export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const [activeTab, setActiveTab] = useState('hr');
   const [candidates, setCandidates] = useState([]);
   const [successToast, setSuccessToast] = useState('');
@@ -659,14 +659,27 @@ export default function AdminDashboard({ setCurrentView, user }) {
           </p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex items-center space-x-3">
-          <div>
-            <div className="text-[10px] uppercase font-bold text-slate-300">Live MongoDB Status</div>
-            <div className="text-lg font-black text-emerald-300 flex items-center space-x-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Atlas Connected</span>
+        <div className="flex items-center space-x-3">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex items-center space-x-3">
+            <div>
+              <div className="text-[10px] uppercase font-bold text-slate-300">Live MongoDB Status</div>
+              <div className="text-lg font-black text-emerald-300 flex items-center space-x-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Atlas Connected</span>
+              </div>
             </div>
           </div>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-black shadow-lg transition flex items-center space-x-2 cursor-pointer"
+              title="Logout from Admin Account"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </button>
+          )}
         </div>
       </div>
 
