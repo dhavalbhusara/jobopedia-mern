@@ -97,52 +97,27 @@ export default function Navbar({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             
-            {/* Logo + Social Quick Direct Links at Starting */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <a 
-                href="/" 
-                onClick={(e) => { e.preventDefault(); setCurrentView('home'); }}
-                className="flex items-center space-x-2.5 group shrink-0 cursor-pointer"
-              >
-                <img 
-                  src="/images/jobopedia-icon.png" 
-                  alt="Jobopedia Icon" 
-                  className="w-9 h-9 sm:w-11 sm:h-11 object-contain shrink-0 group-hover:scale-105 transition-transform"
-                  onError={(e) => { e.target.src = '/images/careersetu-icon.png'; }}
-                />
-                <div className="flex flex-col">
-                  <span className="font-black text-2xl sm:text-3xl text-slate-900 tracking-tight leading-none group-hover:opacity-90 transition-opacity">
-                    Job<span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 bg-clip-text text-transparent">opedia</span>
-                  </span>
-                  <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-500 tracking-wider uppercase mt-1">
-                    Govt &amp; Corporate Career Hub
-                  </span>
-                </div>
-              </a>
-
-              {/* Instagram and Gmail Quick Direct Buttons at Starting */}
-              <div className="flex items-center space-x-1.5 sm:space-x-2 border-l border-slate-200 pl-2 sm:pl-3">
-                <a
-                  href="https://www.instagram.com/jobopedia.in/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-1 px-2 py-1 rounded-xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white text-[11px] sm:text-xs font-black shadow-xs hover:shadow-md hover:scale-105 transition"
-                  title="Direct Instagram Profile (@jobopedia.in)"
-                >
-                  <Instagram className="w-3.5 h-3.5 text-white" />
-                  <span className="hidden sm:inline">Instagram</span>
-                </a>
-
-                <a
-                  href="mailto:jobopedia.careers@gmail.com"
-                  className="flex items-center space-x-1 px-2 py-1 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[11px] sm:text-xs font-black shadow-xs hover:shadow-md hover:scale-105 transition"
-                  title="Direct Mail: jobopedia.careers@gmail.com"
-                >
-                  <Mail className="w-3.5 h-3.5 text-white" />
-                  <span className="hidden sm:inline">Gmail</span>
-                </a>
+            {/* Logo */}
+            <a 
+              href="/" 
+              onClick={(e) => { e.preventDefault(); setCurrentView('home'); }}
+              className="flex items-center space-x-2.5 group shrink-0 cursor-pointer"
+            >
+              <img 
+                src="/images/jobopedia-icon.png" 
+                alt="Jobopedia Icon" 
+                className="w-9 h-9 sm:w-11 sm:h-11 object-contain shrink-0 group-hover:scale-105 transition-transform"
+                onError={(e) => { e.target.src = '/images/careersetu-icon.png'; }}
+              />
+              <div className="flex flex-col">
+                <span className="font-black text-2xl sm:text-3xl text-slate-900 tracking-tight leading-none group-hover:opacity-90 transition-opacity">
+                  Job<span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 bg-clip-text text-transparent">opedia</span>
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-500 tracking-wider uppercase mt-1">
+                  Govt &amp; Corporate Career Hub
+                </span>
               </div>
-            </div>
+            </a>
 
             {/* Desktop Navigation Links */}
             <nav className="hidden lg:flex items-center space-x-3 xl:space-x-5 text-sm font-bold text-slate-700 shrink-0">
