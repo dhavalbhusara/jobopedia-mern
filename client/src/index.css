@@ -54,3 +54,43 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Dedicated ATS Resume Print Stylesheet */
+@media print {
+  /* Hide all website elements */
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  header, footer, nav, .print\:hidden, .no-print, [role="dialog"] > div:not(#printable-resume-container) {
+    display: none !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-resume, #printable-resume * {
+    visibility: visible;
+  }
+
+  #printable-resume {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    page-break-after: always;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm 15mm 15mm 15mm;
+  }
+}

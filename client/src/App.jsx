@@ -205,6 +205,7 @@ export default function App() {
       <ResumeBuilder 
         isOpen={isResumeModalOpen} 
         onClose={() => setIsResumeModalOpen(false)} 
+        user={user}
       />
 
       <ComplaintModal 
