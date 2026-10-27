@@ -1293,37 +1293,37 @@ export default function AdminDashboard({ setCurrentView, user }) {
               </div>
             </div>
 
-            {/* Live Traffic Summary Metric Cards (100% REAL DATA FROM MONGODB) */}
+            {/* Live Traffic Summary Metric Cards (100% REAL DATA FROM MONGODB - 1 VISIT PER USER PER DAY) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 space-y-1">
                 <div className="text-[11px] font-black uppercase tracking-wider text-blue-700 flex items-center justify-between">
-                  <span>Total Real Visits</span>
+                  <span>Total Unique Visitors</span>
                   <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                 </div>
                 <div className="text-3xl font-black text-slate-900">
                   {analyticsData?.summary?.totalLifetimeVisits ?? 0}
                 </div>
                 <div className="text-[11px] text-blue-700 font-semibold">
-                  Actual visitors recorded in database
+                  1 record per user per day in database
                 </div>
               </div>
 
               <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 space-y-1">
                 <div className="text-[11px] font-black uppercase tracking-wider text-emerald-700 flex items-center justify-between">
-                  <span>Today's Real Visitors</span>
+                  <span>Today's Unique Visitors</span>
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
                 </div>
                 <div className="text-3xl font-black text-slate-900">
                   {analyticsData?.summary?.todayVisits ?? 0}
                 </div>
                 <div className="text-[11px] text-emerald-700 font-semibold">
-                  Live for {analyticsData?.summary?.todayDate || 'Today'}
+                  Distinct users on {analyticsData?.summary?.todayDate || 'Today'}
                 </div>
               </div>
 
               <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 space-y-1">
                 <div className="text-[11px] font-black uppercase tracking-wider text-amber-700">
-                  This Month's Real Traffic
+                  This Month's Unique Visitors
                 </div>
                 <div className="text-3xl font-black text-slate-900">
                   {analyticsData?.summary?.thisMonthVisits ?? 0}
@@ -1348,18 +1348,23 @@ export default function AdminDashboard({ setCurrentView, user }) {
               </div>
             </div>
 
-            {/* Real Recent Visitors Live Stream */}
+            {/* Real Recent Visitors Live Stream (1 Entry Per User Per Day with Exact IP) */}
             <div className="space-y-3 p-5 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-lg">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                 <div className="flex items-center space-x-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                   <h3 className="text-sm font-black uppercase tracking-wider text-white">
-                    🔴 Live Real-Time Visitor Activity Stream (વાસ્તવિક મુલાકાતીઓ)
+                    🔴 Live Daily Unique Visitors Stream (વાસ્તવિક મુલાકાતીઓ &amp; IP)
                   </h3>
                 </div>
-                <span className="text-[11px] text-emerald-400 font-bold bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-800">
-                  Live Log: Auto-updating every 5s
-                </span>
+                <div className="flex items-center space-x-2 text-[11px]">
+                  <span className="text-amber-300 font-bold bg-amber-950/80 px-2.5 py-1 rounded-full border border-amber-800">
+                    🔒 1 User = 1 Bar Per Day
+                  </span>
+                  <span className="text-emerald-400 font-bold bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-800 hidden sm:inline">
+                    Live Auto-updating 5s
+                  </span>
+                </div>
               </div>
 
               <div className="overflow-x-auto max-h-72 overflow-y-auto">
@@ -1367,27 +1372,34 @@ export default function AdminDashboard({ setCurrentView, user }) {
                   <thead className="bg-slate-800/80 text-slate-300 uppercase font-black text-[10px] tracking-wider sticky top-0">
                     <tr>
                       <th className="py-2.5 px-3">Visit Time</th>
+                      <th className="py-2.5 px-3">Visitor Real IP (આઇપી)</th>
                       <th className="py-2.5 px-3">Page Visited</th>
                       <th className="py-2.5 px-3">Device Platform</th>
                       <th className="py-2.5 px-3">Candidate State</th>
-                      <th className="py-2.5 px-3">Connection Info</th>
+                      <th className="py-2.5 px-3">Today's Activity</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium text-[11px]">
                     {(!analyticsData?.recentVisitors || analyticsData.recentVisitors.length === 0) ? (
                       <tr>
-                        <td colSpan="5" className="py-6 text-center text-slate-400">
+                        <td colSpan="6" className="py-6 text-center text-slate-400">
                           Waiting for live visitors... Open the website on your phone to see your entry appear here!
                         </td>
                       </tr>
                     ) : (
                       analyticsData.recentVisitors.map((v, i) => (
                         <tr key={v.id || i} className="hover:bg-slate-800/50 transition">
-                          <td className="py-2 px-3 text-slate-300 font-mono">
+                          <td className="py-2 px-3 text-slate-300 font-mono whitespace-nowrap">
                             {new Date(v.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            <span className="text-[10px] text-slate-500 block">{v.date}</span>
                           </td>
                           <td className="py-2 px-3">
-                            <span className="font-bold text-amber-300 capitalize">
+                            <span className="font-mono text-amber-300 font-extrabold bg-amber-950/80 px-2 py-0.5 rounded border border-amber-800 inline-block shadow-2xs">
+                              🌐 {v.ip || '127.0.0.1'}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="font-bold text-slate-200 capitalize">
                               {v.page === 'home' ? '🏠 Home Page' :
                                v.page === 'govt' ? '🏛️ Govt Jobs' :
                                v.page === 'private' ? '🏢 Private Jobs' :
@@ -1401,7 +1413,7 @@ export default function AdminDashboard({ setCurrentView, user }) {
                           <td className="py-2 px-3">
                             {v.deviceType === 'Mobile' ? (
                               <span className="inline-flex items-center space-x-1 text-blue-400 font-bold bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/60">
-                                <span>📱 Mobile Phone</span>
+                                <span>📱 Mobile</span>
                               </span>
                             ) : (
                               <span className="inline-flex items-center space-x-1 text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
@@ -1409,11 +1421,16 @@ export default function AdminDashboard({ setCurrentView, user }) {
                               </span>
                             )}
                           </td>
-                          <td className="py-2 px-3 text-slate-300 font-semibold">
-                            📍 {v.state || 'All India'}
+                          <td className="py-2 px-3 text-slate-300 font-semibold whitespace-nowrap">
+                            📍 {v.state || 'All India'} • <span className="text-slate-400 font-normal text-[10px]">{v.browser}</span>
                           </td>
-                          <td className="py-2 px-3 text-slate-400 font-mono text-[10px]">
-                            {v.browser} • {v.ip}
+                          <td className="py-2 px-3">
+                            <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-950 text-emerald-300 border border-emerald-800 whitespace-nowrap">
+                              <span>✓ 1 User</span>
+                              {v.visitCount > 1 && (
+                                <span className="text-amber-300">({v.visitCount} views today)</span>
+                              )}
+                            </span>
                           </td>
                         </tr>
                       ))

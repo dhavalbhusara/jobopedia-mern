@@ -78,24 +78,41 @@ export default function App() {
     fetch('https://jobopedia-backend.onrender.com/api/health').catch(() => {});
   }, []);
 
-  // Auto-track website traffic for Dhaval's Analytics Dashboard
+  // Auto-track website traffic for Dhaval's Analytics Dashboard (1 visit per user per day with real IP)
   useEffect(() => {
-    try {
-      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-      const deviceType = isMobileDevice ? 'Mobile' : 'Desktop';
-      const browser = navigator.userAgent.includes('Chrome') ? 'Chrome' : (navigator.userAgent.includes('Firefox') ? 'Firefox' : (navigator.userAgent.includes('Safari') ? 'Safari' : 'Browser'));
+    const trackVisitor = async () => {
+      try {
+        let publicIp = sessionStorage.getItem('jobopedia_client_ip') || '';
+        if (!publicIp) {
+          try {
+            const ipRes = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(2500) });
+            const ipData = await ipRes.json();
+            if (ipData && ipData.ip) {
+              publicIp = ipData.ip;
+              sessionStorage.setItem('jobopedia_client_ip', publicIp);
+            }
+          } catch (e) {}
+        }
 
-      fetch('/api/analytics/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          page: currentView,
-          deviceType,
-          browser,
-          state: user?.state || 'All India'
-        })
-      }).catch(() => {});
-    } catch (e) {}
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        const deviceType = isMobileDevice ? 'Mobile' : 'Desktop';
+        const browser = navigator.userAgent.includes('Chrome') ? 'Chrome' : (navigator.userAgent.includes('Firefox') ? 'Firefox' : (navigator.userAgent.includes('Safari') ? 'Safari' : 'Browser'));
+
+        fetch('/api/analytics/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            page: currentView,
+            deviceType,
+            browser,
+            state: user?.state || 'All India',
+            clientIp: publicIp
+          })
+        }).catch(() => {});
+      } catch (e) {}
+    };
+
+    trackVisitor();
   }, [currentView]);
 
   const handleOpenJobDetail = (job) => {
