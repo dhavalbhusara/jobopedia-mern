@@ -302,6 +302,36 @@ router.post('/', async (req, res) => {
     jobData.qualifications = qualArr;
     jobData.qualification = qualArr.join(', ');
 
+    // PRE-PUBLISH DUPLICATE JOB CHECK (Warn admin before creating duplicate jobs)
+    if (!jobData.forcePublish && jobData.title && jobData.department) {
+      const cleanTitle = jobData.title.trim();
+      const cleanDept = jobData.department.trim();
+      try {
+        const existingJob = await Job.findOne({
+          title: { $regex: new RegExp(`^${cleanTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+          department: { $regex: new RegExp(`^${cleanDept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+        }).lean();
+
+        if (existingJob) {
+          return res.status(409).json({
+            success: false,
+            duplicateWarning: true,
+            message: `⚠️ Similar job is already live: "${existingJob.title}" in "${existingJob.department}".`,
+            existingJob: {
+              id: existingJob._id,
+              title: existingJob.title,
+              department: existingJob.department,
+              vacancies: existingJob.vacancies,
+              lastDate: existingJob.lastDate,
+              createdAt: existingJob.createdAt
+            }
+          });
+        }
+      } catch (checkErr) {
+        console.warn("Pre-publish duplicate check skipped:", checkErr.message);
+      }
+    }
+
     const job = new Job(jobData);
     await job.save();
 

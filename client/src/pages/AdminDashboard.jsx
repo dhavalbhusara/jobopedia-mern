@@ -4,7 +4,8 @@ import {
   Download, Briefcase, Landmark, Building2, GraduationCap, 
   CheckCircle2, Bell, Send, Smartphone, Monitor, Trash2, 
   Search, BarChart3, TrendingUp, Calendar, FileSpreadsheet, 
-  RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles, MessageSquare, LogOut
+  RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles, MessageSquare, LogOut,
+  AlertTriangle, Copy, Layers, ShieldAlert
 } from 'lucide-react';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
@@ -262,6 +263,16 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [loadingJobs, setLoadingJobs] = useState(false);
 
+  // Smart AI Duplicate Jobs Intelligence State
+  const [duplicateGroups, setDuplicateGroups] = useState([]);
+  const [totalDuplicatesToRemove, setTotalDuplicatesToRemove] = useState(0);
+  const [loadingDuplicates, setLoadingDuplicates] = useState(false);
+  const [selectedDuplicateJobIds, setSelectedDuplicateJobIds] = useState([]);
+  const [selectedAdminJobIds, setSelectedAdminJobIds] = useState([]);
+  const [isCleaningDuplicates, setIsCleaningDuplicates] = useState(false);
+  const [showDuplicateManager, setShowDuplicateManager] = useState(true);
+  const [duplicateWarningModal, setDuplicateWarningModal] = useState(null);
+
   // Visitor Analytics State (Dhaval Special)
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
@@ -342,6 +353,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
         setLoadingJobs(false);
         setLoadingGovtJobs(false);
       });
+    fetchDuplicates();
   };
 
   const fetchAnalytics = () => {
@@ -370,12 +382,197 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
         setSuccessToast(`🗑️ "${jobTitle}" has been successfully removed from database!`);
         setAllJobs(prev => prev.filter(j => (j._id || j.id) !== jobId));
         setGovtJobs(prev => prev.filter(j => (j._id || j.id) !== jobId));
+        fetchDuplicates();
         setTimeout(() => setSuccessToast(''), 4000);
       } else {
         alert(data.error || 'Failed to delete job');
       }
     } catch (err) {
       alert("Error deleting job: " + err.message);
+    }
+  };
+
+  // --- SMART DUPLICATE JOBS LOGIC ---
+  const fetchDuplicates = async () => {
+    setLoadingDuplicates(true);
+    try {
+      const res = await fetch('/api/admin/jobs/duplicates');
+      const data = await res.json();
+      if (data.success) {
+        setDuplicateGroups(data.groups || []);
+        setTotalDuplicatesToRemove(data.totalDuplicatesToRemove || 0);
+        // Pre-select all duplicate copies so admin can 1-click delete selected or auto clean
+        const allDupIds = [];
+        (data.groups || []).forEach(g => {
+          (g.duplicateJobs || []).forEach(d => {
+            const id = d._id || d.id;
+            if (id) allDupIds.push(id);
+          });
+        });
+        setSelectedDuplicateJobIds(allDupIds);
+      }
+    } catch (e) {
+      console.error("Error fetching duplicate jobs:", e);
+    } finally {
+      setLoadingDuplicates(false);
+    }
+  };
+
+  const handleAutoCleanAll = async () => {
+    if (totalDuplicatesToRemove === 0) {
+      alert("વેબસાઈટ પર કોઈ ડુપ્લિકેટ જોબ્સ મળી નથી!");
+      return;
+    }
+    const confirmMsg = `⚠️ Duplicate Jobs Auto-Clean Confirmation:\n\nતમે બધા જ ${duplicateGroups.length} ડુપ્લિકેટ ગ્રુપ્સમાંથી ૧ મુખ્ય જોબ (નવીનતમ/સૌથી સંપૂર્ણ) રાખીને બાકીની બધી (${totalDuplicatesToRemove} વધારાની નકલો) આપોઆપ ડિલીટ કરવા માંગો છો?\n\nઆ તમામ ${totalDuplicatesToRemove} ડુપ્લિકેટ જોબ્સ ડેટાબેઝમાંથી હટાવી દેવામાં આવશે.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setIsCleaningDuplicates(true);
+    try {
+      const res = await fetch('/api/admin/jobs/duplicates/auto-clean', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groupId: 'all' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast(`⚡ સફાઈ પૂર્ણ! ${data.deletedCount} વધારાની ડુપ્લિકેટ જોબ્સ સફળતાપૂર્વક ડિલીટ કરી દેવાઈ છે. ૧ મુખ્ય જોબ સુરક્ષિત છે.`);
+        fetchAllAdminJobs();
+        fetchDuplicates();
+        setTimeout(() => setSuccessToast(''), 5000);
+      } else {
+        alert(data.error || 'Failed to clean duplicates');
+      }
+    } catch (err) {
+      alert("Error cleaning duplicates: " + err.message);
+    } finally {
+      setIsCleaningDuplicates(false);
+    }
+  };
+
+  const handleCleanSingleGroup = async (groupId, count) => {
+    if (!window.confirm(`આ ગ્રૂપની ૧ મુખ્ય જોબ રાખીને બાકીની ${count} ડુપ્લિકેટ જોબ્સ ડિલીટ કરવી છે?`)) return;
+
+    setIsCleaningDuplicates(true);
+    try {
+      const res = await fetch('/api/admin/jobs/duplicates/auto-clean', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groupId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast(`🗑️ આ ગ્રૂપમાંથી ${data.deletedCount} વધારાની ડુપ્લિકેટ જોબ્સ ડિલીટ થઈ ગઈ!`);
+        fetchAllAdminJobs();
+        fetchDuplicates();
+        setTimeout(() => setSuccessToast(''), 4000);
+      } else {
+        alert(data.error || 'Failed to clean group');
+      }
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsCleaningDuplicates(false);
+    }
+  };
+
+  const handleDeleteSelectedDuplicates = async () => {
+    if (selectedDuplicateJobIds.length === 0) {
+      alert("કૃપા કરીને ડિલીટ કરવા માટે ઓછામાં ઓછી ૧ ડુપ્લિકેટ જોબ પસંદ કરો.");
+      return;
+    }
+    if (!window.confirm(`પસંદ કરેલ ${selectedDuplicateJobIds.length} ડુપ્લિકેટ જોબ્સ ડિલીટ કરવી છે?`)) return;
+
+    setIsCleaningDuplicates(true);
+    try {
+      const res = await fetch('/api/admin/jobs/duplicates/auto-clean', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deleteJobIds: selectedDuplicateJobIds })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast(`🗑️ ${data.deletedCount} પસંદ કરેલ ડુપ્લિકેટ જોબ્સ ડિલીટ થઈ ગઈ!`);
+        setSelectedDuplicateJobIds([]);
+        fetchAllAdminJobs();
+        fetchDuplicates();
+        setTimeout(() => setSuccessToast(''), 4000);
+      } else {
+        alert(data.error || 'Failed to delete selected duplicates');
+      }
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsCleaningDuplicates(false);
+    }
+  };
+
+  const toggleDuplicateJobSelection = (id) => {
+    setSelectedDuplicateJobIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAdminJobSelection = (id) => {
+    setSelectedAdminJobIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllAdminJobs = (jobsList) => {
+    if (selectedAdminJobIds.length === jobsList.length) {
+      setSelectedAdminJobIds([]);
+    } else {
+      setSelectedAdminJobIds(jobsList.map(j => j._id || j.id));
+    }
+  };
+
+  const handleBulkDeleteSelectedJobs = async () => {
+    if (selectedAdminJobIds.length === 0) return;
+    if (!window.confirm(`શું તમે ખરેખર પસંદ કરેલી તમામ ${selectedAdminJobIds.length} જોબ્સ કાયમ માટે ડિલીટ કરવા માંગો છો?`)) return;
+
+    try {
+      const res = await fetch('/api/admin/jobs/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobIds: selectedAdminJobIds })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast(`🗑️ ${data.deletedCount} જોબ્સ સફળતાપૂર્વક ડિલીટ કરી દેવાઈ!`);
+        setSelectedAdminJobIds([]);
+        fetchAllAdminJobs();
+        fetchDuplicates();
+        setTimeout(() => setSuccessToast(''), 4000);
+      } else {
+        alert(data.error || 'Failed to delete jobs');
+      }
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const handleForcePublishJob = async () => {
+    if (!duplicateWarningModal?.payload) return;
+    setJobPostingStatus('posting');
+    try {
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...duplicateWarningModal.payload, forcePublish: true })
+      });
+      const data = await res.json();
+      setDuplicateWarningModal(null);
+      setJobPostingStatus('done');
+      setSuccessToast(`✅ DONE! "${duplicateWarningModal.payload.title}" has been published!`);
+      fetchAllAdminJobs();
+      fetchDuplicates();
+      setTimeout(() => {
+        setSuccessToast('');
+        setJobPostingStatus('idle');
+      }, 5000);
+    } catch (err) {
+      alert("Error: " + err.message);
+      setJobPostingStatus('idle');
     }
   };
 
@@ -587,8 +784,24 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
       });
       const data = await res.json();
       
+      if (!res.ok) {
+        if (data.duplicateWarning) {
+          setJobPostingStatus('idle');
+          setDuplicateWarningModal({
+            isOpen: true,
+            payload,
+            message: data.message,
+            existingJob: data.existingJob
+          });
+          return;
+        }
+        throw new Error(data.error || data.message || 'Failed to post job');
+      }
+
       setJobPostingStatus('done');
       setSuccessToast(`✅ DONE! "${singleJob.title}" has been published to MongoDB Atlas! Auto-notifications sent to matched candidates.`);
+      fetchAllAdminJobs();
+      fetchDuplicates();
       setTimeout(() => {
         setSuccessToast('');
         setJobPostingStatus('idle');
@@ -691,6 +904,61 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
         </div>
       )}
 
+      {/* HIGH PRIORITY DUPLICATE JOBS ALERT NOTIFICATION BANNER */}
+      {totalDuplicatesToRemove > 0 && (
+        <div className="bg-gradient-to-r from-amber-500 via-rose-500 to-red-600 rounded-3xl p-5 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border-2 border-amber-300">
+          <div className="flex items-start space-x-3.5">
+            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl shrink-0 text-2xl shadow-inner">
+              ⚠️
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <span className="bg-white text-rose-700 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-xs">
+                  AI Duplicate Alert
+                </span>
+                <span className="text-xs font-bold text-amber-100">
+                  {duplicateGroups.length} Duplicate Groups Detected
+                </span>
+              </div>
+              <h3 className="text-base sm:text-lg font-black leading-tight text-white">
+                વેબસાઈટ પર {duplicateGroups.length} સમાન (Duplicate) જોબ્સ મળી આવી છે! ({totalDuplicatesToRemove} વધારાની નકલો)
+              </h3>
+              <p className="text-xs text-amber-100/90 font-medium">
+                તમે ૧ ક્લિકમાં દરેક ગ્રૂપની ૧ મુખ્ય જોબ સુરક્ષિત રાખીને બાકીની બધી આપોઆપ ડિલીટ કરી શકો છો, અથવા જાતે પસંદ કરીને હટાવી શકો છો.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleAutoCleanAll}
+              disabled={isCleaningDuplicates}
+              className="px-4 py-2.5 bg-white hover:bg-amber-50 text-rose-700 font-black rounded-xl text-xs shadow-md transition flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>⚡ 1-Click Auto Clean All (એક રાખીને બાકીની બધી ડિલીટ)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('govt-jobs');
+                setShowDuplicateManager(true);
+                setTimeout(() => {
+                  const el = document.getElementById('duplicate-manager-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }, 150);
+              }}
+              className="px-4 py-2.5 bg-black/30 hover:bg-black/40 text-white font-bold rounded-xl text-xs backdrop-blur-sm border border-white/20 transition flex items-center space-x-1.5 cursor-pointer"
+            >
+              <Eye className="w-4 h-4 text-white" />
+              <span>👁️ Inspect &amp; Select (તપાસો &amp; સિલેક્ટ કરો)</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none">
         
@@ -715,13 +983,18 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
         </button>
 
         <button
-          onClick={() => { setActiveTab('govt-jobs'); fetchAllAdminJobs(); }}
+          onClick={() => { setActiveTab('govt-jobs'); fetchAllAdminJobs(); fetchDuplicates(); }}
           className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
             activeTab === 'govt-jobs' ? 'bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-md' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
           <Trash2 className="w-4 h-4" />
           <span>🗑️ MANAGE &amp; REMOVE JOBS ({allJobs.length || govtJobs.length})</span>
+          {totalDuplicatesToRemove > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-rose-950 animate-pulse border border-amber-500 shadow-xs">
+              ⚠️ {totalDuplicatesToRemove}
+            </span>
+          )}
         </button>
 
         <button
@@ -1840,6 +2113,196 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
               </button>
             </div>
 
+            {/* DEDICATED AI DUPLICATE JOBS DETECTOR & CLEANER */}
+            <div id="duplicate-manager-section" className="bg-gradient-to-br from-amber-50/80 via-orange-50/50 to-white rounded-3xl p-5 sm:p-6 border-2 border-amber-300 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/80 pb-3">
+                <div className="flex items-center space-x-2.5">
+                  <span className="p-2.5 bg-amber-500 text-white rounded-2xl shadow-sm text-base">
+                    🤖
+                  </span>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center space-x-2">
+                      <span>AI Duplicate Jobs Intelligence &amp; Cleaner</span>
+                      {totalDuplicatesToRemove > 0 && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
+                          {totalDuplicatesToRemove} To Clean
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-xs text-slate-600 font-medium">
+                      એક સરખી ડુપ્લિકેટ જોબ્સ આપોઆપ પકડે છે. ૧ ક્લિકમાં દરેક ગ્રૂપની ૧ મુખ્ય જોબ રાખીને બાકીની બધી આપોઆપ ડિલીટ કરો.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={fetchDuplicates}
+                    disabled={loadingDuplicates}
+                    className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${loadingDuplicates ? 'animate-spin' : ''}`} />
+                    <span>Re-scan</span>
+                  </button>
+
+                  {totalDuplicatesToRemove > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleAutoCleanAll}
+                      disabled={isCleaningDuplicates}
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>⚡ 1-Click Auto Clean All ({totalDuplicatesToRemove})</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Status or Duplicate Groups List */}
+              {loadingDuplicates ? (
+                <div className="py-8 text-center text-xs font-bold text-amber-800 animate-pulse">
+                  🤖 AI Scanning MongoDB Atlas for duplicate job titles, departments and identical application links...
+                </div>
+              ) : duplicateGroups.length === 0 ? (
+                <div className="py-4 px-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-900 flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-2 font-bold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>✅ અભિનંદન! ડેટાબેઝમાં કોઈ ડુપ્લિકેટ જોબ્સ નથી. બધી જ જોબ્સ યુનિક છે.</span>
+                  </div>
+                  <span className="text-[11px] text-emerald-700 font-semibold">100% Clean Catalog</span>
+                </div>
+              ) : (
+                <div className="space-y-4 pt-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="font-bold text-slate-800">
+                      મળી આવેલા ડુપ્લિકેટ ગ્રુપ્સ ({duplicateGroups.length}):
+                    </div>
+                    {selectedDuplicateJobIds.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleDeleteSelectedDuplicates}
+                        disabled={isCleaningDuplicates}
+                        className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold text-xs shadow-xs transition flex items-center space-x-1 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>ડિલીટ પસંદ કરેલ ({selectedDuplicateJobIds.length})</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-1">
+                    {duplicateGroups.map((group, gIdx) => (
+                      <div key={group.groupId || gIdx} className="bg-white rounded-2xl border border-amber-200/90 p-4 space-y-3 shadow-2xs">
+                        {/* Group Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                          <div className="flex items-center space-x-2">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                              ગ્રૂપ #{gIdx + 1}
+                            </span>
+                            <span className="text-xs font-bold text-slate-800">
+                              {group.reason}
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-500">
+                              ({group.totalJobs} Total Copies)
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleCleanSingleGroup(group.groupId, group.duplicateCount)}
+                            disabled={isCleaningDuplicates}
+                            className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-bold transition flex items-center space-x-1 self-start sm:self-auto cursor-pointer"
+                          >
+                            <span>⚡ Clean Group (Keep 1, Delete {group.duplicateCount})</span>
+                          </button>
+                        </div>
+
+                        {/* Side by side or stacked: Canonical (Keep) vs Duplicates (Remove) */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 text-xs">
+                          {/* 🌟 KEEP (Primary Job) */}
+                          <div className="lg:col-span-5 bg-emerald-50/80 border border-emerald-300 rounded-xl p-3 space-y-1.5 relative">
+                            <div className="flex items-center justify-between">
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-600 text-white shadow-2xs flex items-center space-x-1">
+                                <span>🌟 KEEP (સચવાશે - મુખ્ય જોબ)</span>
+                              </span>
+                              <span className="text-[10px] font-mono text-emerald-800 font-bold">
+                                ID: {group.canonicalJob._id || group.canonicalJob.id}
+                              </span>
+                            </div>
+                            <div className="font-extrabold text-slate-900 text-sm">
+                              {group.canonicalJob.title}
+                            </div>
+                            <div className="text-[11px] font-semibold text-slate-700">
+                              🏛️ {group.canonicalJob.department}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-600 pt-0.5">
+                              <span>📍 {group.canonicalJob.state || 'All India'}</span>
+                              <span>👥 {group.canonicalJob.vacancies || 1} Posts</span>
+                              <span>💰 {group.canonicalJob.salary}</span>
+                              <span className="text-slate-400">📅 {new Date(group.canonicalJob.createdAt).toLocaleDateString('en-IN')}</span>
+                            </div>
+                          </div>
+
+                          {/* ❌ DUPLICATES (To Remove) */}
+                          <div className="lg:col-span-7 space-y-2">
+                            {group.duplicateJobs.map((dup) => {
+                              const dupId = dup._id || dup.id;
+                              const isChecked = selectedDuplicateJobIds.includes(dupId);
+                              return (
+                                <div
+                                  key={dupId}
+                                  className={`rounded-xl p-2.5 border transition flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                                    isChecked ? 'bg-rose-50/90 border-rose-300' : 'bg-slate-50 border-slate-200'
+                                  }`}
+                                >
+                                  <div className="flex items-start space-x-2.5">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => toggleDuplicateJobSelection(dupId)}
+                                      className="mt-1 w-4 h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer"
+                                    />
+                                    <div className="space-y-0.5">
+                                      <div className="flex items-center space-x-1.5">
+                                        <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-rose-200 text-rose-900">
+                                          ❌ DUPLICATE
+                                        </span>
+                                        <div className="font-bold text-slate-900 text-xs">
+                                          {dup.title}
+                                        </div>
+                                      </div>
+                                      <div className="text-[11px] text-slate-600">
+                                        🏛️ {dup.department} • 📍 {dup.state || 'All India'}
+                                      </div>
+                                      <div className="text-[10px] text-slate-400 font-mono">
+                                        ID: {dupId} • 📅 {new Date(dup.createdAt).toLocaleDateString('en-IN')}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteJob(dupId, dup.title)}
+                                    className="px-2.5 py-1 bg-white hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg text-xs font-bold transition flex items-center space-x-1 self-end sm:self-center cursor-pointer shrink-0"
+                                    title="આ ડુપ્લિકેટ જોબ ડિલીટ કરો"
+                                  >
+                                    <Trash2 className="w-3 h-3 text-rose-600" />
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Real-time Search and Category Filtering Controls */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
               <div className="relative flex-1">
@@ -1908,10 +2371,47 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                 )}
               </div>
             ) : (
-              <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+              <div className="space-y-4">
+                {/* Batch Action Bar */}
+                {selectedAdminJobIds.length > 0 && (
+                  <div className="p-3.5 bg-rose-50 border-2 border-rose-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-in fade-in">
+                    <div className="flex items-center space-x-2 text-xs font-black text-rose-950">
+                      <CheckCircle2 className="w-4 h-4 text-rose-600" />
+                      <span>{selectedAdminJobIds.length} Jobs Selected for Action</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAdminJobIds([])}
+                        className="px-3 py-1.5 bg-white text-slate-700 border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
+                      >
+                        Deselect All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleBulkDeleteSelectedJobs}
+                        className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Selected Jobs ({selectedAdminJobIds.length})</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="overflow-x-auto border border-slate-200 rounded-2xl">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-700 uppercase font-black border-b border-slate-200">
                     <tr>
+                      <th className="py-3 px-3 w-8">
+                        <input
+                          type="checkbox"
+                          checked={filteredAdminJobs.length > 0 && selectedAdminJobIds.length === filteredAdminJobs.length}
+                          onChange={() => toggleSelectAllAdminJobs(filteredAdminJobs)}
+                          className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer"
+                          title="Select / Deselect All Jobs"
+                        />
+                      </th>
                       <th className="py-3 px-4">Job Title &amp; Category</th>
                       <th className="py-3 px-4">Department &amp; State</th>
                       <th className="py-3 px-4">Vacancies &amp; Salary</th>
@@ -1923,6 +2423,17 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                   <tbody className="divide-y divide-slate-100 font-medium">
                     {filteredAdminJobs.map((job) => {
                       const jobId = job._id || job.id;
+                      const isSelected = selectedAdminJobIds.includes(jobId);
+                      
+                      const allDupIdsSet = new Set();
+                      duplicateGroups.forEach(g => {
+                        (g.duplicateJobs || []).forEach(d => {
+                          const id = d._id || d.id;
+                          if (id) allDupIdsSet.add(String(id));
+                        });
+                      });
+                      const isDuplicate = allDupIdsSet.has(String(jobId));
+
                       const matchingTest = mockTestsList.find(t => 
                         t.jobId === jobId || 
                         (t.exam && job.department && t.exam.toLowerCase().includes(job.department.toLowerCase())) ||
@@ -1936,12 +2447,25 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                         : (job.category === 'internship' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800');
 
                       return (
-                        <tr key={jobId} className="hover:bg-slate-50/70">
+                        <tr key={jobId} className={`hover:bg-slate-50/70 transition ${isSelected ? 'bg-rose-50/40' : ''}`}>
+                          <td className="py-3 px-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleAdminJobSelection(jobId)}
+                              className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer"
+                            />
+                          </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center space-x-2">
                               <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${categoryBadge}`}>
                                 {job.category || 'govt'}
                               </span>
+                              {isDuplicate && (
+                                <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                                  ⚠️ Duplicate
+                                </span>
+                              )}
                               <div className="font-extrabold text-slate-900 line-clamp-1">{job.title}</div>
                             </div>
                             <div className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {jobId}</div>
@@ -1998,7 +2522,8 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                   </tbody>
                 </table>
               </div>
-            )}
+            </div>
+          )}
           </div>
         );
       })()}
@@ -2469,6 +2994,72 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* PRE-PUBLISH DUPLICATE JOB WARNING MODAL */}
+      {duplicateWarningModal?.isOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border-2 border-amber-400 animate-in fade-in zoom-in-95">
+            <div className="flex items-start space-x-3">
+              <div className="p-3 bg-amber-100 text-amber-700 rounded-2xl shrink-0 text-2xl">
+                ⚠️
+              </div>
+              <div className="space-y-1">
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-200 text-amber-900">
+                  Duplicate Post Detected
+                </span>
+                <h3 className="text-lg font-black text-slate-900">
+                  આ જોબ પહેલેથી જ વેબસાઈટ પર લાઈવ છે!
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  {duplicateWarningModal.message}
+                </p>
+              </div>
+            </div>
+
+            {/* Existing Job Details */}
+            {duplicateWarningModal.existingJob && (
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-1.5 text-xs">
+                <div className="text-[10px] font-black uppercase text-slate-400">
+                  મોજૂદ લાઈવ જોબ (Live in Database):
+                </div>
+                <div className="font-extrabold text-slate-900 text-sm">
+                  {duplicateWarningModal.existingJob.title}
+                </div>
+                <div className="text-slate-700 font-semibold">
+                  🏛️ {duplicateWarningModal.existingJob.department}
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 pt-1">
+                  <span>👥 {duplicateWarningModal.existingJob.vacancies} Posts</span>
+                  <span>📅 Published: {new Date(duplicateWarningModal.existingJob.createdAt).toLocaleDateString('en-IN')}</span>
+                  <span className="font-mono text-slate-400">ID: {duplicateWarningModal.existingJob.id}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs font-medium">
+              💡 જો તમે આ જ જોબને ફરીથી ઉમેરશો તો તે ડુપ્લિકેટ બનશે. તમે તેને રદ કરી શકો છો અથવા તેમ છતાં નવી તરીકે પબ્લિશ કરી શકો છો.
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setDuplicateWarningModal(null)}
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                રદ કરો (Cancel Post)
+              </button>
+
+              <button
+                type="button"
+                onClick={handleForcePublishJob}
+                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-md transition cursor-pointer"
+              >
+                તેમ છતાં પબ્લિશ કરો (Publish Anyway)
+              </button>
+            </div>
           </div>
         </div>
       )}

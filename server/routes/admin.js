@@ -235,6 +235,255 @@ router.get('/jobs', async (req, res) => {
   }
 });
 
+// --- SMART DUPLICATE JOB DETECTION HELPERS ---
+function normalizeString(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .replace(/[^\w\s]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getTitleKeywords(title) {
+  const clean = normalizeString(title);
+  const stopWords = new Set([
+    'recruitment', 'bharti', 'online', 'form', 'apply', 'vacancy', 'vacancies',
+    'post', 'posts', '2024', '2025', '2026', '2027', 'exam', 'examination',
+    'notification', 'dates', 'direct', 'total', 'requirements', 'for', 'the',
+    'and', 'in', 'of', 'at', 'job', 'jobs', 'new'
+  ]);
+  return clean
+    .split(' ')
+    .filter(w => w.length > 2 && !stopWords.has(w))
+    .sort()
+    .join(' ');
+}
+
+function areJobsDuplicate(jobA, jobB) {
+  const idA = String(jobA._id || jobA.id);
+  const idB = String(jobB._id || jobB.id);
+  if (idA === idB) return { isDuplicate: false };
+
+  const normTitleA = normalizeString(jobA.title);
+  const normTitleB = normalizeString(jobB.title);
+  const normDeptA = normalizeString(jobA.department);
+  const normDeptB = normalizeString(jobB.department);
+
+  // Rule 1: Exact Title & Department Match
+  if (normTitleA === normTitleB && normDeptA === normDeptB) {
+    return {
+      isDuplicate: true,
+      reason: `Exact Title & Department match ("${jobA.title}" in "${jobA.department}")`
+    };
+  }
+
+  // Rule 2: Identical Official Apply or Notification URL
+  const genericUrls = ['https://jobopedia.in', 'https://jobopedia.in/', 'http://jobopedia.in'];
+  if (
+    jobA.applyUrl &&
+    jobB.applyUrl &&
+    !genericUrls.includes(jobA.applyUrl) &&
+    jobA.applyUrl.toLowerCase().trim() === jobB.applyUrl.toLowerCase().trim()
+  ) {
+    return {
+      isDuplicate: true,
+      reason: `Identical Official Application Link (${jobA.applyUrl})`
+    };
+  }
+
+  if (
+    jobA.notificationUrl &&
+    jobB.notificationUrl &&
+    jobA.notificationUrl.toLowerCase().trim() === jobB.notificationUrl.toLowerCase().trim()
+  ) {
+    return {
+      isDuplicate: true,
+      reason: `Identical Official Notification PDF Link`
+    };
+  }
+
+  // Rule 3: Significant Keyword Overlap in Same Department
+  const kwA = getTitleKeywords(jobA.title);
+  const kwB = getTitleKeywords(jobB.title);
+  if (kwA && kwB && kwA === kwB && (normDeptA === normDeptB || normDeptA.includes(normDeptB) || normDeptB.includes(normDeptA))) {
+    return {
+      isDuplicate: true,
+      reason: `Matching Core Role & Department ("${jobA.title}" vs "${jobB.title}")`
+    };
+  }
+
+  return { isDuplicate: false };
+}
+
+function groupDuplicateJobs(allJobs) {
+  const groups = [];
+  const assignedJobIds = new Set();
+
+  for (let i = 0; i < allJobs.length; i++) {
+    const jobA = allJobs[i];
+    const idA = String(jobA._id || jobA.id);
+    if (assignedJobIds.has(idA)) continue;
+
+    const cluster = [jobA];
+    let clusterReason = '';
+
+    for (let j = i + 1; j < allJobs.length; j++) {
+      const jobB = allJobs[j];
+      const idB = String(jobB._id || jobB.id);
+      if (assignedJobIds.has(idB)) continue;
+
+      const dupCheck = areJobsDuplicate(jobA, jobB);
+      if (dupCheck.isDuplicate) {
+        cluster.push(jobB);
+        assignedJobIds.add(idB);
+        if (!clusterReason) clusterReason = dupCheck.reason;
+      }
+    }
+
+    if (cluster.length > 1) {
+      assignedJobIds.add(idA);
+
+      // Best job stays as CANONICAL (KEEP):
+      // Highest score first: has MCQs (+10), has notificationUrl (+5), most recent date
+      cluster.sort((a, b) => {
+        const mcqScoreA = a.hasMcqs ? 10 : 0;
+        const mcqScoreB = b.hasMcqs ? 10 : 0;
+        const urlScoreA = a.notificationUrl ? 5 : 0;
+        const urlScoreB = b.notificationUrl ? 5 : 0;
+        const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+        const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+
+        const totalScoreA = mcqScoreA + urlScoreA;
+        const totalScoreB = mcqScoreB + urlScoreB;
+
+        if (totalScoreA !== totalScoreB) return totalScoreB - totalScoreA;
+        return dateB - dateA;
+      });
+
+      const canonicalJob = cluster[0];
+      const duplicateJobs = cluster.slice(1);
+
+      groups.push({
+        groupId: `group_${groups.length + 1}_${canonicalJob._id || canonicalJob.id}`,
+        reason: clusterReason || `Matching Job Title & Department`,
+        canonicalJob,
+        duplicateJobs,
+        totalJobs: cluster.length,
+        duplicateCount: duplicateJobs.length
+      });
+    }
+  }
+
+  const totalDuplicatesToRemove = groups.reduce((acc, g) => acc + g.duplicateCount, 0);
+
+  return {
+    groups,
+    totalGroups: groups.length,
+    totalDuplicatesToRemove
+  };
+}
+
+// GET /api/admin/jobs/duplicates - Detect all duplicate job groups across MongoDB
+router.get('/jobs/duplicates', async (req, res) => {
+  try {
+    const allJobs = await Job.find().sort({ createdAt: -1 }).lean();
+    const result = groupDuplicateJobs(allJobs);
+    res.json({
+      success: true,
+      ...result
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/admin/jobs/duplicates/auto-clean - Clean duplicates (Keep 1, remove others automatically)
+router.post('/jobs/duplicates/auto-clean', async (req, res) => {
+  try {
+    const { groupId, deleteJobIds } = req.body;
+    
+    // Case 1: Specific job IDs provided to delete
+    if (Array.isArray(deleteJobIds) && deleteJobIds.length > 0) {
+      const validIds = deleteJobIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+      const result = await Job.deleteMany({ _id: { $in: validIds } });
+      await MockTest.deleteMany({ jobId: { $in: deleteJobIds } }).catch(() => {});
+      return res.json({
+        success: true,
+        message: `Successfully deleted ${result.deletedCount} selected duplicate jobs!`,
+        deletedCount: result.deletedCount,
+        deletedIds: deleteJobIds
+      });
+    }
+
+    // Case 2: Auto-clean all duplicate groups or specific group
+    const allJobs = await Job.find().sort({ createdAt: -1 }).lean();
+    const { groups } = groupDuplicateJobs(allJobs);
+
+    let targetGroups = groups;
+    if (groupId && groupId !== 'all') {
+      targetGroups = groups.filter(g => g.groupId === groupId);
+    }
+
+    if (targetGroups.length === 0) {
+      return res.json({
+        success: true,
+        message: "No duplicate jobs found to clean.",
+        deletedCount: 0,
+        deletedIds: []
+      });
+    }
+
+    const idsToDelete = [];
+    for (const g of targetGroups) {
+      for (const dup of g.duplicateJobs) {
+        const id = dup._id || dup.id;
+        if (id) idsToDelete.push(id);
+      }
+    }
+
+    const validIds = idsToDelete.filter(id => mongoose.Types.ObjectId.isValid(id));
+    let deletedCount = 0;
+    if (validIds.length > 0) {
+      const delResult = await Job.deleteMany({ _id: { $in: validIds } });
+      deletedCount = delResult.deletedCount;
+      await MockTest.deleteMany({ jobId: { $in: idsToDelete } }).catch(() => {});
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully auto-cleaned ${deletedCount} duplicate jobs across ${targetGroups.length} groups! (Kept 1 newest active job in each group)`,
+      deletedCount,
+      deletedIds: idsToDelete
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/admin/jobs/bulk-delete - Delete multiple jobs by array of IDs
+router.post('/jobs/bulk-delete', async (req, res) => {
+  try {
+    const { jobIds } = req.body;
+    if (!Array.isArray(jobIds) || jobIds.length === 0) {
+      return res.status(400).json({ success: false, error: "Please provide an array of jobIds to delete." });
+    }
+
+    const validIds = jobIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+    const result = await Job.deleteMany({ _id: { $in: validIds } });
+    await MockTest.deleteMany({ jobId: { $in: jobIds } }).catch(() => {});
+
+    res.json({
+      success: true,
+      message: `Successfully deleted ${result.deletedCount} jobs from MongoDB Atlas!`,
+      deletedCount: result.deletedCount,
+      deletedIds: jobIds
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // DELETE /api/admin/jobs/:jobId - Remove / Delete a job from MongoDB
 router.delete('/jobs/:jobId', async (req, res) => {
   try {
