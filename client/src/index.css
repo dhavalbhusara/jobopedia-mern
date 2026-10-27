@@ -126,6 +126,38 @@ html, body {
     break-inside: avoid !important;
   }
 
+  #printable-resume ul,
+  .resume-sheet ul {
+    list-style: none !important;
+    list-style-type: none !important;
+    padding: 0 !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  #printable-resume li,
+  .resume-sheet li {
+    list-style: none !important;
+    list-style-type: none !important;
+    padding-left: 13px !important;
+    position: relative !important;
+  }
+
+  #printable-resume li::marker,
+  .resume-sheet li::marker {
+    display: none !important;
+    content: "" !important;
+    font-size: 0 !important;
+  }
+
+  #printable-resume .bullet-dot,
+  .resume-sheet .bullet-dot {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    font-weight: bold !important;
+  }
+
   @page {
     size: A4 portrait;
     margin: 12mm 15mm 15mm 15mm;

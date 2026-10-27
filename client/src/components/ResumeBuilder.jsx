@@ -362,12 +362,32 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
             text-align: justify;
           }
           ul {
-            margin: 1.5px 0 3.5px 0;
-            padding-left: 14px;
+            margin: 2px 0 3.5px 0 !important;
+            padding: 0 !important;
+            padding-left: 0 !important;
+            list-style: none !important;
+            list-style-type: none !important;
           }
           li {
-            margin-bottom: 2px;
-            text-align: justify;
+            list-style: none !important;
+            list-style-type: none !important;
+            margin-bottom: 2px !important;
+            padding: 0 0 0 13px !important;
+            position: relative !important;
+            text-align: justify !important;
+          }
+          li::marker, ul::marker {
+            display: none !important;
+            content: "" !important;
+            font-size: 0 !important;
+          }
+          .bullet-dot {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            font-weight: bold !important;
+            line-height: inherit !important;
+            user-select: none !important;
           }
           strong {
             color: #0F172A;
@@ -1512,15 +1532,18 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
                     <div className="section-title text-xs font-black text-[#0F2942] uppercase tracking-wider border-b-[1.5px] border-[#0F2942] pb-0.5">
                       {resumeData.knowledgeTitle || "CLINICAL RESEARCH KNOWLEDGE"}
                     </div>
-                    <ul className="space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800">
-                      {resumeData.knowledgePoints.map((kp, idx) => (
-                        <li key={idx} className="flex items-start text-justify">
-                          <span className="font-bold mr-1.5 shrink-0">•</span>
-                          <span>
-                            <strong className="text-slate-900">{kp.label}:</strong> {kp.desc}
-                          </span>
-                        </li>
-                      ))}
+                    <ul className="list-none pl-0 space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800">
+                      {resumeData.knowledgePoints.map((kp, idx) => {
+                        const cleanLabel = (kp.label || '').replace(/^[•\-\*\s]+/, '');
+                        return (
+                          <li key={idx} className="relative pl-3 text-justify list-none">
+                            <span className="bullet-dot absolute left-0 top-0 font-bold text-slate-900 select-none">•</span>
+                            <span>
+                              <strong className="text-slate-900">{cleanLabel}:</strong> {kp.desc}
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
@@ -1551,13 +1574,16 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
                         )}
 
                         {exp.bullets && exp.bullets.length > 0 && (
-                          <ul className="space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800 pt-0.5">
-                            {exp.bullets.map((b, bIdx) => (
-                              <li key={bIdx} className="flex items-start text-justify">
-                                <span className="font-bold mr-1.5 shrink-0">•</span>
-                                <span>{b}</span>
-                              </li>
-                            ))}
+                          <ul className="list-none pl-0 space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800 pt-0.5">
+                            {exp.bullets.map((b, bIdx) => {
+                              const cleanB = (b || '').replace(/^[•\-\*\s]+/, '');
+                              return (
+                                <li key={bIdx} className="relative pl-3 text-justify list-none">
+                                  <span className="bullet-dot absolute left-0 top-0 font-bold text-slate-900 select-none">•</span>
+                                  <span>{cleanB}</span>
+                                </li>
+                              );
+                            })}
                           </ul>
                         )}
                       </div>
@@ -1576,13 +1602,16 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
                         {resumeData.research.currentTitle}
                       </div>
                       {resumeData.research.bullets && (
-                        <ul className="space-y-0.5">
-                          {resumeData.research.bullets.map((b, i) => (
-                            <li key={i} className="flex items-start">
-                              <span className="font-bold mr-1.5 shrink-0">•</span>
-                              <span>{b}</span>
-                            </li>
-                          ))}
+                        <ul className="list-none pl-0 space-y-0.5">
+                          {resumeData.research.bullets.map((b, i) => {
+                            const cleanB = (b || '').replace(/^[•\-\*\s]+/, '');
+                            return (
+                              <li key={i} className="relative pl-3 text-justify list-none">
+                                <span className="bullet-dot absolute left-0 top-0 font-bold text-slate-900 select-none">•</span>
+                                <span>{cleanB}</span>
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
 
@@ -1592,13 +1621,16 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
                         </div>
                       )}
                       {resumeData.research.previousBullets && (
-                        <ul className="space-y-0.5">
-                          {resumeData.research.previousBullets.map((pb, i) => (
-                            <li key={i} className="flex items-start">
-                              <span className="font-bold mr-1.5 shrink-0">•</span>
-                              <span>{pb}</span>
-                            </li>
-                          ))}
+                        <ul className="list-none pl-0 space-y-0.5">
+                          {resumeData.research.previousBullets.map((pb, i) => {
+                            const cleanPB = (pb || '').replace(/^[•\-\*\s]+/, '');
+                            return (
+                              <li key={i} className="relative pl-3 text-justify list-none">
+                                <span className="bullet-dot absolute left-0 top-0 font-bold text-slate-900 select-none">•</span>
+                                <span>{cleanPB}</span>
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                     </div>
@@ -1611,14 +1643,12 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
                     <div className="section-title text-xs font-black text-[#0F2942] uppercase tracking-wider border-b-[1.5px] border-[#0F2942] pb-0.5">
                       EDUCATION
                     </div>
-                    <ul className="space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800">
+                    <ul className="list-none pl-0 space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800">
                       {resumeData.education.map((edu, idx) => (
-                        <li key={idx} className="flex items-start justify-between">
-                          <div className="flex items-start">
-                            <span className="font-bold mr-1.5 shrink-0">•</span>
-                            <span>
-                              <strong>{edu.degree}</strong>, {edu.institution} {edu.grade ? `| ${edu.grade}` : ''}
-                            </span>
+                        <li key={idx} className="relative pl-3 flex items-start justify-between list-none">
+                          <span className="bullet-dot absolute left-0 top-0 font-bold text-slate-900 select-none">•</span>
+                          <div>
+                            <strong>{edu.degree}</strong>, {edu.institution} {edu.grade ? `| ${edu.grade}` : ''}
                           </div>
                           {edu.year && (
                             <span className="text-[10.5px] font-semibold text-slate-600 shrink-0 ml-2">
@@ -1656,13 +1686,16 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
                     <div className="section-title text-xs font-black text-[#0F2942] uppercase tracking-wider border-b-[1.5px] border-[#0F2942] pb-0.5">
                       CERTIFICATIONS &amp; INDUSTRIAL TRAINING
                     </div>
-                    <ul className="space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800">
-                      {resumeData.certifications.map((cert, idx) => (
-                        <li key={idx} className="flex items-start">
-                          <span className="font-bold mr-1.5 shrink-0">•</span>
-                          <span>{cert}</span>
-                        </li>
-                      ))}
+                    <ul className="list-none pl-0 space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800">
+                      {resumeData.certifications.map((cert, idx) => {
+                        const cleanCert = (cert || '').replace(/^[•\-\*\s]+/, '');
+                        return (
+                          <li key={idx} className="relative pl-3 text-justify list-none">
+                            <span className="bullet-dot absolute left-0 top-0 font-bold text-slate-900 select-none">•</span>
+                            <span>{cleanCert}</span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
@@ -1673,15 +1706,18 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
                     <div className="section-title text-xs font-black text-[#0F2942] uppercase tracking-wider border-b-[1.5px] border-[#0F2942] pb-0.5">
                       TECHNICAL &amp; RESEARCH SKILLS
                     </div>
-                    <ul className="space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800">
-                      {resumeData.technicalSkills.map((sk, idx) => (
-                        <li key={idx} className="flex items-start">
-                          <span className="font-bold mr-1.5 shrink-0">•</span>
-                          <span>
-                            <strong className="text-slate-900">{sk.category}:</strong> {sk.items}
-                          </span>
-                        </li>
-                      ))}
+                    <ul className="list-none pl-0 space-y-0.5 text-[10.5px] sm:text-[11px] text-slate-800">
+                      {resumeData.technicalSkills.map((sk, idx) => {
+                        const cleanCat = (sk.category || '').replace(/^[•\-\*\s]+/, '');
+                        return (
+                          <li key={idx} className="relative pl-3 text-justify list-none">
+                            <span className="bullet-dot absolute left-0 top-0 font-bold text-slate-900 select-none">•</span>
+                            <span>
+                              <strong className="text-slate-900">{cleanCat}:</strong> {sk.items}
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
