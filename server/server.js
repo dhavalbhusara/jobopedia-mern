@@ -33,6 +33,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Google AdSense ads.txt snippet
+app.get('/ads.txt', (req, res) => {
+  res.type('text/plain');
+  res.send('google.com, pub-2309467781992974, DIRECT, f08c47fec0942fa0\n');
+});
+
 // API Routes
 app.use('/api/jobs', jobsRouter);
 app.use('/api/admin', adminRouter);
