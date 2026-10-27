@@ -29,6 +29,47 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
 
   if (!isOpen) return null;
 
+  const BACKEND_FALLBACK_URL = 'https://jobopedia-backend.onrender.com';
+
+  const safeApiCall = async (endpoint, options = {}) => {
+    let res = null;
+    let isHtml = false;
+
+    // 1. Try relative path (routed through Vercel or local proxy)
+    try {
+      res = await fetch(endpoint, options);
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        isHtml = true;
+      }
+    } catch (e) {
+      isHtml = true;
+    }
+
+    // 2. If Vercel returned HTML (504 Gateway Timeout or server sleeping), failover directly to Render!
+    if (isHtml || !res) {
+      try {
+        const directUrl = `${BACKEND_FALLBACK_URL}${endpoint}`;
+        res = await fetch(directUrl, options);
+        const directCt = res.headers.get('content-type') || '';
+        if (!directCt.includes('application/json')) {
+          throw new Error('સર્વર શરૂ થઈ રહ્યું છે (Server is waking up from sleep). કૃપા કરીને 5 સેકન્ડ રાહ જોઈને ફરી ક્લિક કરો.');
+        }
+      } catch (err) {
+        throw new Error(err.message || 'સર્વર કનેક્શન થઈ શક્યું નથી. કૃપા કરીને થોડી સેકન્ડ પછી ફરી પ્રયાસ કરો.');
+      }
+    }
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      throw new Error('સર્વર શરૂ થઈ રહ્યું છે. કૃપા કરીને 5 સેકન્ડ પછી ફરી સાઇન ઇન કરો.');
+    }
+
+    return { res, data };
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
@@ -51,13 +92,11 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
         throw new Error('Please enter your password.');
       }
 
-      const res = await fetch('/api/auth/login', {
+      const { res, data } = await safeApiCall('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanIdentifier, password: cleanPassword })
       });
-
-      const data = await res.json();
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Invalid credentials. If you are new, please register below.');
@@ -102,7 +141,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
         throw new Error('Password must be at least 6 characters long.');
       }
 
-      const res = await fetch('/api/auth/register', {
+      const { res, data } = await safeApiCall('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,8 +153,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
           qualification: formData.qualification
         })
       });
-
-      const data = await res.json();
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Registration failed. Please try again.');

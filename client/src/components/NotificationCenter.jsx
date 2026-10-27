@@ -15,7 +15,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-export default function NotificationCenter({ user, onSelectJob }) {
+export default function NotificationCenter({ user }) {
   const [isOpen, setIsOpen] = useState(false);
   const [pushStatus, setPushStatus] = useState(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -388,27 +388,7 @@ export default function NotificationCenter({ user, onSelectJob }) {
 
       {/* Floating In-App Real-time Push Alert Banner */}
       {toastAlert && (
-        <div 
-          onClick={async () => {
-            const jId = toastAlert.jobId;
-            if (jId && onSelectJob) {
-              try {
-                const res = await fetch(`/api/jobs/${jId}`);
-                const data = await res.json();
-                if (data.success && data.job) {
-                  onSelectJob(data.job);
-                  setToastAlert(null);
-                  return;
-                }
-              } catch (e) {}
-            }
-            if (toastAlert.url) {
-              window.location.href = toastAlert.url;
-            }
-            setToastAlert(null);
-          }}
-          className="fixed top-20 right-4 z-50 max-w-sm w-full bg-slate-950 text-white p-4 rounded-2xl shadow-2xl border border-blue-500/60 animate-in slide-in-from-top-4 duration-200 cursor-pointer hover:bg-slate-900 transition"
-        >
+        <div className="fixed top-20 right-4 z-50 max-w-sm w-full bg-slate-950 text-white p-4 rounded-2xl shadow-2xl border border-blue-500/60 animate-in slide-in-from-top-4 duration-200">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start space-x-2.5">
               <span className="p-1.5 rounded-lg bg-blue-600 text-white shrink-0 mt-0.5">
@@ -428,18 +408,11 @@ export default function NotificationCenter({ user, onSelectJob }) {
             </div>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setToastAlert(null);
-              }}
+              onClick={() => setToastAlert(null)}
               className="text-slate-400 hover:text-white text-xs font-bold p-1 cursor-pointer"
             >
               ✕
             </button>
-          </div>
-          <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-amber-300 font-bold">
-            <span>👉 Tap here to view full Job details &amp; apply</span>
-            <span>View Job →</span>
           </div>
         </div>
       )}

@@ -275,31 +275,6 @@ router.get('/weekly-calendar', async (req, res) => {
   }
 });
 
-// GET /api/jobs/:id (Fetch single job details by ID)
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    let job = null;
-    try {
-      job = await Job.findById(id).lean();
-    } catch (e) {
-      job = await Job.findOne({ _id: id }).lean();
-    }
-
-    if (!job) {
-      job = FALLBACK_JOBS.find(j => String(j._id) === String(id));
-    }
-
-    if (!job) {
-      return res.status(404).json({ success: false, error: "Job not found" });
-    }
-
-    res.json({ success: true, job });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
 // POST /api/jobs (Publish new job & trigger auto-notification)
 router.post('/', async (req, res) => {
   try {
@@ -336,30 +311,24 @@ router.post('/', async (req, res) => {
       const qualDisplay = qualArr.length > 2 ? `${qualArr.slice(0, 2).join(', ')} +${qualArr.length - 2} more` : qualArr.join(', ');
       const stateDisplay = statesArr.length > 2 ? `${statesArr.slice(0, 2).join(', ')} +${statesArr.length - 2} more` : statesArr.join(', ');
 
-      const directJobUrl = `/?jobId=${job._id}`;
-
       await Notification.create({
         title: `⚡ New ${typeLabel}: ${job.title}`,
-        message: `${job.department} announced ${job.vacancies || 1} vacancies for ${qualDisplay}. Location: ${stateDisplay}. Salary: ${job.salary}. Last Date: ${job.lastDate}. Tap to view details!`,
+        message: `${job.department} announced ${job.vacancies || 1} vacancies for ${qualDisplay}. Location: ${stateDisplay}. Salary: ${job.salary}. Last Date: ${job.lastDate}. Apply online now!`,
         category: job.category || 'govt',
         targetQualification: qualDisplay,
         targetQualifications: qualArr,
         targetState: stateDisplay,
         targetStates: statesArr,
         jobId: job._id ? job._id.toString() : null,
-        url: directJobUrl,
+        url: job.applyUrl || 'https://jobopedia.in',
         sentBy: 'System Auto-Trigger'
       });
       // Real Web Push to Chrome on Phone and PC (Works even when website is closed!)
       try {
         sendWebPushToAll({
           title: `⚡ New ${typeLabel}: ${job.title}`,
-          body: `${job.department} announced ${job.vacancies || 1} posts for ${qualDisplay}. Tap to view full details!`,
-          url: directJobUrl,
-          data: {
-            jobId: job._id ? job._id.toString() : null,
-            url: directJobUrl
-          }
+          body: `${job.department} announced ${job.vacancies || 1} posts. Last Date: ${job.lastDate}. Apply now!`,
+          url: job.applyUrl || 'https://jobopedia.in'
         }).catch(e => console.error("[WebPush Auto-Trigger Error]:", e.message));
       } catch (e) {}
 

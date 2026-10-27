@@ -8,6 +8,7 @@ import MockTestsPage from './pages/MockTestsPage';
 import PreparationPage from './pages/PreparationPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import AiAssistant from './components/AiAssistant';
@@ -66,34 +67,6 @@ export default function App() {
     setCurrentView('home');
   };
 
-  // Handle direct notification clicks (e.g. Chrome push notification opens /?jobId=123)
-  useEffect(() => {
-    const handleUrlJobParam = () => {
-      try {
-        if (typeof window === 'undefined') return;
-        const params = new URLSearchParams(window.location.search);
-        const jobId = params.get('jobId');
-        if (jobId) {
-          fetch(`/api/jobs/${jobId}`)
-            .then(res => res.json())
-            .then(data => {
-              if (data.success && data.job) {
-                setSelectedJob(data.job);
-                setCurrentView('job-detail');
-                setIsAuthModalOpen(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-            })
-            .catch(() => {});
-        }
-      } catch (e) {}
-    };
-
-    handleUrlJobParam();
-    window.addEventListener('popstate', handleUrlJobParam);
-    return () => window.removeEventListener('popstate', handleUrlJobParam);
-  }, []);
-
   // Automatically request browser notification permission on website load
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -101,6 +74,8 @@ export default function App() {
         Notification.requestPermission().catch(() => {});
       }
     }
+    // Pre-warm / wake-up Render backend immediately on page load
+    fetch('https://jobopedia-backend.onrender.com/api/health').catch(() => {});
   }, []);
 
   // Auto-track website traffic for Dhaval's Analytics Dashboard
@@ -158,6 +133,8 @@ export default function App() {
         return <AboutPage setCurrentView={setCurrentView} />;
       case 'contact':
         return <ContactPage setCurrentView={setCurrentView} />;
+      case 'privacy-policy':
+        return <PrivacyPolicyPage setCurrentView={setCurrentView} />;
       case 'admin':
         return <AdminDashboard setCurrentView={setCurrentView} user={user} />;
       case 'user-dashboard':

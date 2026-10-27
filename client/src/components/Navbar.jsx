@@ -217,6 +217,12 @@ export default function Navbar({
                     >
                       <span>📞 Contact Support Desk</span>
                     </button>
+                    <button 
+                      onClick={() => { setResourcesOpen(false); setCurrentView('privacy-policy'); }}
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 font-bold transition cursor-pointer"
+                    >
+                      <span>🔒 Privacy Policy (ગોપનીયતા નીતિ)</span>
+                    </button>
                   </div>
                 )}
               </div>
