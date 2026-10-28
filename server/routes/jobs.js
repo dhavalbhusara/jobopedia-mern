@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Job = require('../models/Job');
 const Notification = require('../models/Notification');
 const { sendWebPushToAll } = require('../utils/webPushHelper');
@@ -270,6 +271,32 @@ router.get('/weekly-calendar', async (req, res) => {
         }
       ]
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/jobs/:id (Direct deep-link: fetch single job by MongoDB _id or fallback id)
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let job = null;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      job = await Job.findById(id).lean();
+    } else {
+      job = await Job.findOne({ _id: id }).lean();
+    }
+
+    if (!job) {
+      job = FALLBACK_JOBS.find(j => String(j._id || j.id) === String(id));
+    }
+
+    if (!job) {
+      return res.status(404).json({ success: false, error: "Job not found" });
+    }
+
+    res.json({ success: true, job });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

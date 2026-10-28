@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   X, ExternalLink, Landmark, Building2, GraduationCap, 
   MapPin, Calendar, IndianRupee, Briefcase, ShieldCheck, 
-  Award, FileText, CheckCircle2, AlertCircle 
+  Award, FileText, CheckCircle2, AlertCircle, Share2 
 } from 'lucide-react';
 
 export default function JobDetailsModal({ job, isOpen, onClose, onStartMockTest }) {
@@ -11,6 +11,24 @@ export default function JobDetailsModal({ job, isOpen, onClose, onStartMockTest 
   const isGovt = job.category === 'govt' || job.sector === 'GOVERNMENT';
   const isIntern = job.category === 'internship';
   const officialUrl = job.applyUrl || job.officialUrl || job.notificationUrl || 'https://jobopedia.in';
+
+  const handleShare = () => {
+    const jobId = job._id || job.id;
+    const shareUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
+      : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: job.title,
+        text: `🏛️ *${job.title}*\n🏢 ${job.department || job.organization || job.company || 'Jobopedia'}\n💰 Salary: ${job.salary || 'Best in Industry'}\n📅 Last Date: ${job.lastDate || 'Closing Soon'}\n\n👉 Apply here:\n${shareUrl}`,
+        url: shareUrl
+      }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      alert(`✅ Job Share Link Copied!\n\n${shareUrl}\n\nSend this link to anyone to directly open this job.`);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150">
@@ -140,11 +158,21 @@ export default function JobDetailsModal({ job, isOpen, onClose, onStartMockTest 
               </button>
             )}
 
-            <div className="flex items-center gap-3 w-full sm:w-auto sm:ml-auto">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="px-4 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                title="Share this Job Direct Link"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share Link</span>
+              </button>
+
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition cursor-pointer"
+                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition cursor-pointer"
               >
                 Close
               </button>

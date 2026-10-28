@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, MapPin, IndianRupee, GraduationCap, Building2, ExternalLink, Search, Filter, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Briefcase, MapPin, IndianRupee, GraduationCap, Building2, ExternalLink, Search, Filter, ArrowLeft, ArrowRight, Share2 } from 'lucide-react';
 import JobDetailsModal from '../components/JobDetailsModal';
 import { ALL_QUALIFICATIONS } from '../constants/referenceData';
 
@@ -91,6 +91,25 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
       .catch(() => setInternships(sampleInternships))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleShareJob = (e, job) => {
+    e.stopPropagation();
+    const jobId = job._id || job.id;
+    const shareUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
+      : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: job.title,
+        text: `🎓 *${job.title}*\n🏢 ${job.company || job.department || 'Paid Internship'}\n💰 Stipend: ${job.stipend || job.salary || 'Best in Industry'}\n\n👉 Apply here:\n${shareUrl}`,
+        url: shareUrl
+      }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      alert(`✅ Internship Share Link Copied!\n\n${shareUrl}\n\nSend this link to anyone to directly open this internship.`);
+    }
+  };
 
   const filtered = internships.filter(item => {
     const matchesMode = filterMode === 'ALL' || item.sector === filterMode;
@@ -216,17 +235,27 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
               <span className="text-[11px] font-bold text-slate-400">
                 100% Verified Trainee Posting
               </span>
-              <button
-                type="button"
-                onClick={() => {
-                  if (onSelectJob) onSelectJob(item);
-                  else setSelectedJobModal(item);
-                }}
-                className="px-4 py-2 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
-              >
-                <span>View Scope &amp; Apply</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center space-x-1.5">
+                <button
+                  type="button"
+                  onClick={(e) => handleShareJob(e, item)}
+                  className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition cursor-pointer"
+                  title="Share this Internship Direct Link"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSelectJob) onSelectJob(item);
+                    else setSelectedJobModal(item);
+                  }}
+                  className="px-4 py-2 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
+                >
+                  <span>View Scope &amp; Apply</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         ))}

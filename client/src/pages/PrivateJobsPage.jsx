@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, Briefcase, Sparkles } from 'lucide-react';
+import { Building2, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, Briefcase, Sparkles, Share2 } from 'lucide-react';
 import JobDetailsModal from '../components/JobDetailsModal';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
@@ -105,6 +105,25 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
       })
       .catch(() => setJobs(samplePrivateJobs))
       .finally(() => setLoading(false));
+  };
+
+  const handleShareJob = (e, job) => {
+    e.stopPropagation();
+    const jobId = job._id || job.id;
+    const shareUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
+      : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: job.title,
+        text: `🏢 *${job.title}*\n🏢 ${job.department || 'Corporate MNC'}\n💰 Salary: ${job.salary || 'Competitive CTC'}\n📅 Last Date: ${job.lastDate || 'Rolling Admissions'}\n\n👉 Apply here:\n${shareUrl}`,
+        url: shareUrl
+      }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      alert(`✅ Job Share Link Copied!\n\n${shareUrl}\n\nSend this link to anyone to directly open this job.`);
+    }
   };
 
   const filtered = jobs.filter(j => 
@@ -243,15 +262,27 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
 
-              <a 
-                href={job.applyUrl || 'https://jobopedia.in'}
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 cursor-pointer border border-slate-200"
-              >
-                <span>Direct Careers Portal</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => handleShareJob(e, job)}
+                  className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer flex-1"
+                  title="Share this Job Direct Link"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Share</span>
+                </button>
+
+                <a 
+                  href={job.applyUrl || 'https://jobopedia.in'}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 cursor-pointer border border-slate-200 flex-1"
+                >
+                  <span>Portal</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             </div>
           </div>
         ))}

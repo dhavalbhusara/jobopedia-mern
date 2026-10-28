@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, MapPin, GraduationCap, IndianRupee, Landmark, 
   Building2, Briefcase, ExternalLink, ArrowRight, ShieldCheck, 
-  CheckCircle2, Sparkles, Filter 
+  CheckCircle2, Sparkles, Filter, Share2 
 } from 'lucide-react';
 import JobDetailsModal from './JobDetailsModal';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
@@ -56,6 +56,25 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest,
       })
       .catch(err => console.error("Error loading jobs:", err))
       .finally(() => setLoading(false));
+  };
+
+  const handleShareJob = (e, job) => {
+    e.stopPropagation();
+    const jobId = job._id || job.id;
+    const shareUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
+      : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: job.title,
+        text: `🏛️ *${job.title}*\n🏢 ${job.department || job.organization}\n💰 Salary: ${job.salary}\n📅 Last Date: ${job.lastDate}\n\n👉 Apply here:\n${shareUrl}`,
+        url: shareUrl
+      }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      alert(`✅ Share Link Copied for "${job.title}"!\n\n${shareUrl}\n\nAnyone clicking this link will directly open this job.`);
+    }
   };
 
   // Client-side smart suggestion filtering logic
@@ -292,16 +311,27 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest,
                     Till: {job.lastDate || 'Closing Soon'}
                   </span>
 
-                  <button
-                    onClick={() => {
-                      if (onSelectJob) onSelectJob(job);
-                      else setSelectedJobForModal(job);
-                    }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-sm cursor-pointer"
-                  >
-                    <span>View &amp; Apply</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center space-x-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => handleShareJob(e, job)}
+                      className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition cursor-pointer"
+                      title="Share this Job Direct Link"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (onSelectJob) onSelectJob(job);
+                        else setSelectedJobForModal(job);
+                      }}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-sm cursor-pointer"
+                    >
+                      <span>View &amp; Apply</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Landmark, Sparkles, DollarSign, FileText, ExternalLink, ArrowRight, X } from 'lucide-react';
+import { Landmark, Sparkles, DollarSign, FileText, ExternalLink, ArrowRight, X, Share2 } from 'lucide-react';
 
 export default function WeeklyGovtJobCalendar({ onSelectJob }) {
   const [calendarData, setCalendarData] = useState(null);
@@ -38,6 +38,25 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
   const triggerHelpDesk = (title) => {
     const text = encodeURIComponent(`Namaste Jobopedia Help Desk,\n\nI want assistance applying for: *${title}*.\nPlease guide me.`);
     window.open(`https://wa.me/918487944035?text=${text}`, "_blank");
+  };
+
+  const handleShareJob = (e, job) => {
+    e.stopPropagation();
+    const jobId = job._id || job.id;
+    const shareUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
+      : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: job.title,
+        text: `🏛️ *${job.title}*\n🏢 ${job.department || 'Government of Gujarat / India'}\n💰 Salary: ${job.salary}\n📅 Last Date: ${job.lastDate}\n\n👉 Apply here:\n${shareUrl}`,
+        url: shareUrl
+      }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      alert(`✅ Job Share Link Copied!\n\n${shareUrl}\n\nSend this link to anyone to directly open this job.`);
+    }
   };
 
   return (
@@ -281,13 +300,21 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
                         સંપૂર્ણ વિગતો / View Details
                       </button>
                       <button
+                        type="button"
+                        onClick={(e) => handleShareJob(e, job)}
+                        className="p-2 bg-white/10 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer shrink-0"
+                        title="Share this Job Direct Link"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
                         onClick={() => {
                           if (onSelectJob) onSelectJob(job);
                           else setModalJob(job);
                         }}
-                        className="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shrink-0 shadow-md cursor-pointer"
+                        className="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shrink-0 shadow-md cursor-pointer"
                       >
-                        <span>Apply &amp; Details</span>
+                        <span>Apply</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -341,18 +368,28 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 pt-4 border-t border-white/10">
-              <button 
-                onClick={() => setModalJob(null)} 
-                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition cursor-pointer"
-              >
-                Close
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/10">
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setModalJob(null)} 
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Close
+                </button>
+                <button 
+                  type="button"
+                  onClick={(e) => handleShareJob(e, modalJob)} 
+                  className="px-3.5 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Share Job Link</span>
+                </button>
+              </div>
               <a 
                 href={modalJob.applyUrl || 'https://jobopedia.in'} 
                 target="_blank" 
                 rel="noreferrer"
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black shadow-lg transition flex items-center space-x-2 cursor-pointer"
+                className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black shadow-lg transition flex items-center space-x-2 cursor-pointer"
               >
                 <span>Submit Form on Official Portal</span>
                 <ExternalLink className="w-4 h-4" />

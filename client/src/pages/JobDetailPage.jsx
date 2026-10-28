@@ -32,11 +32,43 @@ export default function JobDetailPage({ job, setCurrentView, onStartMockTest }) 
   const isGovt = currentJob.category === 'govt';
   const isInternship = currentJob.category === 'internship';
 
-  const handleShare = () => {
+  const jobId = currentJob._id || currentJob.id || "1";
+  const shareUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
+    : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
+
+  const copyShareLink = () => {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    const text = encodeURIComponent(
+      `🏛️ *${currentJob.title}*\n` +
+      `🏢 ડિપાર્ટમેન્ટ: ${currentJob.department}\n` +
+      `💰 પગાર: ${currentJob.salary}\n` +
+      `👥 જગ્યાઓ: ${currentJob.vacancies || 1} Posts\n` +
+      `📅 છેલ્લી તારીખ: ${currentJob.lastDate}\n` +
+      `📍 સ્થળ: ${currentJob.state || 'All India'}\n\n` +
+      `👉 આ જોબની વિગતો જોવા અને સીધી અરજી કરવા માટે અહીં ક્લિક કરો:\n${shareUrl}`
+    );
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: currentJob.title,
+        text: `${currentJob.title} - ${currentJob.department} recruitment on Jobopedia.`,
+        url: shareUrl
+      }).catch(() => {
+        copyShareLink();
+      });
+    } else {
+      copyShareLink();
     }
   };
 
@@ -71,11 +103,30 @@ export default function JobDetailPage({ job, setCurrentView, onStartMockTest }) 
 
         <div className="flex items-center space-x-2">
           <button
-            onClick={handleShare}
-            className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+            onClick={handleWhatsAppShare}
+            className="px-3 py-1.5 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-2xs font-bold text-xs"
+            title="Share this Job on WhatsApp"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5 text-slate-500" />}
-            <span>{copied ? 'Link Copied!' : 'Share Job'}</span>
+            <i className="fa-brands fa-whatsapp text-sm"></i>
+            <span className="hidden xs:inline">WhatsApp</span>
+          </button>
+
+          <button
+            onClick={copyShareLink}
+            className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-2xs font-bold text-xs"
+            title="Copy Direct Link to this Job"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+            <span>{copied ? 'Link Copied!' : 'Copy Link'}</span>
+          </button>
+
+          <button
+            onClick={handleShare}
+            className="p-1.5 sm:px-3 sm:py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center space-x-1 cursor-pointer shadow-2xs text-xs font-bold"
+            title="More Share Options"
+          >
+            <Share2 className="w-3.5 h-3.5 text-slate-600" />
+            <span className="hidden sm:inline">Share</span>
           </button>
         </div>
       </div>
@@ -370,6 +421,73 @@ export default function JobDetailPage({ job, setCurrentView, onStartMockTest }) 
             <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed font-medium">
               ⚠️ <strong>Important:</strong> Check that all details (Name, DOB, Marksheet) match your official Aadhaar and SSC certificate before clicking Final Submit on the official website.
             </div>
+          </div>
+
+          {/* Shareable Job Link Card */}
+          <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-sm space-y-4">
+            <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
+              <span className="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
+                <Share2 className="w-4 h-4" />
+              </span>
+              <div>
+                <h3 className="text-sm font-black text-slate-900">
+                  Share this Job (મિત્રો સાથે શેર કરો)
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  આ ડાયરેક્ટ લિંક પર ક્લિક કરતાં જ આ જ જોબ ખૂલશે
+                </p>
+              </div>
+            </div>
+
+            {/* Direct Link Input Box with 1-Click Copy */}
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold text-slate-600">
+                Direct Shareable Link:
+              </label>
+              <div className="flex items-center space-x-1.5">
+                <input
+                  type="text"
+                  readOnly
+                  value={shareUrl}
+                  onClick={(e) => e.target.select()}
+                  className="w-full px-3 py-2 text-[11px] bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-mono focus:outline-none select-all"
+                />
+                <button
+                  type="button"
+                  onClick={copyShareLink}
+                  className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shrink-0 cursor-pointer shadow-2xs"
+                  title="Copy Link to Clipboard"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? 'Copied!' : 'Copy'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Share Buttons */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={handleWhatsAppShare}
+                className="py-2.5 px-3 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm cursor-pointer"
+              >
+                <i className="fa-brands fa-whatsapp text-sm"></i>
+                <span>WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleShare}
+                className="py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-sm cursor-pointer"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>More Apps</span>
+              </button>
+            </div>
+
+            <p className="text-[10px] text-slate-500 font-medium text-center">
+              💡 WhatsApp, Telegram કે Social Media પર મોકલીને મિત્રોને જાણ કરો.
+            </p>
           </div>
 
           {/* Help Desk Assistance Card */}

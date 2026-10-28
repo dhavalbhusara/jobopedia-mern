@@ -36,15 +36,89 @@ export default function App() {
     }
   });
 
-  // Automatically open Login modal on website load if visitor is not logged in
+  // Automatically open Login modal on website load if visitor is not logged in AND NOT on a direct shared job link
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(() => {
     try {
       const stored = localStorage.getItem('jobopedia_user');
-      return !stored;
+      if (stored) return false;
+      if (typeof window !== 'undefined') {
+        const p = new URLSearchParams(window.location.search);
+        if (p.get('job') || p.get('jobId') || window.location.pathname.startsWith('/job/')) {
+          return false;
+        }
+      }
+      return true;
     } catch {
       return true;
     }
   });
+
+  const [loadingDirectJob, setLoadingDirectJob] = useState(false);
+
+  // Deep-linking: Read ?job=<id> or ?jobId=<id> or /job/<id> on website load & on popstate
+  useEffect(() => {
+    const checkJobInUrl = async () => {
+      if (typeof window === 'undefined') return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      let targetJobId = urlParams.get('job') || urlParams.get('jobId');
+
+      if (!targetJobId && window.location.pathname.startsWith('/job/')) {
+        targetJobId = window.location.pathname.replace('/job/', '').trim();
+      }
+
+      if (targetJobId) {
+        setIsAuthModalOpen(false);
+        setLoadingDirectJob(true);
+
+        try {
+          const res = await fetch(`/api/jobs/${encodeURIComponent(targetJobId)}`);
+          const data = await res.json();
+          if (data.success && data.job) {
+            setSelectedJob(data.job);
+            setCurrentView('job-detail');
+            setLoadingDirectJob(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          }
+        } catch (err) {
+          console.warn("Direct job fetch error, attempting list fallback:", err.message);
+        }
+
+        // Fallback lookup in all jobs
+        try {
+          const listRes = await fetch('/api/jobs');
+          const listData = await listRes.json();
+          if (listData.success && Array.isArray(listData.jobs)) {
+            const match = listData.jobs.find(j => String(j._id || j.id) === String(targetJobId));
+            if (match) {
+              setSelectedJob(match);
+              setCurrentView('job-detail');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }
+        } catch (e) {}
+
+        setLoadingDirectJob(false);
+      }
+    };
+
+    checkJobInUrl();
+
+    // Listen for browser Back & Forward button navigation
+    const handlePopState = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetJobId = urlParams.get('job') || urlParams.get('jobId');
+      if (targetJobId) {
+        checkJobInUrl();
+      } else {
+        setCurrentView('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const [authMode, setAuthMode] = useState('login');
 
@@ -115,51 +189,76 @@ export default function App() {
     trackVisitor();
   }, [currentView]);
 
-  const handleOpenJobDetail = (job) => {
+  const handleOpenJobDetail = (job, updateUrl = true) => {
     setSelectedJob(job);
     setCurrentView('job-detail');
+    if (updateUrl && typeof window !== 'undefined') {
+      const jobId = job._id || job.id;
+      if (jobId) {
+        const newUrl = `/?job=${encodeURIComponent(jobId)}`;
+        window.history.pushState({ jobId, view: 'job-detail' }, '', newUrl);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const navigateToView = (view) => {
+    setCurrentView(view);
     if (typeof window !== 'undefined') {
+      if (view !== 'job-detail' && window.location.search.includes('job')) {
+        window.history.pushState({}, '', window.location.pathname);
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const renderCurrentView = () => {
+    if (loadingDirectJob) {
+      return (
+        <div className="py-24 text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto shadow-md"></div>
+          <div className="text-base font-black text-slate-800">Opening Job Details...</div>
+          <p className="text-xs text-slate-500 font-medium">Please wait while we retrieve the verified job posting.</p>
+        </div>
+      );
+    }
+
     switch (currentView) {
       case 'job-detail':
         return (
           <JobDetailPage 
             job={selectedJob} 
-            setCurrentView={setCurrentView}
+            setCurrentView={navigateToView}
             onStartMockTest={(j) => {
               setSelectedJob(j);
-              setCurrentView('mock-tests');
+              navigateToView('mock-tests');
             }}
           />
         );
       case 'govt':
-        return <GovtJobsPage setCurrentView={setCurrentView} onSelectJob={handleOpenJobDetail} />;
+        return <GovtJobsPage setCurrentView={navigateToView} onSelectJob={handleOpenJobDetail} />;
       case 'private':
-        return <PrivateJobsPage setCurrentView={setCurrentView} onSelectJob={handleOpenJobDetail} />;
+        return <PrivateJobsPage setCurrentView={navigateToView} onSelectJob={handleOpenJobDetail} />;
       case 'internships':
-        return <InternshipsPage setCurrentView={setCurrentView} onSelectJob={handleOpenJobDetail} />;
+        return <InternshipsPage setCurrentView={navigateToView} onSelectJob={handleOpenJobDetail} />;
       case 'mock-tests':
-        return <MockTestsPage setCurrentView={setCurrentView} />;
+        return <MockTestsPage setCurrentView={navigateToView} />;
       case 'preparation':
-        return <PreparationPage setCurrentView={setCurrentView} />;
+        return <PreparationPage setCurrentView={navigateToView} />;
       case 'about':
-        return <AboutPage setCurrentView={setCurrentView} />;
+        return <AboutPage setCurrentView={navigateToView} />;
       case 'contact':
-        return <ContactPage setCurrentView={setCurrentView} />;
+        return <ContactPage setCurrentView={navigateToView} />;
       case 'privacy-policy':
-        return <PrivacyPolicyPage setCurrentView={setCurrentView} />;
+        return <PrivacyPolicyPage setCurrentView={navigateToView} />;
       case 'admin':
-        return <AdminDashboard setCurrentView={setCurrentView} user={user} onLogout={handleLogout} />;
+        return <AdminDashboard setCurrentView={navigateToView} user={user} onLogout={handleLogout} />;
       case 'user-dashboard':
         return (
           <UserDashboard 
             user={user} 
             setUser={setUser}
-            setCurrentView={setCurrentView} 
+            setCurrentView={navigateToView} 
             openResumeModal={() => setIsResumeModalOpen(true)}
             onSelectJob={handleOpenJobDetail}
             onLogout={handleLogout}
@@ -170,7 +269,7 @@ export default function App() {
         return (
           <HomePage 
             user={user}
-            setCurrentView={setCurrentView}
+            setCurrentView={navigateToView}
             openResumeModal={() => setIsResumeModalOpen(true)}
             openAuthModal={() => handleOpenAuth(true)}
             onSelectJob={handleOpenJobDetail}
@@ -185,7 +284,7 @@ export default function App() {
 
       <Navbar 
         currentView={currentView} 
-        setCurrentView={setCurrentView} 
+        setCurrentView={navigateToView} 
         openResumeModal={() => setIsResumeModalOpen(true)}
         openComplaintModal={() => setIsComplaintModalOpen(true)}
         openAuthModal={handleOpenAuth}
@@ -198,7 +297,7 @@ export default function App() {
         {renderCurrentView()}
       </main>
 
-      <Footer setCurrentView={setCurrentView} />
+      <Footer setCurrentView={navigateToView} />
 
       <AiAssistant />
       

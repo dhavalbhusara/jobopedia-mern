@@ -4,7 +4,7 @@ import {
   Bookmark, CheckCircle2, Award, Clock, ArrowRight, 
   Sparkles, FileText, Settings, ShieldCheck, ExternalLink, 
   Building2, Landmark, RefreshCw, Edit3, Trash2, Check,
-  Search, Bell, AlertCircle, ChevronRight, Calendar, MessageSquare, Send, LogOut
+  Search, Bell, AlertCircle, ChevronRight, Calendar, MessageSquare, Send, LogOut, Share2
 } from 'lucide-react';
 import WeeklyGovtJobCalendar from '../components/WeeklyGovtJobCalendar';
 import JobDetailsModal from '../components/JobDetailsModal';
@@ -62,6 +62,25 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
       })
       .catch(() => {});
   }, [user]);
+
+  const handleShareJob = (e, job) => {
+    e.stopPropagation();
+    const jobId = job._id || job.id;
+    const shareUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
+      : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: job.title,
+        text: `🏛️ *${job.title}*\n🏢 ${job.organization || job.company || job.department || 'Job Vacancy'}\n💰 Salary: ${job.salary || 'Best in Industry'}\n📅 Last Date: ${job.lastDate || 'Closing Soon'}\n\n👉 Apply here:\n${shareUrl}`,
+        url: shareUrl
+      }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      alert(`✅ Job Share Link Copied!\n\n${shareUrl}\n\nSend this link to anyone to directly open this job.`);
+    }
+  };
 
   const handleUserSubmitComplaint = async (e) => {
     e.preventDefault();
@@ -546,17 +565,28 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                           Last Date: <span className="font-bold text-rose-600">{job.lastDate || 'Apply Soon'}</span>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (onSelectJob) onSelectJob(job);
-                            else setSelectedJobModal(job);
-                          }}
-                          className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
-                        >
-                          <span>View Details &amp; Apply</span>
-                          <ArrowRight className="w-3 h-3" />
-                        </button>
+                        <div className="flex items-center space-x-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => handleShareJob(e, job)}
+                            className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition cursor-pointer"
+                            title="Share this Job Direct Link"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (onSelectJob) onSelectJob(job);
+                              else setSelectedJobModal(job);
+                            }}
+                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs cursor-pointer"
+                          >
+                            <span>View Details &amp; Apply</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -620,17 +650,27 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
 
                       <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                         <span className="text-xs font-bold text-rose-600">Deadline: {job.lastDate || 'Ongoing'}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (onSelectJob) onSelectJob(job);
-                            else setSelectedJobModal(job);
-                          }}
-                          className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
-                        >
-                          <span>View Official Details</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </button>
+                        <div className="flex items-center space-x-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => handleShareJob(e, job)}
+                            className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition cursor-pointer"
+                            title="Share this Job Direct Link"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (onSelectJob) onSelectJob(job);
+                              else setSelectedJobModal(job);
+                            }}
+                            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
+                          >
+                            <span>View Official Details</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
