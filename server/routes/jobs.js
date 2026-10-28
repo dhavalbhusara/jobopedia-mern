@@ -2,138 +2,17 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const Job = require('../models/Job');
+const { slugify } = require('../models/Job');
 const Notification = require('../models/Notification');
 const { sendWebPushToAll } = require('../utils/webPushHelper');
+const ORGANIZED_JOBS = require('../data/organizedJobs');
 
-// Fallback Seed Jobs in case DB is newly starting
-const FALLBACK_JOBS = [
-  {
-    _id: "1",
-    title: "UPSC Civil Services (IAS / IPS / IFS) Examination 2026",
-    department: "Union Public Service Commission (UPSC)",
-    category: "govt",
-    sector: "GOVERNMENT",
-    state: "Central",
-    qualification: "Graduate in any stream",
-    salary: "₹56,100 - ₹2,50,000 / month (Level 10 Pay Matrix)",
-    vacancies: 1056,
-    dayNumber: 3,
-    lastDate: "2026-11-15",
-    description: "Recruitment for Indian Administrative Service, Indian Police Service, and Central Group A Services. Prelims exam will be held across 77 centres.",
-    eligibility: "Any Bachelor's Degree",
-    applyUrl: "https://jobopedia.in",
-    tags: ["UPSC", "Civil Services", "IAS", "Group A"],
-    isNewJob: true
-  },
-  {
-    _id: "2",
-    title: "SSC Combined Graduate Level (CGL) Examination 2026",
-    department: "Staff Selection Commission (SSC CGL)",
-    category: "govt",
-    sector: "GOVERNMENT",
-    state: "Central",
-    qualification: "Graduate",
-    salary: "₹25,500 - ₹1,42,400 / month (Pay Level 4 to Level 7)",
-    vacancies: 17727,
-    dayNumber: 7,
-    lastDate: "2026-11-20",
-    description: "Combined Graduate Level examination for Central Ministries, CBI, Intelligence Bureau, and Excise & Customs departments.",
-    eligibility: "Bachelor's Degree",
-    applyUrl: "https://jobopedia.in",
-    tags: ["SSC CGL", "Central Govt", "ASO", "Inspector"],
-    isNewJob: true
-  },
-  {
-    _id: "3",
-    title: "RRB Non-Technical Popular Categories (NTPC) Posts",
-    department: "Indian Railways (All Railway Zones)",
-    category: "govt",
-    sector: "GOVERNMENT",
-    state: "Central",
-    qualification: "12th Pass / Graduate",
-    salary: "₹19,900 - ₹35,400 / month (Level 2 to Level 6)",
-    vacancies: 11558,
-    dayNumber: 2,
-    lastDate: "2026-11-18",
-    description: "Recruitment for Station Master, Goods Guard, Senior Clerk cum Typist across 21 Railway Recruitment Board zones.",
-    eligibility: "12th Pass or Bachelor's Degree",
-    applyUrl: "https://jobopedia.in",
-    tags: ["Railways", "RRB NTPC", "Govt"],
-    isNewJob: true
-  },
-  {
-    _id: "4",
-    title: "IBPS Probationary Officers / Management Trainees (PO/MT)",
-    department: "11 Participating Public Sector Banks (SBI, PNB, BoB)",
-    category: "govt",
-    sector: "GOVERNMENT",
-    state: "Central",
-    qualification: "Graduate",
-    salary: "₹48,480 - ₹85,920 / month + DA, HRA & Leased Accom.",
-    vacancies: 4455,
-    dayNumber: 5,
-    lastDate: "2026-11-12",
-    description: "Officer cadre recruitment for leading public sector commercial banks across India.",
-    eligibility: "Any Graduate",
-    applyUrl: "https://jobopedia.in",
-    tags: ["Banking", "IBPS", "Bank PO"],
-    isNewJob: false
-  },
-  {
-    _id: "5",
-    title: "ISRO Scientist / Engineer 'SC' (CS, Electronics, Mech)",
-    department: "ISRO Centralised Recruitment Board (ICRB)",
-    category: "govt",
-    sector: "GOVERNMENT",
-    state: "Central",
-    qualification: "B.Tech / BE with 65% marks",
-    salary: "₹56,100 - ₹1,77,500 / month (Gross ~ ₹95,000 / mo)",
-    vacancies: 320,
-    dayNumber: 2,
-    lastDate: "2026-11-25",
-    description: "Space research and satellite propulsion engineering positions at URSC Bengaluru, SAC Ahmedabad, VSSC Thiruvananthapuram.",
-    eligibility: "B.Tech / B.E in CS / EC / Mechanical",
-    applyUrl: "https://jobopedia.in",
-    tags: ["ISRO", "Engineering", "Scientist"],
-    isNewJob: true
-  },
-  {
-    _id: "6",
-    title: "Senior Full Stack Cloud Software Engineer",
-    department: "Tata Consultancy Services (TCS Digital)",
-    category: "private",
-    sector: "PRIVATE",
-    state: "Maharashtra",
-    qualification: "B.Tech / MCA",
-    salary: "₹12,00,000 - ₹18,00,000 / year (₹1,00,000 - ₹1,50,000 / mo)",
-    vacancies: 45,
-    dayNumber: 4,
-    lastDate: "2026-12-05",
-    description: "Developing scalable React & Node.js microservices for multinational fintech clients in Pune and Mumbai.",
-    eligibility: "B.Tech / MCA with React / Node expertise",
-    applyUrl: "https://jobopedia.in",
-    tags: ["IT", "Private", "Pune", "Mumbai"],
-    isNewJob: true
-  },
-  {
-    _id: "7",
-    title: "Govt Digital Governance Technical Intern",
-    department: "National Informatics Centre (NIC)",
-    category: "internship",
-    sector: "GOVERNMENT",
-    state: "All India",
-    qualification: "College Students / Freshers",
-    salary: "₹25,000 / month Stipend (Govt Certificate + Pre-Placement)",
-    vacancies: 100,
-    dayNumber: 1,
-    lastDate: "2026-11-10",
-    description: "6-month official government internship contributing to citizen service portals and cloud databases.",
-    eligibility: "Enrolled in B.Tech / BCA / MCA / M.Sc",
-    applyUrl: "https://jobopedia.in",
-    tags: ["Internship", "NIC", "Govt"],
-    isNewJob: true
-  }
-];
+// Fallback Seed Jobs in case DB is newly starting or offline
+const FALLBACK_JOBS = ORGANIZED_JOBS.map((j, idx) => ({
+  ...j,
+  _id: j.slug || String(idx + 1),
+  id: j.slug || String(idx + 1)
+}));
 
 // GET /api/jobs (Filter Logic: Private filtered by selected state; Govt jobs shown across all India)
 router.get('/', async (req, res) => {
@@ -276,20 +155,40 @@ router.get('/weekly-calendar', async (req, res) => {
   }
 });
 
-// GET /api/jobs/:id (Direct deep-link: fetch single job by MongoDB _id or fallback id)
+// GET /api/jobs/:id (Direct deep-link: fetch single job by MongoDB _id, slug, or fallback)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     let job = null;
 
+    // 1. Try finding by MongoDB _id if valid ObjectId
     if (mongoose.Types.ObjectId.isValid(id)) {
       job = await Job.findById(id).lean();
-    } else {
-      job = await Job.findOne({ _id: id }).lean();
     }
 
+    // 2. Try finding by unique slug
     if (!job) {
-      job = FALLBACK_JOBS.find(j => String(j._id || j.id) === String(id));
+      job = await Job.findOne({ slug: id }).lean();
+    }
+
+    // 3. Try finding by title exact or case-insensitive regex
+    if (!job) {
+      const cleanTitle = id.replace(/-/g, ' ').trim();
+      job = await Job.findOne({
+        $or: [
+          { title: new RegExp(`^${cleanTitle}$`, 'i') },
+          { title: new RegExp(cleanTitle, 'i') }
+        ]
+      }).lean();
+    }
+
+    // 4. Try finding in FALLBACK_JOBS
+    if (!job) {
+      job = FALLBACK_JOBS.find(j => 
+        String(j._id || j.id) === String(id) ||
+        j.slug === id ||
+        (j.title && j.title.toLowerCase().includes(id.toLowerCase().replace(/-/g, ' ')))
+      );
     }
 
     if (!job) {
@@ -357,6 +256,11 @@ router.post('/', async (req, res) => {
       } catch (checkErr) {
         console.warn("Pre-publish duplicate check skipped:", checkErr.message);
       }
+    }
+
+    // Generate clean slug if missing
+    if (!jobData.slug && jobData.title) {
+      jobData.slug = slugify(jobData.title) + '-' + Date.now().toString().slice(-4);
     }
 
     const job = new Job(jobData);

@@ -60,7 +60,7 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest,
 
   const handleShareJob = (e, job) => {
     e.stopPropagation();
-    const jobId = job._id || job.id;
+    const jobId = job.slug || job._id || job.id;
     const shareUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
       : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;

@@ -13,7 +13,7 @@ export default function JobDetailsModal({ job, isOpen, onClose, onStartMockTest 
   const officialUrl = job.applyUrl || job.officialUrl || job.notificationUrl || 'https://jobopedia.in';
 
   const handleShare = () => {
-    const jobId = job._id || job.id;
+    const jobId = job.slug || job._id || job.id;
     const shareUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
       : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;

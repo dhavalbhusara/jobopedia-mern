@@ -65,7 +65,7 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
 
   const handleShareJob = (e, job) => {
     e.stopPropagation();
-    const jobId = job._id || job.id;
+    const jobId = job.slug || job._id || job.id;
     const shareUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
       : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;

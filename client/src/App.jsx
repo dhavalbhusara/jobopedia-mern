@@ -90,7 +90,11 @@ export default function App() {
           const listRes = await fetch('/api/jobs');
           const listData = await listRes.json();
           if (listData.success && Array.isArray(listData.jobs)) {
-            const match = listData.jobs.find(j => String(j._id || j.id) === String(targetJobId));
+            const match = listData.jobs.find(j => 
+              String(j._id || j.id) === String(targetJobId) || 
+              j.slug === targetJobId ||
+              (j.title && j.title.toLowerCase().replace(/[\W_]+/g, '-') === targetJobId.toLowerCase())
+            );
             if (match) {
               setSelectedJob(match);
               setCurrentView('job-detail');
@@ -193,7 +197,7 @@ export default function App() {
     setSelectedJob(job);
     setCurrentView('job-detail');
     if (updateUrl && typeof window !== 'undefined') {
-      const jobId = job._id || job.id;
+      const jobId = job.slug || job._id || job.id;
       if (jobId) {
         const newUrl = `/?job=${encodeURIComponent(jobId)}`;
         window.history.pushState({ jobId, view: 'job-detail' }, '', newUrl);

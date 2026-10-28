@@ -1,41 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Landmark, Building2, GraduationCap, Calendar, 
   MapPin, Award, CheckCircle2, ExternalLink, FileText, 
   Share2, ShieldCheck, Clock, Users, Briefcase, Sparkles, 
-  BookOpen, ChevronRight, HelpCircle, Check, Copy 
+  BookOpen, ChevronRight, HelpCircle, Check, Copy, MessageCircle 
 } from 'lucide-react';
 
-export default function JobDetailPage({ job, setCurrentView, onStartMockTest }) {
+export default function JobDetailPage({ job: initialJob, setCurrentView, onStartMockTest }) {
+  const [currentJob, setCurrentJob] = useState(initialJob);
+  const [loading, setLoading] = useState(!initialJob);
+  const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Fallback default job if user directly refreshed or opened view without state
-  const currentJob = job || {
-    title: "UPSC Civil Services (IAS / IPS / IFS) Examination 2026",
-    department: "Union Public Service Commission (UPSC)",
-    category: "govt",
-    sector: "GOVERNMENT",
-    state: "Central / All India",
-    qualification: "Graduate in any stream",
-    salary: "₹56,100 - ₹2,50,000 / month (Level 10 Pay Matrix)",
-    vacancies: 1056,
-    lastDate: "2026-11-15",
-    ageLimit: "21 - 32 Years",
-    selectionProcess: "Stage 1: Preliminary Exam (Objective MCQs) → Stage 2: Main Written Exam → Stage 3: Personality Test / Interview",
-    description: "Union Public Service Commission (UPSC) has officially published the recruitment notification for Civil Services Examination 2026. This prestigious all-India examination selects officers for the Indian Administrative Service (IAS), Indian Police Service (IPS), Indian Foreign Service (IFS), and Central Group 'A' & 'B' civil services. Candidates selected will undergo foundational training at LBSNAA Mussoorie followed by cadre allocation across Indian states.",
-    eligibility: "Candidate must hold a Bachelor's Degree of any university incorporated by an Act of the Central or State Legislature in India. Final-year students awaiting degree results are also eligible to apply for the preliminary stage.",
-    applyUrl: "https://upsconline.nic.in",
-    notificationUrl: "https://upsc.gov.in",
-    hasMcqs: true
-  };
+  useEffect(() => {
+    if (initialJob) {
+      setCurrentJob(initialJob);
+      setLoading(false);
+      setNotFound(false);
+      return;
+    }
 
-  const isGovt = currentJob.category === 'govt';
+    // Direct deep-link retrieval if page was refreshed or loaded without parent state
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      let targetId = params.get('job') || params.get('jobId');
+      if (!targetId && window.location.pathname.startsWith('/job/')) {
+        targetId = window.location.pathname.replace('/job/', '').trim();
+      }
+
+      if (targetId) {
+        setLoading(true);
+        fetch(`/api/jobs/${encodeURIComponent(targetId)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.job) {
+              setCurrentJob(data.job);
+              setNotFound(false);
+            } else {
+              setNotFound(true);
+            }
+          })
+          .catch(() => setNotFound(true))
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+        setNotFound(true);
+      }
+    }
+  }, [initialJob]);
+
+  // Synchronize browser address bar with this exact job's link
+  useEffect(() => {
+    if (currentJob && typeof window !== 'undefined') {
+      const identifier = currentJob.slug || currentJob._id || currentJob.id;
+      if (identifier) {
+        const expectedSearch = `?job=${encodeURIComponent(identifier)}`;
+        if (window.location.search !== expectedSearch) {
+          window.history.replaceState({ jobId: identifier, view: 'job-detail' }, '', `/?job=${encodeURIComponent(identifier)}`);
+        }
+      }
+    }
+  }, [currentJob]);
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-28 text-center space-y-4">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto shadow-md"></div>
+        <h2 className="text-xl font-black text-slate-800">જોબની સંપૂર્ણ વિગતો મેળવી રહ્યા છીએ...</h2>
+        <p className="text-xs text-slate-500 font-medium">Please wait while we retrieve the authentic verified job notification from database.</p>
+      </div>
+    );
+  }
+
+  if (notFound || !currentJob) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-24 text-center space-y-5">
+        <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-3xl flex items-center justify-center mx-auto border border-amber-200 shadow-sm">
+          <FileText className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900">આ જોબ જાહેરાત મળી નથી</h2>
+        <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+          તમે જે શેર કરેલી લિંક પર ક્લિક કર્યું છે તે જોબની મુદત પૂર્ણ થઈ ગઈ હોઈ શકે છે અથવા લિંક બદલાઈ ગઈ છે.
+        </p>
+        <button
+          onClick={() => setCurrentView('home')}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-lg transition cursor-pointer"
+        >
+          હોમપેજ પર તમામ નવી ભરતીઓ જુઓ (Explore All Jobs)
+        </button>
+      </div>
+    );
+  }
+
+  const isGovt = currentJob.category === 'govt' || currentJob.sector === 'GOVERNMENT';
   const isInternship = currentJob.category === 'internship';
 
-  const jobId = currentJob._id || currentJob.id || "1";
+  const jobIdentifier = currentJob.slug || currentJob._id || currentJob.id;
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
-    : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
+    ? `${window.location.origin}/?job=${encodeURIComponent(jobIdentifier)}`
+    : `https://jobopedia.in/?job=${encodeURIComponent(jobIdentifier)}`;
 
   const copyShareLink = () => {
     if (navigator.clipboard) {
@@ -48,12 +111,12 @@ export default function JobDetailPage({ job, setCurrentView, onStartMockTest }) 
   const handleWhatsAppShare = () => {
     const text = encodeURIComponent(
       `🏛️ *${currentJob.title}*\n` +
-      `🏢 ડિપાર્ટમેન્ટ: ${currentJob.department}\n` +
-      `💰 પગાર: ${currentJob.salary}\n` +
-      `👥 જગ્યાઓ: ${currentJob.vacancies || 1} Posts\n` +
-      `📅 છેલ્લી તારીખ: ${currentJob.lastDate}\n` +
+      `🏢 ડિપાર્ટમેન્ટ / સંસ્થા: ${currentJob.department || currentJob.organization || currentJob.company}\n` +
+      `💰 પગાર ધોરણ: ${currentJob.salary}\n` +
+      `👥 કુલ જગ્યાઓ: ${currentJob.vacancies ? `${currentJob.vacancies} Posts` : 'Active Vacancies'}\n` +
+      `📅 છેલ્લી તારીખ: ${currentJob.lastDate || 'Closing Soon'}\n` +
       `📍 સ્થળ: ${currentJob.state || 'All India'}\n\n` +
-      `👉 આ જોબની વિગતો જોવા અને સીધી અરજી કરવા માટે અહીં ક્લિક કરો:\n${shareUrl}`
+      `👉 આ જોબની સંપૂર્ણ વિગતો વાંચવા અને સીધી અરજી કરવા અહીં ક્લિક કરો:\n${shareUrl}`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -62,7 +125,7 @@ export default function JobDetailPage({ job, setCurrentView, onStartMockTest }) 
     if (navigator.share) {
       navigator.share({
         title: currentJob.title,
-        text: `${currentJob.title} - ${currentJob.department} recruitment on Jobopedia.`,
+        text: `🏛️ *${currentJob.title}*\n🏢 ${currentJob.department}\n💰 Salary: ${currentJob.salary}\n📅 Last Date: ${currentJob.lastDate}\n\n👉 Apply here:\n${shareUrl}`,
         url: shareUrl
       }).catch(() => {
         copyShareLink();

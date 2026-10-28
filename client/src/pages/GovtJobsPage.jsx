@@ -30,7 +30,8 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
           // Fallback sample govt jobs if database is empty
           setJobs([
             {
-              id: 'g-1',
+              id: 'upsc-civil-services-ias-ips-ifs-examination-2026',
+              slug: 'upsc-civil-services-ias-ips-ifs-examination-2026',
               title: 'UPSC Civil Services (IAS / IPS / IFS) Examination 2026',
               department: 'Union Public Service Commission (UPSC)',
               category: 'govt',
@@ -44,8 +45,9 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
               applyUrl: 'https://upsc.gov.in'
             },
             {
-              id: 'g-2',
-              title: 'GSSSB Combined Competitive Examination (CCE) Group A & B',
+              id: 'gsssb-combined-competitive-examination-cce-group-a-b-2026',
+              slug: 'gsssb-combined-competitive-examination-cce-group-a-b-2026',
+              title: 'GSSSB Combined Competitive Examination (CCE) Group A & B 2026',
               department: 'Gujarat Secondary Service Selection Board',
               category: 'govt',
               sector: 'GOVERNMENT',
@@ -58,7 +60,8 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
               applyUrl: 'https://ojas.gujarat.gov.in'
             },
             {
-              id: 'g-3',
+              id: 'gujarat-police-constable-psi-direct-recruitment-2026',
+              slug: 'gujarat-police-constable-psi-direct-recruitment-2026',
               title: 'Gujarat Police Constable & PSI Direct Recruitment 2026',
               department: 'Gujarat Police Recruitment Board (LRD)',
               category: 'govt',
@@ -72,8 +75,9 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
               applyUrl: 'https://lrdgujarat2021.in'
             },
             {
-              id: 'g-4',
-              title: 'SSC Combined Graduate Level (CGL) 2026',
+              id: 'ssc-combined-graduate-level-cgl-examination-2026',
+              slug: 'ssc-combined-graduate-level-cgl-examination-2026',
+              title: 'SSC Combined Graduate Level (CGL) Examination 2026',
               department: 'Staff Selection Commission (SSC)',
               category: 'govt',
               sector: 'GOVERNMENT',
@@ -86,8 +90,9 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
               applyUrl: 'https://ssc.gov.in'
             },
             {
-              id: 'g-5',
-              title: 'Railway RRB Non-Technical Popular Categories (NTPC)',
+              id: 'rrb-non-technical-popular-categories-ntpc-posts-2026',
+              slug: 'rrb-non-technical-popular-categories-ntpc-posts-2026',
+              title: 'RRB Non-Technical Popular Categories (NTPC) Posts 2026',
               department: 'Railway Recruitment Board (Indian Railways)',
               category: 'govt',
               sector: 'GOVERNMENT',
@@ -113,7 +118,7 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
 
   const handleShareJob = (e, job) => {
     e.stopPropagation();
-    const jobId = job._id || job.id;
+    const jobId = job.slug || job._id || job.id;
     const shareUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
       : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;

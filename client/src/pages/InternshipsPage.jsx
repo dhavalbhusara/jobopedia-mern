@@ -12,7 +12,8 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
 
   const sampleInternships = [
     {
-      id: 'int-1',
+      id: 'graduate-technical-trainee-software-ai-tcs',
+      slug: 'graduate-technical-trainee-software-ai-tcs',
       title: 'Graduate Technical Trainee (Software & AI)',
       company: 'Tata Consultancy Services (TCS)',
       sector: 'PRIVATE',
@@ -21,11 +22,12 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
       duration: '6 Months',
       qualification: 'B.Tech / BCA / MCA (2025/2026 Batch)',
       description: 'Hands-on enterprise application development, cloud deployment, and mentor-guided AI solutions with pre-placement offer (PPO) evaluation.',
-      applyUrl: 'https://jobopedia.in',
+      applyUrl: 'https://learning.tcsionhub.in',
       tags: ['Software', 'PPO Included', 'TCS']
     },
     {
-      id: 'int-2',
+      id: 'niti-aayog-national-policy-research-internship-2026',
+      slug: 'niti-aayog-national-policy-research-internship-2026',
       title: 'NITI Aayog National Policy & Research Internship',
       company: 'NITI Aayog (Govt of India)',
       sector: 'GOVERNMENT',
@@ -34,11 +36,12 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
       duration: '3 to 6 Months',
       qualification: 'Undergraduate / Postgraduate in any stream',
       description: 'Assist Senior Advisors in public policy analysis, infrastructure evaluation, and sustainable development index monitoring.',
-      applyUrl: 'https://jobopedia.in',
+      applyUrl: 'https://niti.gov.in/internship',
       tags: ['Govt Policy', 'Certificate', 'Official']
     },
     {
-      id: 'int-3',
+      id: 'quality-control-formulation-intern-sun-pharma-vadodara',
+      slug: 'quality-control-formulation-intern-sun-pharma-vadodara',
       title: 'Quality Control & Formulation Intern',
       company: 'Sun Pharma Advanced Research',
       sector: 'PRIVATE',
@@ -47,11 +50,12 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
       duration: '6 Months',
       qualification: 'B.Pharm / M.Pharm / B.Sc Chemistry',
       description: 'Laboratory testing of pharmaceutical formulations, HPLC operations, and regulatory documentation according to US-FDA standards.',
-      applyUrl: 'https://jobopedia.in',
+      applyUrl: 'https://sunpharma.com',
       tags: ['Pharma', 'Lab Testing', 'Vadodara']
     },
     {
-      id: 'int-4',
+      id: 'isro-space-applications-centre-sac-student-project-trainee',
+      slug: 'isro-space-applications-centre-sac-student-project-trainee',
       title: 'ISRO Space Application Centre (SAC) Student Project Trainee',
       company: 'ISRO (Space Applications Centre)',
       sector: 'GOVERNMENT',
@@ -60,21 +64,36 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
       duration: '6 Months',
       qualification: 'B.E./B.Tech in Electronics / Computer / IT',
       description: 'Satellite image processing, remote sensing telemetry, and embedded systems programming under Indian space scientists.',
-      applyUrl: 'https://jobopedia.in',
+      applyUrl: 'https://sac.gov.in',
       tags: ['ISRO SAC', 'Satellite', 'Prestigious']
     },
     {
-      id: 'int-5',
+      id: 'digital-banking-operations-fintech-associate-intern-hdfc',
+      slug: 'digital-banking-operations-fintech-associate-intern-hdfc',
       title: 'Digital Banking Operations & Fintech Associate',
       company: 'HDFC Bank Technology Wing',
       sector: 'PRIVATE',
       location: 'Surat / Rajkot, Gujarat',
-      stipend: '₹16,000 - ₹20,000 / month',
+      stipend: '₹15,000 / month',
       duration: '3 Months',
       qualification: 'B.Com / BBA / MBA / Any Graduate',
       description: 'Training in modern core banking solutions, UPI transaction monitoring, and corporate client credit appraisals.',
-      applyUrl: 'https://jobopedia.in',
+      applyUrl: 'https://hdfcbank.com/careers',
       tags: ['Banking', 'Fintech', 'Surat']
+    },
+    {
+      id: 'govt-digital-governance-technical-intern-nic',
+      slug: 'govt-digital-governance-technical-intern-nic',
+      title: 'Govt Digital Governance Technical Intern',
+      company: 'National Informatics Centre (NIC)',
+      sector: 'GOVERNMENT',
+      location: 'All India',
+      stipend: '₹25,000 / month Stipend',
+      duration: '6 Months',
+      qualification: 'College Students / Freshers',
+      description: '6-month official government internship contributing to citizen service portals and cloud databases.',
+      applyUrl: 'https://nic.in',
+      tags: ['Internship', 'NIC', 'Govt']
     }
   ];
 
@@ -94,7 +113,7 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
 
   const handleShareJob = (e, job) => {
     e.stopPropagation();
-    const jobId = job._id || job.id;
+    const jobId = job.slug || job._id || job.id;
     const shareUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
       : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;

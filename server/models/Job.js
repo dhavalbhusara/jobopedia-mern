@@ -1,7 +1,22 @@
 const mongoose = require('mongoose');
 
+function slugify(text) {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[\(\)\[\]\{\}\/\\,.:;!?'"]/g, '') // remove special punctuation
+    .replace(/\s+/g, '-')                      // replace spaces with -
+    .replace(/[^\w\-]+/g, '')                  // remove remaining non-word chars
+    .replace(/\-\-+/g, '-')                    // replace multiple - with single -
+    .replace(/^-+/, '')                        // trim - from start
+    .replace(/-+$/, '');                       // trim - from end
+}
+
 const JobSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  slug: { type: String, index: true },
   department: { type: String, required: true },
   category: { type: String, enum: ['govt', 'private', 'internship'], default: 'govt' },
   sector: { type: String, default: 'GOVERNMENT' },
@@ -25,4 +40,12 @@ const JobSchema = new mongoose.Schema({
   isNewJob: { type: Boolean, default: true }
 }, { timestamps: true });
 
+JobSchema.pre('save', function(next) {
+  if (!this.slug && this.title) {
+    this.slug = slugify(this.title);
+  }
+  next();
+});
+
 module.exports = mongoose.model('Job', JobSchema);
+module.exports.slugify = slugify;

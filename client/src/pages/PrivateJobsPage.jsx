@@ -13,7 +13,8 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
 
   const samplePrivateJobs = [
     {
-      id: 'p-1',
+      id: 'tcs-national-qualifier-test-nqt-software-engineer-2026',
+      slug: 'tcs-national-qualifier-test-nqt-software-engineer-2026',
       title: 'TCS National Qualifier Test (NQT) — Ninja & Digital Software Engineer',
       department: 'Tata Consultancy Services (TCS)',
       category: 'private',
@@ -27,7 +28,8 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
       applyUrl: 'https://learning.tcsionhub.in'
     },
     {
-      id: 'p-2',
+      id: 'formulation-analytical-development-scientist-sun-pharma-2026',
+      slug: 'formulation-analytical-development-scientist-sun-pharma-2026',
       title: 'Formulation & Analytical Development Scientist',
       department: 'Sun Pharmaceutical Industries Ltd.',
       category: 'private',
@@ -41,7 +43,8 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
       applyUrl: 'https://sunpharma.com'
     },
     {
-      id: 'p-3',
+      id: 'senior-cloud-systems-architect-aws-azure-wipro',
+      slug: 'senior-cloud-systems-architect-aws-azure-wipro',
       title: 'Senior Cloud Systems Architect (AWS / Azure)',
       department: 'Wipro Digital Technologies',
       category: 'private',
@@ -55,7 +58,8 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
       applyUrl: 'https://careers.wipro.com'
     },
     {
-      id: 'p-4',
+      id: 'branch-credit-manager-corporate-banking-hdfc-bank',
+      slug: 'branch-credit-manager-corporate-banking-hdfc-bank',
       title: 'Branch Credit Manager & Corporate Banking Associate',
       department: 'HDFC Bank Ltd.',
       category: 'private',
@@ -69,7 +73,23 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
       applyUrl: 'https://hdfcbank.com/careers'
     },
     {
-      id: 'p-5',
+      id: 'senior-full-stack-cloud-software-engineer-tcs-digital',
+      slug: 'senior-full-stack-cloud-software-engineer-tcs-digital',
+      title: 'Senior Full Stack Cloud Software Engineer',
+      department: 'Tata Consultancy Services (TCS Digital)',
+      category: 'private',
+      sector: 'PRIVATE',
+      state: 'Maharashtra',
+      qualification: 'B.Tech / MCA',
+      salary: '₹12,00,000 - ₹18,00,000 / year',
+      vacancies: 45,
+      lastDate: '2026-12-05',
+      description: 'Developing scalable React & Node.js microservices for multinational fintech clients in Pune and Mumbai.',
+      applyUrl: 'https://careers.tcs.com'
+    },
+    {
+      id: 'civil-construction-project-engineer-lnt',
+      slug: 'civil-construction-project-engineer-lnt',
       title: 'Civil Construction Project Engineer',
       department: 'Larsen & Toubro (L&T Construction)',
       category: 'private',
@@ -109,7 +129,7 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
 
   const handleShareJob = (e, job) => {
     e.stopPropagation();
-    const jobId = job._id || job.id;
+    const jobId = job.slug || job._id || job.id;
     const shareUrl = typeof window !== 'undefined'
       ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
       : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
