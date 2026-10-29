@@ -308,7 +308,7 @@ router.post('/', async (req, res) => {
 router.patch('/:id/instagram-status', async (req, res) => {
   try {
     const { id } = req.params;
-    const { postedToInstagram } = req.body;
+    const { postedToInstagram, adminName, adminEmail } = req.body;
 
     let job = null;
     if (mongoose.Types.ObjectId.isValid(id)) {
@@ -325,16 +325,20 @@ router.patch('/:id/instagram-status', async (req, res) => {
     const newStatus = typeof postedToInstagram === 'boolean' ? postedToInstagram : !job.postedToInstagram;
     job.postedToInstagram = newStatus;
     job.postedToInstagramAt = newStatus ? new Date() : null;
+    job.postedToInstagramBy = newStatus ? (adminName || 'Admin') : null;
+    job.postedToInstagramByEmail = newStatus ? (adminEmail || null) : null;
     await job.save();
 
-    console.log(`[Admin Instagram Checklist] Job "${job.title}" marked as ${newStatus ? 'POSTED' : 'PENDING'}`);
+    console.log(`[Admin Instagram Checklist] Job "${job.title}" marked as ${newStatus ? 'POSTED by ' + job.postedToInstagramBy : 'PENDING'}`);
 
     res.json({
       success: true,
-      message: newStatus ? "✅ Marked as Posted to Instagram!" : "⏳ Marked as Pending Instagram Post",
+      message: newStatus ? `✅ Marked as Posted to Instagram by ${job.postedToInstagramBy}!` : "⏳ Marked as Pending Instagram Post",
       jobId: job._id,
       postedToInstagram: job.postedToInstagram,
-      postedToInstagramAt: job.postedToInstagramAt
+      postedToInstagramAt: job.postedToInstagramAt,
+      postedToInstagramBy: job.postedToInstagramBy,
+      postedToInstagramByEmail: job.postedToInstagramByEmail
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

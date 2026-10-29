@@ -555,7 +555,7 @@ router.get('/jobs/instagram-checklist', async (req, res) => {
 // POST /api/admin/jobs/instagram-bulk-status - Bulk toggle Instagram post status for selected jobs
 router.post('/jobs/instagram-bulk-status', async (req, res) => {
   try {
-    const { jobIds, postedToInstagram } = req.body;
+    const { jobIds, postedToInstagram, adminName, adminEmail } = req.body;
     if (!Array.isArray(jobIds) || jobIds.length === 0) {
       return res.status(400).json({ success: false, error: "Please provide an array of jobIds." });
     }
@@ -568,16 +568,19 @@ router.post('/jobs/instagram-bulk-status', async (req, res) => {
       { 
         $set: { 
           postedToInstagram: newStatus,
-          postedToInstagramAt: newStatus ? new Date() : null
+          postedToInstagramAt: newStatus ? new Date() : null,
+          postedToInstagramBy: newStatus ? (adminName || 'Admin') : null,
+          postedToInstagramByEmail: newStatus ? (adminEmail || null) : null
         } 
       }
     );
 
     res.json({
       success: true,
-      message: `Updated Instagram status for ${result.modifiedCount} jobs to ${newStatus ? 'Posted' : 'Pending'}!`,
+      message: `Updated Instagram status for ${result.modifiedCount} jobs to ${newStatus ? 'Posted by ' + (adminName || 'Admin') : 'Pending'}!`,
       modifiedCount: result.modifiedCount,
-      postedToInstagram: newStatus
+      postedToInstagram: newStatus,
+      postedToInstagramBy: newStatus ? (adminName || 'Admin') : null
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

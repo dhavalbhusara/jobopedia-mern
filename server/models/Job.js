@@ -39,7 +39,9 @@ const JobSchema = new mongoose.Schema({
   tags: [{ type: String }],
   isNewJob: { type: Boolean, default: true },
   postedToInstagram: { type: Boolean, default: false },
-  postedToInstagramAt: { type: Date }
+  postedToInstagramAt: { type: Date },
+  postedToInstagramBy: { type: String, default: null },
+  postedToInstagramByEmail: { type: String, default: null }
 }, { timestamps: true });
 
 JobSchema.pre('save', function(next) {

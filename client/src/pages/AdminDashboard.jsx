@@ -427,10 +427,17 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
     setTogglingInstaId(jobId);
     try {
       const newStatus = !currentStatus;
+      const currentAdminName = user?.fullName || user?.email || 'Admin';
+      const currentAdminEmail = user?.email || '';
+
       const res = await fetch(`/api/jobs/${jobId}/instagram-status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postedToInstagram: newStatus })
+        body: JSON.stringify({ 
+          postedToInstagram: newStatus,
+          adminName: currentAdminName,
+          adminEmail: currentAdminEmail
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -439,7 +446,9 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
             return {
               ...j,
               postedToInstagram: newStatus,
-              postedToInstagramAt: newStatus ? new Date().toISOString() : null
+              postedToInstagramAt: newStatus ? new Date().toISOString() : null,
+              postedToInstagramBy: newStatus ? currentAdminName : null,
+              postedToInstagramByEmail: newStatus ? currentAdminEmail : null
             };
           }
           return j;
@@ -449,8 +458,8 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
           posted: newStatus ? prev.posted + 1 : Math.max(0, prev.posted - 1),
           pending: newStatus ? Math.max(0, prev.pending - 1) : prev.pending + 1
         }));
-        setSuccessToast(data.message || (newStatus ? '✅ Marked as posted to Instagram!' : '⏳ Marked as pending'));
-        setTimeout(() => setSuccessToast(''), 3000);
+        setSuccessToast(data.message || (newStatus ? `✅ Marked as posted to Instagram by ${currentAdminName}!` : '⏳ Marked as pending'));
+        setTimeout(() => setSuccessToast(''), 3500);
       } else {
         alert(data.error || 'Failed to update Instagram status');
       }
@@ -464,17 +473,27 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const handleBulkInstagramStatus = async (markAsPosted) => {
     if (selectedInstaJobIds.length === 0) return;
     try {
+      const currentAdminName = user?.fullName || user?.email || 'Admin';
+      const currentAdminEmail = user?.email || '';
+
       const res = await fetch('/api/admin/jobs/instagram-bulk-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobIds: selectedInstaJobIds, postedToInstagram: markAsPosted })
+        body: JSON.stringify({ 
+          jobIds: selectedInstaJobIds, 
+          postedToInstagram: markAsPosted,
+          adminName: currentAdminName,
+          adminEmail: currentAdminEmail
+        })
       });
       const data = await res.json();
       if (data.success) {
-        setSuccessToast(data.message);
+        setSuccessToast(data.message || `Updated ${selectedInstaJobIds.length} jobs!`);
         setSelectedInstaJobIds([]);
         fetchInstagramChecklist();
         setTimeout(() => setSuccessToast(''), 3500);
+      } else {
+        alert(data.error || 'Failed to update jobs');
       }
     } catch (err) {
       alert("Error: " + err.message);
@@ -1867,9 +1886,10 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                       </span>
                       <button
                         onClick={() => handleBulkInstagramStatus(true)}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs flex items-center space-x-1"
                       >
-                        ✓ Mark as Posted
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Mark as Posted (as {user?.fullName || 'Admin'})</span>
                       </button>
                       <button
                         onClick={() => handleBulkInstagramStatus(false)}
@@ -1927,7 +1947,21 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                       }`}
                     >
                       {/* Left: Checkbox & Job Information */}
-                      <div className="flex items-start space-x-3.5 flex-1 min-w-0">
+                      <div className="flex items-start space-x-3 flex-1 min-w-0">
+                        {/* Multi-Select Checkbox for Bulk Actions */}
+                        <button
+                          type="button"
+                          onClick={() => toggleSelectInstaJob(jobId)}
+                          className={`mt-1 w-5 h-5 rounded-md border flex items-center justify-center transition shrink-0 cursor-pointer ${
+                            isSelected 
+                              ? 'bg-blue-600 border-blue-600 text-white shadow-xs ring-2 ring-blue-300' 
+                              : 'border-slate-300 hover:border-blue-400 bg-slate-50 hover:bg-blue-50/50'
+                          }`}
+                          title={isSelected ? "Deselect job" : "Select for bulk Instagram upload action"}
+                        >
+                          {isSelected && <Check className="w-3.5 h-3.5 stroke-[3] text-white" />}
+                        </button>
+
                         {/* Interactive Main Instagram Checkbox */}
                         <button
                           type="button"
@@ -1935,10 +1969,14 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                           disabled={isToggling}
                           className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center transition shrink-0 cursor-pointer ${
                             isPosted 
-                              ? 'bg-emerald-600 text-white shadow-xs hover:bg-emerald-700' 
+                              ? 'bg-emerald-600 text-white shadow-xs hover:bg-emerald-700 ring-2 ring-emerald-200' 
                               : 'bg-white border-2 border-slate-300 hover:border-pink-500 text-transparent hover:text-slate-300'
                           }`}
-                          title={isPosted ? "Click to uncheck (mark as pending)" : "Click to mark as posted on Instagram"}
+                          title={
+                            isPosted 
+                              ? `Uploaded to Instagram by ${job.postedToInstagramBy || 'Admin'}. Click to uncheck (mark pending)` 
+                              : `Click to mark as posted on Instagram by ${user?.fullName || 'Admin'}`
+                          }
                         >
                           <Check className={`w-4 h-4 stroke-[3] ${isPosted ? 'text-white' : 'opacity-0'}`} />
                         </button>
@@ -1967,6 +2005,14 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                               </span>
                             )}
 
+                            {/* Admin Attribution Badge */}
+                            {isPosted && job.postedToInstagramBy && (
+                              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 flex items-center space-x-1">
+                                <span>👤 Uploaded by:</span>
+                                <strong className="font-black text-purple-950 underline decoration-purple-300">{job.postedToInstagramBy}</strong>
+                              </span>
+                            )}
+
                             {job.createdAt && (
                               <span className="text-[10px] text-slate-400 font-medium">
                                 Uploaded: {new Date(job.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -1975,7 +2021,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
 
                             {isPosted && job.postedToInstagramAt && (
                               <span className="text-[10px] text-emerald-700 font-semibold">
-                                • Posted: {new Date(job.postedToInstagramAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                • Posted Date: {new Date(job.postedToInstagramAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                               </span>
                             )}
                           </div>
@@ -2045,12 +2091,12 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                           {isPosted ? (
                             <>
                               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>✓ Posted (Undo)</span>
+                              <span>✓ Posted by {job.postedToInstagramBy ? job.postedToInstagramBy.split(' ')[0] : 'Admin'} (Undo)</span>
                             </>
                           ) : (
                             <>
                               <Instagram className="w-3.5 h-3.5 text-white" />
-                              <span>Mark as Posted</span>
+                              <span>Mark Posted as {user?.fullName?.split(' ')[0] || 'Admin'}</span>
                             </>
                           )}
                         </button>

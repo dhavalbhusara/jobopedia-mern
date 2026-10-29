@@ -41,6 +41,18 @@ async function createAdminUsers() {
 
   const adminUsers = [
     {
+      fullName: 'Dhaval Bhusara',
+      email: 'dhaval@jobopedia.in',
+      mobileNumber: '8487944035',
+      passwordPlain: 'Dhaval@2026',
+      role: 'ADMIN',
+      state: 'Gujarat',
+      district: 'Ahmedabad',
+      qualification: 'Graduate',
+      preferredLanguage: 'en',
+      isVerified: true
+    },
+    {
       fullName: 'Dr. Jay Pandit',
       email: 'jay.pandit@jobopedia.in',
       mobileNumber: '9825000001',

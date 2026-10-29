@@ -202,11 +202,11 @@ router.post('/login', async (req, res) => {
     // 3. User Not Found
     if (!foundUser) {
       // Special fallback for Dhaval Admin credentials
-      if ((cleanIdentifier.includes('admin') || cleanIdentifier.includes('dhaval') || identifier === '9510443584' || identifier === '8487944035') && password === 'Admin@123456') {
+      if ((cleanIdentifier === 'dhaval@jobopedia.in' || cleanIdentifier === 'dhaval' || cleanIdentifier.includes('admin') || cleanIdentifier.includes('dhaval') || identifier === '9510443584' || identifier === '8487944035') && (password === 'Dhaval@2026' || password === 'Admin@123456')) {
         const adminPayload = { 
           id: 'admin_dhaval_master', 
-          fullName: 'Dhaval Bhusara (Admin)', 
-          email: cleanIdentifier.includes('@') ? cleanIdentifier : 'dhavalbhusara0123@gmail.com', 
+          fullName: 'Dhaval Bhusara', 
+          email: 'dhaval@jobopedia.in', 
           mobileNumber: '8487944035',
           role: 'ADMIN',
           state: 'Gujarat',
@@ -279,7 +279,7 @@ router.post('/login', async (req, res) => {
        foundUser.mobileNumber === '8487944035' ||
        identifier === '9510443584' ||
        identifier === '8487944035') && 
-      password === 'Admin@123456') ||
+      (password === 'Admin@123456' || password === 'Dhaval@2026')) ||
       ((foundUser.email === 'jay.pandit@jobopedia.in' || cleanIdentifier.includes('jay.pandit')) && password === 'JayPandit@2026') ||
       ((foundUser.email === 'tushar@jobopedia.in' || cleanIdentifier === 'tushar') && password === 'Tushar@2026')
     );
@@ -294,7 +294,6 @@ router.post('/login', async (req, res) => {
     // Upgrade to Admin if master admin verified
     if (isMasterAdmin) {
       foundUser.role = 'ADMIN';
-      foundUser.fullName = 'Dhaval Bhusara (Admin)';
     }
 
     // 5. Successful Login -> Generate JWT Token
