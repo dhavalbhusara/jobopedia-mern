@@ -77,3 +77,137 @@ export const ALL_QUALIFICATIONS = [
   "Chartered Accountant (CA) / CS / CMA / ICWA",
   "Ph.D / Doctorate / M.Phil"
 ];
+
+// Top 10 High-Demand Private & Corporate Sectors for India
+export const ALL_PRIVATE_SECTORS = [
+  {
+    id: 'it',
+    name: 'IT & Software / Tech',
+    gujaratiName: 'માહિતી ટેકનોલોજી & સોફ્ટવેર',
+    icon: '💻',
+    color: 'from-blue-600 to-indigo-600',
+    bgLight: 'bg-blue-50/80',
+    borderLight: 'border-blue-200',
+    badgeColor: 'text-blue-700 bg-blue-100',
+    hoverBorder: 'hover:border-blue-500',
+    companies: 'TCS, Infosys, Wipro, Tech Startups',
+    keywords: ['it', 'software', 'developer', 'coding', 'tech', 'tcs', 'infosys', 'wipro', 'react', 'node', 'cloud', 'computer', 'bca', 'mca', 'b.tech', 'programmer', 'full stack', 'frontend', 'backend', 'data', 'cybersecurity']
+  },
+  {
+    id: 'pharma',
+    name: 'Pharma & Healthcare',
+    gujaratiName: 'ફાર્માસ્યુટિકલ & હેલ્થકેર',
+    icon: '💊',
+    color: 'from-emerald-600 to-teal-600',
+    bgLight: 'bg-emerald-50/80',
+    borderLight: 'border-emerald-200',
+    badgeColor: 'text-emerald-700 bg-emerald-100',
+    hoverBorder: 'hover:border-emerald-500',
+    companies: 'Sun Pharma, Cipla, Zydus, Hospitals',
+    keywords: ['pharma', 'healthcare', 'medical', 'doctor', 'nurse', 'pharmacy', 'sun pharma', 'cipla', 'zydus', 'hospital', 'clinic', 'laboratory', 'formulation', 'b.pharm', 'm.pharm', 'chemist', 'drug', 'clinical']
+  },
+  {
+    id: 'banking',
+    name: 'Banking, Finance & BFSI',
+    gujaratiName: 'બેન્કિંગ, ફાઇનાન્સ & ઇન્સ્યોરન્સ',
+    icon: '🏦',
+    color: 'from-indigo-600 to-purple-600',
+    bgLight: 'bg-indigo-50/80',
+    borderLight: 'border-indigo-200',
+    badgeColor: 'text-indigo-700 bg-indigo-100',
+    hoverBorder: 'hover:border-indigo-500',
+    companies: 'HDFC, ICICI, Axis, FinTech, Insurance',
+    keywords: ['bank', 'banking', 'finance', 'credit', 'accountant', 'ca', 'hdfc', 'icici', 'axis', 'insurance', 'audit', 'tax', 'bfsi', 'loan', 'wealth', 'fintech', 'mutual fund']
+  },
+  {
+    id: 'manufacturing',
+    name: 'Manufacturing & Engineering',
+    gujaratiName: 'મેન્યુફેક્ચરિંગ & એન્જિનિયરિંગ',
+    icon: '🏭',
+    color: 'from-amber-600 to-orange-600',
+    bgLight: 'bg-amber-50/80',
+    borderLight: 'border-amber-200',
+    badgeColor: 'text-amber-800 bg-amber-100',
+    hoverBorder: 'hover:border-amber-500',
+    companies: 'L&T, Tata Motors, Reliance, Core Plants',
+    keywords: ['manufacturing', 'engineering', 'mechanical', 'electrical', 'civil', 'production', 'plant', 'l&t', 'tata', 'reliance', 'industrial', 'maintenance', 'factory', 'quality control', 'machinist']
+  },
+  {
+    id: 'sales',
+    name: 'Sales & Marketing',
+    gujaratiName: 'સેલ્સ & બિઝનેસ ડેવલપમેન્ટ',
+    icon: '📈',
+    color: 'from-rose-600 to-pink-600',
+    bgLight: 'bg-rose-50/80',
+    borderLight: 'border-rose-200',
+    badgeColor: 'text-rose-700 bg-rose-100',
+    hoverBorder: 'hover:border-rose-500',
+    companies: 'BDO, Digital Marketing, Retail Sales',
+    keywords: ['sales', 'marketing', 'business development', 'bdo', 'digital marketing', 'executive', 'retail sales', 'promoter', 'telecaller', 'client acquisition', 'seo', 'social media']
+  },
+  {
+    id: 'education',
+    name: 'Education & EdTech',
+    gujaratiName: 'શિક્ષણ & પ્રાઇવેટ ટ્રેઇનિંગ',
+    icon: '📚',
+    color: 'from-purple-600 to-violet-600',
+    bgLight: 'bg-purple-50/80',
+    borderLight: 'border-purple-200',
+    badgeColor: 'text-purple-700 bg-purple-100',
+    hoverBorder: 'hover:border-purple-500',
+    companies: 'Universities, Schools, Coaching, EdTech',
+    keywords: ['education', 'teaching', 'teacher', 'professor', 'faculty', 'school', 'college', 'tutor', 'edtech', 'academic', 'lecturer', 'principal', 'trainer', 'coaching']
+  },
+  {
+    id: 'automobile',
+    name: 'Automobile & EV Industry',
+    gujaratiName: 'ઓટોમોબાઇલ & ઇવી ઇન્ડસ્ટ્રી',
+    icon: '🚗',
+    color: 'from-cyan-600 to-blue-600',
+    bgLight: 'bg-cyan-50/80',
+    borderLight: 'border-cyan-200',
+    badgeColor: 'text-cyan-700 bg-cyan-100',
+    hoverBorder: 'hover:border-cyan-500',
+    companies: 'Maruti, Tata Motors, Mahindra, EV Startups',
+    keywords: ['auto', 'automobile', 'ev', 'vehicle', 'motor', 'maruti', 'mahindra', 'automotive', 'oem', 'electric vehicle', 'service engineer', 'battery']
+  },
+  {
+    id: 'retail',
+    name: 'E-Commerce & Retail',
+    gujaratiName: 'ઇ-કોમર્સ & રિટેલ સ્ટોર્સ',
+    icon: '🛒',
+    color: 'from-orange-600 to-amber-600',
+    bgLight: 'bg-orange-50/80',
+    borderLight: 'border-orange-200',
+    badgeColor: 'text-orange-700 bg-orange-100',
+    hoverBorder: 'hover:border-orange-500',
+    companies: 'Amazon, Flipkart, DMart, Retail Chains',
+    keywords: ['retail', 'e-commerce', 'store', 'shop', 'amazon', 'flipkart', 'dmart', 'merchandiser', 'mall', 'cashier', 'inventory', 'fmcg', 'store manager']
+  },
+  {
+    id: 'logistics',
+    name: 'Logistics & Supply Chain',
+    gujaratiName: 'લોજિસ્ટિક્સ & સપ્લાય ચેઇન',
+    icon: '🚚',
+    color: 'from-teal-600 to-emerald-600',
+    bgLight: 'bg-teal-50/80',
+    borderLight: 'border-teal-200',
+    badgeColor: 'text-teal-700 bg-teal-100',
+    hoverBorder: 'hover:border-teal-500',
+    companies: 'Warehousing, Courier, Cargo Dispatch',
+    keywords: ['logistics', 'supply chain', 'warehouse', 'transport', 'delivery', 'courier', 'cargo', 'dispatch', 'fleet', 'shipping', 'freight']
+  },
+  {
+    id: 'hr',
+    name: 'HR, Admin & Operations',
+    gujaratiName: 'એચ.આર & બેક ઓફિસ એડમિન',
+    icon: '👥',
+    color: 'from-slate-700 to-zinc-800',
+    bgLight: 'bg-slate-50/80',
+    borderLight: 'border-slate-200',
+    badgeColor: 'text-slate-700 bg-slate-100',
+    hoverBorder: 'hover:border-slate-500',
+    companies: 'Talent Acquisition, Operations, BPO/KPO',
+    keywords: ['hr', 'human resource', 'recruiter', 'admin', 'back office', 'operations', 'customer support', 'bpo', 'kpo', 'telecalling', 'desk', 'office assistant']
+  }
+];

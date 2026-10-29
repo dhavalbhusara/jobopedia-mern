@@ -151,6 +151,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
     department: '',
     jobType: 'GOVERNMENT', // GOVERNMENT, PRIVATE, INTERNSHIP, BANKING_PSU, HEALTHCARE, EDUCATION
     category: 'govt',
+    sector: 'GOVERNMENT',
     employmentType: 'Full Time (Regular)',
     experienceLevel: 'Fresher (0 - 1 Year)',
     state: 'All India / Central',
@@ -915,10 +916,17 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
       const finalStates = selectedStates.length > 0 ? selectedStates : ['All India / Central'];
       const finalQuals = selectedQualifications.length > 0 ? selectedQualifications : ['Graduate - Any Stream / Any Discipline'];
 
+      let finalSector = singleJob.sector;
+      if (cat === 'govt') {
+        finalSector = 'GOVERNMENT';
+      } else if (!finalSector || finalSector === 'PRIVATE' || finalSector === 'GOVERNMENT') {
+        finalSector = 'IT & Software / Tech';
+      }
+
       const payload = {
         ...singleJob,
         category: cat,
-        sector: singleJob.jobType === 'INTERNSHIP' ? 'INTERNSHIP' : (cat === 'govt' ? 'GOVERNMENT' : 'PRIVATE'),
+        sector: finalSector,
         states: finalStates,
         state: finalStates.join(', '),
         qualifications: finalQuals,
@@ -977,6 +985,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
         department: '',
         jobType: 'GOVERNMENT',
         category: 'govt',
+        sector: 'GOVERNMENT',
         employmentType: 'Full Time (Regular)',
         experienceLevel: 'Fresher (0 - 1 Year)',
         state: 'All India / Central',
@@ -1248,7 +1257,14 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                     <button
                       type="button"
                       key={item.id}
-                      onClick={() => setSingleJob({ ...singleJob, jobType: item.id })}
+                      onClick={() => {
+                        const isGov = item.id === 'GOVERNMENT' || item.id === 'BANKING_PSU';
+                        const defSector = item.id === 'HEALTHCARE' ? 'Pharma & Healthcare' :
+                                          item.id === 'EDUCATION' ? 'Education & EdTech' :
+                                          isGov ? 'GOVERNMENT' :
+                                          (singleJob.sector === 'GOVERNMENT' ? 'IT & Software / Tech' : singleJob.sector);
+                        setSingleJob({ ...singleJob, jobType: item.id, sector: defSector });
+                      }}
                       className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
                         isSelected 
                           ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/20 shadow-xs' 
@@ -1291,6 +1307,39 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                   className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"
                   required
                 />
+              </div>
+
+              {/* Private Industry Sector Dropdown (Dynamic for Corporate / Private Jobs) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  🏢 Sector / Category (ક્ષેત્ર પસંદ કરો) *
+                </label>
+                {singleJob.jobType === 'GOVERNMENT' ? (
+                  <input
+                    type="text"
+                    value="GOVERNMENT (સત્તાવાર સરકારી ભરતી)"
+                    disabled
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-100 text-slate-500 font-bold outline-none cursor-not-allowed"
+                  />
+                ) : (
+                  <select
+                    value={singleJob.sector}
+                    onChange={(e) => setSingleJob({ ...singleJob, sector: e.target.value })}
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none bg-white font-semibold text-slate-800"
+                  >
+                    <option value="IT & Software / Tech">💻 IT &amp; Software / Tech (TCS, Infosys, Startups)</option>
+                    <option value="Pharma & Healthcare">💊 Pharma &amp; Healthcare (Sun Pharma, Cipla, Hospitals)</option>
+                    <option value="Banking, Finance & BFSI">🏦 Banking, Finance &amp; BFSI (HDFC, ICICI, Insurance)</option>
+                    <option value="Manufacturing & Engineering">🏭 Manufacturing &amp; Engineering (L&amp;T, Reliance, Core)</option>
+                    <option value="Sales & Marketing">📈 Sales &amp; Marketing (BDO, Digital Marketing)</option>
+                    <option value="Education & EdTech">📚 Education &amp; EdTech (Universities, Schools, Coaching)</option>
+                    <option value="Automobile & EV Industry">🚗 Automobile &amp; EV Industry (Maruti, Tata Motors)</option>
+                    <option value="E-Commerce & Retail">🛒 E-Commerce &amp; Retail (Amazon, Flipkart, DMart)</option>
+                    <option value="Logistics & Supply Chain">🚚 Logistics &amp; Supply Chain (Warehouse, Cargo)</option>
+                    <option value="HR, Admin & Operations">👥 HR, Admin &amp; Operations (Recruitment, BPO/KPO)</option>
+                    <option value="Corporate General">🏢 Other Corporate Sector</option>
+                  </select>
+                )}
               </div>
 
               <div>

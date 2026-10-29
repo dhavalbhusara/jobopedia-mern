@@ -5,12 +5,20 @@ import {
   CheckCircle2, Sparkles, Filter, Share2 
 } from 'lucide-react';
 import JobDetailsModal from './JobDetailsModal';
-import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
+import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS, ALL_PRIVATE_SECTORS } from '../constants/referenceData';
 
-export default function PersonalizedJobs({ externalSearch = '', onStartMockTest, onSelectJob }) {
+export default function PersonalizedJobs({ 
+  externalSearch = '', 
+  externalSector = null,
+  externalCategory = 'all',
+  onStartMockTest, 
+  onSelectJob,
+  onClearFilters 
+}) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('all'); // all, govt, private, internship
+  const [category, setCategory] = useState(externalCategory || 'all');
+  const [selectedSector, setSelectedSector] = useState(externalSector || null);
 
   // Logged-in User Preferences
   const [loggedInUser, setLoggedInUser] = useState(() => {
@@ -34,8 +42,18 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest,
   }, [externalSearch]);
 
   useEffect(() => {
+    setSelectedSector(externalSector || null);
+  }, [externalSector]);
+
+  useEffect(() => {
+    if (externalCategory && externalCategory !== category) {
+      setCategory(externalCategory);
+    }
+  }, [externalCategory]);
+
+  useEffect(() => {
     fetchJobs();
-  }, [category, selectedState, qualification, searchQuery]);
+  }, [category, selectedState, qualification, searchQuery, selectedSector]);
 
   const fetchJobs = () => {
     setLoading(true);
@@ -44,6 +62,7 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest,
     if (selectedState !== 'all') params.set('state', selectedState);
     if (qualification !== 'all') params.set('qualification', qualification);
     if (searchQuery) params.set('search', searchQuery);
+    if (selectedSector && selectedSector !== 'all') params.set('sector', selectedSector);
 
     fetch(`/api/jobs?${params.toString()}`)
       .then(res => res.json())
@@ -82,6 +101,18 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest,
     const isGovt = job.category === 'govt' || job.sector === 'GOVERNMENT';
     const isIntern = job.category === 'internship';
     const isPrivate = !isGovt && !isIntern;
+
+    // RULE 0: If selectedSector is active, match against sector keywords & name
+    if (selectedSector && selectedSector !== 'all') {
+      const secObj = ALL_PRIVATE_SECTORS.find(s => s.id === selectedSector || s.name.toLowerCase().includes(selectedSector.toLowerCase()));
+      const hay = `${job.title || ''} ${job.department || ''} ${job.sector || ''} ${(job.tags || []).join(' ')}`.toLowerCase();
+      let matchesSector = (job.sector || '').toLowerCase().includes(selectedSector.toLowerCase());
+      if (!matchesSector && secObj) {
+        matchesSector = secObj.keywords.some(k => hay.includes(k)) || hay.includes(secObj.name.toLowerCase());
+      }
+      if (!matchesSector) return false;
+      return true;
+    }
 
     // RULE 1: Government jobs are shown across India to everyone!
     if (isGovt) {
@@ -158,6 +189,39 @@ export default function PersonalizedJobs({ externalSearch = '', onStartMockTest,
       {/* Filter Toolbar */}
       <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-sm space-y-4">
         
+        {/* Active Sector / Industry Pill */}
+        {selectedSector && (
+          <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 text-xs shadow-2xs">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">
+                {ALL_PRIVATE_SECTORS.find(s => s.id === selectedSector || s.name.toLowerCase().includes(selectedSector.toLowerCase()))?.icon || '🏢'}
+              </span>
+              <div>
+                <span className="text-slate-500 font-semibold block text-[11px] uppercase tracking-wider">
+                  Active Private Sector Filter (ક્ષેત્ર મુજબ ફિલ્ટર)
+                </span>
+                <strong className="text-emerald-950 font-black text-sm">
+                  {ALL_PRIVATE_SECTORS.find(s => s.id === selectedSector || s.name.toLowerCase().includes(selectedSector.toLowerCase()))?.name || selectedSector}
+                </strong>
+                <span className="ml-2 text-xs font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full">
+                  {filteredJobs.length} {filteredJobs.length === 1 ? 'Job Found' : 'Jobs Found'}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedSector(null);
+                setSearchQuery('');
+                if (onClearFilters) onClearFilters();
+              }}
+              className="px-3.5 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-100 text-emerald-800 rounded-xl font-bold cursor-pointer transition shadow-2xs text-xs"
+            >
+              Clear Sector Filter (✕)
+            </button>
+          </div>
+        )}
+
         {/* Search Bar */}
         <div className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />

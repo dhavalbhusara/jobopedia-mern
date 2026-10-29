@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import WeeklyGovtJobCalendar from '../components/WeeklyGovtJobCalendar';
 import PersonalizedJobs from '../components/PersonalizedJobs';
 import MockTests from '../components/MockTests';
 import { Search, ArrowRight, Sparkles, GraduationCap, Building2, Landmark, CheckCircle2, ChevronRight, User } from 'lucide-react';
+import { ALL_PRIVATE_SECTORS } from '../constants/referenceData';
 
 const DEPARTMENTS = [
   { id: 'UPSC', name: 'UPSC & Civil Services', icon: '/images/departments/upsc.svg', count: '1,056+ Posts', color: 'from-blue-500/10 to-indigo-500/10' },
@@ -20,6 +21,23 @@ const DEPARTMENTS = [
 export default function HomePage({ openResumeModal, openAuthModal, user, setCurrentView, onSelectJob }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState(null);
+  const [selectedSector, setSelectedSector] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sectorStats, setSectorStats] = useState({});
+  const [departmentStats, setDepartmentStats] = useState({});
+
+  // Live Auto-fetch real-time counts for Private Sectors & Govt Departments
+  useEffect(() => {
+    fetch('/api/jobs/sector-stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          if (data.privateSectors) setSectorStats(data.privateSectors);
+          if (data.departments) setDepartmentStats(data.departments);
+        }
+      })
+      .catch(err => console.error("Error loading sector stats:", err));
+  }, []);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -29,9 +47,27 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
 
   const handleDepartmentClick = (deptId) => {
     setSelectedDept(deptId);
+    setSelectedSector(null);
+    setSelectedCategory('govt');
     setSearchQuery(deptId);
     const el = document.getElementById('jobs-section');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSectorClick = (sector) => {
+    setSelectedSector(sector.id);
+    setSelectedDept(null);
+    setSelectedCategory('private');
+    setSearchQuery(sector.name);
+    const el = document.getElementById('jobs-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedDept(null);
+    setSelectedSector(null);
+    setSelectedCategory('all');
+    setSearchQuery('');
   };
 
   return (
@@ -207,6 +243,11 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
             <a href="#jobs-section" className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shrink-0 hover:border-blue-500 hover:text-blue-600">
               <span>🏛️ Latest Jobs</span>
             </a>
+
+            <a href="#private-sectors" className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shrink-0 hover:border-emerald-500 hover:text-emerald-700">
+              <span>🏢 Private Sectors</span>
+              <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-emerald-600 text-white leading-tight">Live</span>
+            </a>
             
             <a href="#mock-tests" className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shrink-0 hover:border-indigo-500 hover:text-indigo-600">
               <span>⚡ Mock Tests</span>
@@ -243,7 +284,7 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
             </div>
             {selectedDept && (
               <button 
-                onClick={() => { setSelectedDept(null); setSearchQuery(''); }}
+                onClick={handleClearFilters}
                 className="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-xl border border-red-200 transition cursor-pointer self-start sm:self-auto"
               >
                 Clear Department Filter (✕)
@@ -254,6 +295,12 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
             {DEPARTMENTS.map(dept => {
               const isSelected = selectedDept === dept.id;
+              const liveCount = departmentStats[dept.id]?.count;
+              const liveVac = departmentStats[dept.id]?.vacancies;
+              const displayCount = liveCount !== undefined && liveCount > 0
+                ? `${liveCount} ${liveCount === 1 ? 'Job' : 'Jobs'}${liveVac ? ` (${liveVac.toLocaleString('en-IN')}+ Posts)` : ''}`
+                : dept.count;
+
               return (
                 <button
                   key={dept.id}
@@ -277,8 +324,77 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                       {dept.name}
                     </h4>
                     <span className="text-[10px] font-black text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full mt-1.5 inline-block">
-                      {dept.count}
+                      {displayCount}
                     </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* BROWSE PRIVATE JOBS BY HIGH-DEMAND SECTORS & INDUSTRIES */}
+      <section id="private-sectors" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black uppercase tracking-wider">
+                <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Private &amp; Corporate Career Sectors</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
+                ખાનગી અને કોર્પોરેટ સેક્ટર્સ (Browse Private Jobs by Sector)
+              </h2>
+              <p className="text-xs text-slate-500 font-medium">
+                IT &amp; સોફ્ટવેર, ફાર્માસ્યુટિકલ, બેન્કિંગ BFSI, મેન્યુફેક્ચરિંગ, સેલ્સ &amp; માર્કેટિંગ સહીત તમામ ટોચના પ્રાઇવેટ સેક્ટર્સની જોબ્સ સીધી ફિલ્ટર કરો
+              </p>
+            </div>
+            {selectedSector && (
+              <button 
+                onClick={handleClearFilters}
+                className="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-xl border border-red-200 transition cursor-pointer self-start sm:self-auto"
+              >
+                Clear Sector Filter (✕)
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+            {ALL_PRIVATE_SECTORS.map(sec => {
+              const isSelected = selectedSector === sec.id;
+              const liveStat = sectorStats[sec.id];
+              const displayCount = liveStat?.label || (liveStat?.count ? `${liveStat.count} Jobs` : 'Hiring Active');
+
+              return (
+                <button
+                  key={sec.id}
+                  onClick={() => handleSectorClick(sec)}
+                  className={`p-4 rounded-2xl border transition-all text-left flex flex-col justify-between cursor-pointer group ${
+                    isSelected 
+                      ? 'border-emerald-600 bg-emerald-50/70 ring-2 ring-emerald-500/20 shadow-md' 
+                      : 'border-slate-200 hover:border-emerald-500 hover:shadow-md bg-slate-50/70 hover:bg-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className={`w-12 h-12 rounded-xl bg-white shadow-xs p-2.5 flex items-center justify-center border border-slate-100 text-2xl group-hover:scale-110 transition-transform ${sec.bgLight}`}>
+                      <span>{sec.icon}</span>
+                    </div>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  </div>
+
+                  <div className="mt-3">
+                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-emerald-700 transition leading-snug">
+                      {sec.name}
+                    </h4>
+                    <div className="text-[10px] text-slate-500 font-semibold truncate mt-0.5">
+                      {sec.gujaratiName}
+                    </div>
+                    <div className="mt-2">
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full inline-block ${sec.badgeColor}`}>
+                        {displayCount}
+                      </span>
+                    </div>
                   </div>
                 </button>
               );
@@ -317,7 +433,13 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
 
       {/* 🎯 Targeted Jobs Directory (Passed with active department / search query) */}
       <div id="jobs-section">
-        <PersonalizedJobs externalSearch={searchQuery} onSelectJob={onSelectJob} />
+        <PersonalizedJobs 
+          externalSearch={searchQuery} 
+          externalSector={selectedSector}
+          externalCategory={selectedCategory}
+          onSelectJob={onSelectJob} 
+          onClearFilters={handleClearFilters}
+        />
       </div>
 
       {/* 📝 Mock Tests Series */}

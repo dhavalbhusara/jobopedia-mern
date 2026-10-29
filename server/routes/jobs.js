@@ -14,10 +14,49 @@ const FALLBACK_JOBS = ORGANIZED_JOBS.map((j, idx) => ({
   id: j.slug || String(idx + 1)
 }));
 
+// Top 10 High-Demand Private & Corporate Sector Keywords for Smart Matching
+const PRIVATE_SECTOR_KEYWORDS = {
+  it: ['it', 'software', 'developer', 'coding', 'tech', 'tcs', 'infosys', 'wipro', 'react', 'node', 'cloud', 'computer', 'bca', 'mca', 'b.tech', 'programmer', 'full stack', 'frontend', 'backend', 'data', 'cybersecurity'],
+  pharma: ['pharma', 'healthcare', 'medical', 'doctor', 'nurse', 'pharmacy', 'sun pharma', 'cipla', 'zydus', 'hospital', 'clinic', 'laboratory', 'formulation', 'b.pharm', 'm.pharm', 'chemist', 'drug', 'clinical'],
+  banking: ['bank', 'banking', 'finance', 'credit', 'accountant', 'ca', 'hdfc', 'icici', 'axis', 'insurance', 'audit', 'tax', 'bfsi', 'loan', 'wealth', 'fintech', 'mutual fund'],
+  manufacturing: ['manufacturing', 'engineering', 'mechanical', 'electrical', 'civil', 'production', 'plant', 'l&t', 'tata', 'reliance', 'industrial', 'maintenance', 'factory', 'quality control', 'machinist'],
+  sales: ['sales', 'marketing', 'business development', 'bdo', 'digital marketing', 'executive', 'retail sales', 'promoter', 'telecaller', 'client acquisition', 'seo', 'social media'],
+  education: ['education', 'teaching', 'teacher', 'professor', 'faculty', 'school', 'college', 'tutor', 'edtech', 'academic', 'lecturer', 'principal', 'trainer', 'coaching'],
+  automobile: ['auto', 'automobile', 'ev', 'vehicle', 'motor', 'maruti', 'mahindra', 'automotive', 'oem', 'electric vehicle', 'service engineer', 'battery'],
+  retail: ['retail', 'e-commerce', 'store', 'shop', 'amazon', 'flipkart', 'dmart', 'merchandiser', 'mall', 'cashier', 'inventory', 'fmcg', 'store manager'],
+  logistics: ['logistics', 'supply chain', 'warehouse', 'transport', 'delivery', 'courier', 'cargo', 'dispatch', 'fleet', 'shipping', 'freight'],
+  hr: ['hr', 'human resource', 'recruiter', 'admin', 'back office', 'operations', 'customer support', 'bpo', 'kpo', 'telecalling', 'desk', 'office assistant']
+};
+
+function detectPrivateSector(job) {
+  if (job.sector && job.sector !== 'PRIVATE' && job.sector !== 'GOVERNMENT' && job.sector !== 'INTERNSHIP') {
+    return job.sector;
+  }
+  const hay = `${job.title || ''} ${job.department || ''} ${(job.tags || []).join(' ')} ${job.qualification || ''} ${job.description || ''}`.toLowerCase();
+  for (const [secId, kwList] of Object.entries(PRIVATE_SECTOR_KEYWORDS)) {
+    if (kwList.some(k => hay.includes(k))) {
+      const labels = {
+        it: 'IT & Software / Tech',
+        pharma: 'Pharma & Healthcare',
+        banking: 'Banking, Finance & BFSI',
+        manufacturing: 'Manufacturing & Engineering',
+        sales: 'Sales & Marketing',
+        education: 'Education & EdTech',
+        automobile: 'Automobile & EV Industry',
+        retail: 'E-Commerce & Retail',
+        logistics: 'Logistics & Supply Chain',
+        hr: 'HR, Admin & Operations'
+      };
+      return labels[secId] || secId;
+    }
+  }
+  return 'Corporate General';
+}
+
 // GET /api/jobs (Filter Logic: Private filtered by selected state; Govt jobs shown across all India)
 router.get('/', async (req, res) => {
   try {
-    const { category, state, qualification, search } = req.query;
+    const { category, state, qualification, search, sector } = req.query;
     
     let jobs = [];
     try {
@@ -53,12 +92,34 @@ router.get('/', async (req, res) => {
         }
       }
 
+      // Sector filter (Private Industry Sector or Govt Department)
+      if (sector && sector !== 'all') {
+        const secLower = sector.toLowerCase();
+        const jobSec = (job.sector || '').toLowerCase();
+        const jobDept = (job.department || '').toLowerCase();
+        const jobTitle = (job.title || '').toLowerCase();
+        const jobTags = (job.tags || []).map(t => (t || '').toLowerCase());
+
+        const isMatch = jobSec.includes(secLower) ||
+                        jobDept.includes(secLower) ||
+                        jobTitle.includes(secLower) ||
+                        jobTags.some(t => t.includes(secLower)) ||
+                        (PRIVATE_SECTOR_KEYWORDS[secLower] && PRIVATE_SECTOR_KEYWORDS[secLower].some(k => 
+                          jobSec.includes(k) || jobDept.includes(k) || jobTitle.includes(k) || jobTags.some(t => t.includes(k))
+                        ));
+        if (!isMatch) return false;
+      }
+
       // Search query
       if (search) {
         const q = search.toLowerCase();
         const match = (job.title || '').toLowerCase().includes(q) ||
                       (job.department || '').toLowerCase().includes(q) ||
-                      (job.tags || []).some(t => t.toLowerCase().includes(q));
+                      (job.sector || '').toLowerCase().includes(q) ||
+                      (job.tags || []).some(t => (t || '').toLowerCase().includes(q)) ||
+                      (PRIVATE_SECTOR_KEYWORDS[q] && PRIVATE_SECTOR_KEYWORDS[q].some(k => 
+                        (job.title || '').toLowerCase().includes(k) || (job.department || '').toLowerCase().includes(k)
+                      ));
         if (!match) return false;
       }
 
@@ -66,6 +127,118 @@ router.get('/', async (req, res) => {
     });
 
     res.json({ success: true, count: filtered.length, jobs: filtered });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/jobs/sector-stats (Live counts for Private Sectors and Govt Departments)
+router.get('/sector-stats', async (req, res) => {
+  try {
+    let jobs = [];
+    try {
+      jobs = await Job.find().lean();
+    } catch (e) {}
+    if (!jobs || jobs.length === 0) {
+      jobs = FALLBACK_JOBS;
+    }
+
+    const privateSectorStats = {};
+    for (const secKey of Object.keys(PRIVATE_SECTOR_KEYWORDS)) {
+      privateSectorStats[secKey] = { count: 0, vacancies: 0, label: '' };
+    }
+
+    const deptStats = {
+      UPSC: { count: 0, vacancies: 0 },
+      SSC: { count: 0, vacancies: 0 },
+      Railway: { count: 0, vacancies: 0 },
+      Bank: { count: 0, vacancies: 0 },
+      Police: { count: 0, vacancies: 0 },
+      Medical: { count: 0, vacancies: 0 },
+      Education: { count: 0, vacancies: 0 },
+      PSU: { count: 0, vacancies: 0 },
+      GPSC: { count: 0, vacancies: 0 },
+      Research: { count: 0, vacancies: 0 }
+    };
+
+    jobs.forEach(job => {
+      const isGovt = job.category === 'govt' || job.sector === 'GOVERNMENT';
+      const isPrivate = !isGovt;
+      const v = Number(job.vacancies) || 1;
+      const hay = `${job.title || ''} ${job.department || ''} ${job.sector || ''} ${(job.tags || []).join(' ')}`.toLowerCase();
+
+      // Check Private Sectors
+      if (isPrivate || job.category === 'internship') {
+        for (const [secId, kwList] of Object.entries(PRIVATE_SECTOR_KEYWORDS)) {
+          const matches = (job.sector || '').toLowerCase().includes(secId) ||
+                          kwList.some(k => hay.includes(k));
+          if (matches) {
+            privateSectorStats[secId].count += 1;
+            privateSectorStats[secId].vacancies += v;
+          }
+        }
+      }
+
+      // Check Govt Departments
+      const deptHay = `${job.title || ''} ${job.department || ''} ${(job.tags || []).join(' ')}`.toLowerCase();
+      if (deptHay.includes('upsc') || deptHay.includes('civil services') || deptHay.includes('ias')) {
+        deptStats.UPSC.count += 1;
+        deptStats.UPSC.vacancies += v;
+      }
+      if (deptHay.includes('ssc') || deptHay.includes('cgl') || deptHay.includes('chsl')) {
+        deptStats.SSC.count += 1;
+        deptStats.SSC.vacancies += v;
+      }
+      if (deptHay.includes('railway') || deptHay.includes('rrb') || deptHay.includes('ntpc')) {
+        deptStats.Railway.count += 1;
+        deptStats.Railway.vacancies += v;
+      }
+      if (deptHay.includes('bank') || deptHay.includes('sbi') || deptHay.includes('ibps') || deptHay.includes('rbi')) {
+        deptStats.Bank.count += 1;
+        deptStats.Bank.vacancies += v;
+      }
+      if (deptHay.includes('police') || deptHay.includes('defence') || deptHay.includes('army') || deptHay.includes('constable') || deptHay.includes('psi')) {
+        deptStats.Police.count += 1;
+        deptStats.Police.vacancies += v;
+      }
+      if (deptHay.includes('medical') || deptHay.includes('doctor') || deptHay.includes('nurse') || deptHay.includes('health') || deptHay.includes('aiims')) {
+        deptStats.Medical.count += 1;
+        deptStats.Medical.vacancies += v;
+      }
+      if (deptHay.includes('education') || deptHay.includes('teaching') || deptHay.includes('tet') || deptHay.includes('tat') || deptHay.includes('professor')) {
+        deptStats.Education.count += 1;
+        deptStats.Education.vacancies += v;
+      }
+      if (deptHay.includes('psu') || deptHay.includes('ongc') || deptHay.includes('iocl') || deptHay.includes('bhel') || deptHay.includes('isro')) {
+        deptStats.PSU.count += 1;
+        deptStats.PSU.vacancies += v;
+      }
+      if (deptHay.includes('gpsc') || deptHay.includes('gsssb') || deptHay.includes('ojas') || deptHay.includes('panchayat')) {
+        deptStats.GPSC.count += 1;
+        deptStats.GPSC.vacancies += v;
+      }
+      if (deptHay.includes('research') || deptHay.includes('drdo') || deptHay.includes('csir') || deptHay.includes('scientist')) {
+        deptStats.Research.count += 1;
+        deptStats.Research.vacancies += v;
+      }
+    });
+
+    // Format human-friendly count labels
+    for (const [k, v] of Object.entries(privateSectorStats)) {
+      if (v.count === 0) {
+        v.label = '0 Jobs (Hiring Soon)';
+      } else {
+        const postText = v.vacancies > 0 ? ` (${v.vacancies.toLocaleString('en-IN')}+ Posts)` : '';
+        v.label = `${v.count} ${v.count === 1 ? 'Job' : 'Jobs'}${postText}`;
+      }
+    }
+
+    res.json({
+      success: true,
+      totalJobs: jobs.length,
+      privateSectors: privateSectorStats,
+      departments: deptStats
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -261,6 +434,15 @@ router.post('/', async (req, res) => {
     // Generate clean slug if missing
     if (!jobData.slug && jobData.title) {
       jobData.slug = slugify(jobData.title) + '-' + Date.now().toString().slice(-4);
+    }
+
+    // Auto-detect & normalize sector for private & corporate jobs
+    if (jobData.category === 'private' || jobData.category === 'internship') {
+      if (!jobData.sector || jobData.sector === 'PRIVATE' || jobData.sector === 'INTERNSHIP') {
+        jobData.sector = detectPrivateSector(jobData);
+      }
+    } else if (jobData.category === 'govt' && (!jobData.sector || jobData.sector === 'GOVERNMENT')) {
+      jobData.sector = 'GOVERNMENT';
     }
 
     const job = new Job(jobData);
