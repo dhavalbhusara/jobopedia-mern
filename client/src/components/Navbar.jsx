@@ -3,9 +3,10 @@ import {
   Search, ChevronDown, Lock, LogOut, User, Sparkles, 
   BookOpen, FileText, Award, Calendar, ExternalLink, 
   Menu, X, Home, Landmark, Building2, GraduationCap, 
-  ChevronRight, Phone, ShieldCheck, MessageSquare, Instagram, Mail
+  ChevronRight, Phone, ShieldCheck, MessageSquare, Instagram, Mail, Globe, Check
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Navbar({ 
   currentView, 
@@ -17,8 +18,12 @@ export default function Navbar({
   onLogout,
   onSelectJob 
 }) {
+  const { language, setLanguage, t, supportedLanguages } = useLanguage();
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+
+  const currentLangObj = supportedLanguages.find(l => l.code === language) || supportedLanguages[0];
 
   const navigateTo = (view, sectionId) => {
     setCurrentView(view);
@@ -37,11 +42,11 @@ export default function Navbar({
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between gap-3">
           <div className="flex items-center space-x-2 flex-1 min-w-0 mr-2 sm:mr-4">
             <span className="bg-[#F58220] text-slate-950 font-black px-2 py-0.5 rounded text-[10px] uppercase shrink-0">
-              New Alerts
+              {t('new_alerts', 'New Alerts')}
             </span>
             <div className="overflow-hidden whitespace-nowrap flex-1 min-w-0">
               <span className="animate-marquee inline-block text-[11px] text-slate-200">
-                🇮🇳 UPSC Civil Services 2026 Notification Active • SSC CGL 17,727 Vacancies • GPSC Class 1 &amp; 2 Online Form • Gujarat Police Constable Exam Schedule Released!
+                {t('top_ticker', '🇮🇳 UPSC Civil Services 2026 Notification Active • SSC CGL 17,727 Vacancies • GPSC Class 1 & 2 Online Form • Gujarat Police Constable Exam Schedule Released!')}
               </span>
             </div>
           </div>
@@ -86,7 +91,7 @@ export default function Navbar({
               className="hidden lg:flex hover:text-rose-400 text-rose-300 transition items-center space-x-1 cursor-pointer bg-white/10 hover:bg-white/15 px-2 py-0.5 rounded-md font-bold"
             >
               <MessageSquare className="w-3 h-3 text-rose-400" />
-              <span>📢 Grievance</span>
+              <span>{t('grievance', '📢 Grievance')}</span>
             </button>
           </div>
         </div>
@@ -131,7 +136,7 @@ export default function Navbar({
                     : 'text-slate-600 hover:text-blue-600'
                 }`}
               >
-                Home
+                {t('nav_home', 'Home')}
               </button>
 
               {/* Govt Jobs (Separate Page) */}
@@ -143,7 +148,7 @@ export default function Navbar({
                     : 'text-slate-600 hover:text-blue-600'
                 }`}
               >
-                Govt Jobs
+                {t('nav_govt_jobs', 'Govt Jobs')}
               </button>
 
               {/* Private & MNCs (Separate Page) */}
@@ -155,7 +160,7 @@ export default function Navbar({
                     : 'text-slate-600 hover:text-emerald-600'
                 }`}
               >
-                Private &amp; MNCs
+                {t('nav_private_jobs', 'Private & MNCs')}
               </button>
 
               {/* Internships (Separate Page) */}
@@ -167,7 +172,7 @@ export default function Navbar({
                     : 'text-slate-600 hover:text-emerald-600'
                 }`}
               >
-                <span>Internships</span>
+                <span>{t('nav_internships', 'Internships')}</span>
                 <span className="px-1.5 py-0.2 text-[9px] font-black bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200">
                   New
                 </span>
@@ -182,7 +187,7 @@ export default function Navbar({
                     : 'text-blue-700 hover:text-blue-900'
                 }`}
               >
-                <span>Mock Tests (MCQs)</span>
+                <span>{t('nav_mock_tests', 'Mock Tests (MCQs)')}</span>
                 <span className="px-1.5 py-0.2 text-[9px] font-black bg-blue-100 text-blue-700 rounded-full border border-blue-200">
                   Live
                 </span>
@@ -195,7 +200,7 @@ export default function Navbar({
                   onBlur={() => setTimeout(() => setResourcesOpen(false), 250)}
                   className="flex items-center space-x-1 text-slate-600 hover:text-blue-600 transition-colors focus:outline-hidden cursor-pointer"
                 >
-                  <span>Resources</span>
+                  <span>{t('nav_resources', 'Resources')}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
 
@@ -254,9 +259,57 @@ export default function Navbar({
 
             </nav>
 
-            {/* Right Side Actions: Notifications, Search, Login & (ADMIN ONLY PORTAL) */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Right Side Actions: Language Selector, Notifications, Search, Login & (ADMIN ONLY PORTAL) */}
+            <div className="flex items-center space-x-1.5 sm:space-x-2.5">
               
+              {/* Language Selector Dropdown (Quick 1-Click Multi-lingual switcher) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setLangMenuOpen(!langMenuOpen)}
+                  onBlur={() => setTimeout(() => setLangMenuOpen(false), 250)}
+                  className="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl border border-blue-200 hover:border-blue-400 bg-blue-50/70 hover:bg-blue-100 text-blue-900 text-xs font-bold transition cursor-pointer shadow-2xs"
+                  title={t('language_picker', 'ભાષા પસંદ કરો')}
+                >
+                  <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span className="font-extrabold text-xs">{currentLangObj?.label || 'ગુજરાતી'}</span>
+                  <ChevronDown className="w-3 h-3 text-blue-500 shrink-0" />
+                </button>
+
+                {langMenuOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-50 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
+                    <div className="px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 border-b border-slate-100 flex items-center justify-between">
+                      <span>{t('language_picker', 'ભાષા પસંદ કરો')}</span>
+                      <span className="text-[9px] text-blue-700 bg-blue-100 font-black px-1.5 py-0.5 rounded">
+                        {language.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="py-1 max-h-64 overflow-y-auto">
+                      {supportedLanguages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => { setLanguage(lang.code); setLangMenuOpen(false); }}
+                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer ${
+                            language === lang.code 
+                              ? 'bg-blue-50 text-blue-700 font-extrabold' 
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span className="flex items-center space-x-2">
+                            <span className="text-sm">{lang.flag}</span>
+                            <span className="font-bold">{lang.label}</span>
+                            <span className="text-[10px] text-slate-400 font-normal">({lang.englishName})</span>
+                          </span>
+                          {language === lang.code && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Notification Center (Push alerts for Phone & PC) */}
               <NotificationCenter user={user} onSelectJob={onSelectJob} />
 
@@ -299,10 +352,10 @@ export default function Navbar({
                     className="flex items-center space-x-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-300 hover:border-rose-400 text-rose-700 hover:text-rose-800 rounded-xl text-xs font-black transition shadow-xs cursor-pointer shrink-0"
                   >
                     <LogOut className="w-3.5 h-3.5 text-rose-600" />
-                    <span>Logout</span>
+                    <span>{t('nav_logout', 'Logout')}</span>
                   </button>
 
-                  {/* ADMIN PORTAL BUTTON (Strictly ONLY shown when user?.role === 'ADMIN') */}
+                  {/* ADMIN PORTAL BUTTON (Strictly ONLY shown when user?.role === 'ADMIN' - Always in English as instructed) */}
                   {user.role === 'ADMIN' && (
                     <button
                       onClick={() => setCurrentView(currentView === 'admin' ? 'home' : 'admin')}
@@ -325,7 +378,7 @@ export default function Navbar({
                     onClick={() => openAuthModal(true)}
                     className="px-4 py-2 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-xs hover:shadow-md transition cursor-pointer flex items-center space-x-1.5"
                   >
-                    <span>Login</span>
+                    <span>{t('nav_login', 'Login')}</span>
                   </button>
                 </div>
               )}
@@ -542,7 +595,7 @@ export default function Navbar({
             }`}
           >
             <Home className="w-5 h-5" />
-            <span className="text-[10px] mt-0.5 leading-tight">Home</span>
+            <span className="text-[10px] mt-0.5 leading-tight">{t('nav_home', 'Home')}</span>
             {currentView === 'home' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-0.5"></span>}
           </button>
 
@@ -554,7 +607,7 @@ export default function Navbar({
             }`}
           >
             <Landmark className="w-5 h-5" />
-            <span className="text-[10px] mt-0.5 leading-tight">Govt Jobs</span>
+            <span className="text-[10px] mt-0.5 leading-tight">{t('nav_govt_jobs', 'Govt Jobs')}</span>
             {currentView === 'govt' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-0.5"></span>}
           </button>
 
@@ -566,7 +619,7 @@ export default function Navbar({
             }`}
           >
             <Building2 className="w-5 h-5" />
-            <span className="text-[10px] mt-0.5 leading-tight">Private</span>
+            <span className="text-[10px] mt-0.5 leading-tight">{t('nav_private_jobs', 'Private')}</span>
             {currentView === 'private' && <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full mt-0.5"></span>}
           </button>
 
@@ -578,7 +631,7 @@ export default function Navbar({
             }`}
           >
             <Award className="w-5 h-5" />
-            <span className="text-[10px] mt-0.5 leading-tight">Mock Tests</span>
+            <span className="text-[10px] mt-0.5 leading-tight">{t('nav_mock_tests', 'Mock Tests')}</span>
             {currentView === 'mock-tests' && <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full mt-0.5"></span>}
           </button>
 
@@ -597,7 +650,7 @@ export default function Navbar({
             }`}
           >
             <User className="w-5 h-5" />
-            <span className="text-[10px] mt-0.5 leading-tight">{user ? 'My Panel' : 'Login'}</span>
+            <span className="text-[10px] mt-0.5 leading-tight">{user ? t('nav_candidate_panel', 'My Panel') : t('nav_login', 'Login')}</span>
             {currentView === 'user-dashboard' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-0.5"></span>}
           </button>
 

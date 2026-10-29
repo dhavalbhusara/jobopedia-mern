@@ -37,7 +37,9 @@ const JobSchema = new mongoose.Schema({
   hasMcqs: { type: Boolean, default: false },
   mcqTestId: { type: String },
   tags: [{ type: String }],
-  isNewJob: { type: Boolean, default: true }
+  isNewJob: { type: Boolean, default: true },
+  postedToInstagram: { type: Boolean, default: false },
+  postedToInstagramAt: { type: Date }
 }, { timestamps: true });
 
 JobSchema.pre('save', function(next) {

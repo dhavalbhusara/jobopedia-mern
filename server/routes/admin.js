@@ -511,4 +511,56 @@ router.delete('/jobs/:jobId', async (req, res) => {
   }
 });
 
+// GET /api/admin/jobs/instagram-checklist - Get recently uploaded jobs with Instagram upload status
+router.get('/jobs/instagram-checklist', async (req, res) => {
+  try {
+    const jobs = await Job.find().sort({ createdAt: -1 }).lean();
+    const totalCount = jobs.length;
+    const postedCount = jobs.filter(j => j.postedToInstagram === true).length;
+    const pendingCount = totalCount - postedCount;
+
+    res.json({
+      success: true,
+      totalCount,
+      postedCount,
+      pendingCount,
+      jobs
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/admin/jobs/instagram-bulk-status - Bulk toggle Instagram post status for selected jobs
+router.post('/jobs/instagram-bulk-status', async (req, res) => {
+  try {
+    const { jobIds, postedToInstagram } = req.body;
+    if (!Array.isArray(jobIds) || jobIds.length === 0) {
+      return res.status(400).json({ success: false, error: "Please provide an array of jobIds." });
+    }
+
+    const newStatus = Boolean(postedToInstagram);
+    const validIds = jobIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+
+    const result = await Job.updateMany(
+      { _id: { $in: validIds } },
+      { 
+        $set: { 
+          postedToInstagram: newStatus,
+          postedToInstagramAt: newStatus ? new Date() : null
+        } 
+      }
+    );
+
+    res.json({
+      success: true,
+      message: `Updated Instagram status for ${result.modifiedCount} jobs to ${newStatus ? 'Posted' : 'Pending'}!`,
+      modifiedCount: result.modifiedCount,
+      postedToInstagram: newStatus
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

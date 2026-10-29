@@ -37,7 +37,7 @@ function saveLocalUsers(users) {
 // ==============================================================================
 router.post('/register', async (req, res) => {
   try {
-    const { fullName, email, mobileNumber, password, state, qualification } = req.body;
+    const { fullName, email, mobileNumber, password, state, district, preferredLanguage, qualification } = req.body;
 
     // 1. Validation
     if (!fullName || !fullName.trim()) {
@@ -91,6 +91,8 @@ router.post('/register', async (req, res) => {
           mobileNumber: cleanMobile,
           password: hashedPassword,
           state: state || 'Gujarat',
+          district: district || 'Ahmedabad',
+          preferredLanguage: preferredLanguage || 'gu',
           qualification: qualification || 'Graduate',
           role: 'CANDIDATE',
           isVerified: true
@@ -117,6 +119,8 @@ router.post('/register', async (req, res) => {
       mobileNumber: cleanMobile,
       password: hashedPassword,
       state: state || 'Gujarat',
+      district: district || 'Ahmedabad',
+      preferredLanguage: preferredLanguage || 'gu',
       qualification: qualification || 'Graduate',
       role: 'CANDIDATE',
       createdAt: new Date().toISOString()
@@ -216,6 +220,47 @@ router.post('/login', async (req, res) => {
           user: adminPayload
         });
       }
+
+      // Special fallback for Dr. Jay Pandit Admin
+      if ((cleanIdentifier === 'jay.pandit@jobopedia.in' || cleanIdentifier === 'drjaypandit@jobopedia.in' || cleanIdentifier === 'jaypandit' || cleanIdentifier.includes('jay.pandit')) && password === 'JayPandit@2026') {
+        const adminPayload = {
+          id: 'admin_dr_jay_pandit',
+          fullName: 'Dr. Jay Pandit',
+          email: 'jay.pandit@jobopedia.in',
+          mobileNumber: '9825000001',
+          role: 'ADMIN',
+          state: 'Gujarat',
+          qualification: 'Doctorate / Post Graduate'
+        };
+        const token = jwt.sign(adminPayload, JWT_SECRET, { expiresIn: '14d' });
+        return res.json({
+          success: true,
+          message: 'Dr. Jay Pandit Admin Login successful',
+          token,
+          user: adminPayload
+        });
+      }
+
+      // Special fallback for Tushar Admin
+      if ((cleanIdentifier === 'tushar@jobopedia.in' || cleanIdentifier === 'tushar' || cleanIdentifier === 'tushar.admin@jobopedia.in') && password === 'Tushar@2026') {
+        const adminPayload = {
+          id: 'admin_tushar',
+          fullName: 'Tushar',
+          email: 'tushar@jobopedia.in',
+          mobileNumber: '9825000002',
+          role: 'ADMIN',
+          state: 'Gujarat',
+          qualification: 'Graduate'
+        };
+        const token = jwt.sign(adminPayload, JWT_SECRET, { expiresIn: '14d' });
+        return res.json({
+          success: true,
+          message: 'Tushar Admin Login successful',
+          token,
+          user: adminPayload
+        });
+      }
+
       return res.status(401).json({ 
         success: false, 
         error: 'No account found with this Email or Mobile Number. Please Register first.' 
@@ -225,16 +270,18 @@ router.post('/login', async (req, res) => {
     // 4. Verify Password with bcrypt
     const isPasswordValid = await bcrypt.compare(password, foundUser.password);
     
-    // Master recovery check for Dhaval Admin
+    // Master recovery check for Admins
     const isMasterAdmin = (
-      (foundUser.role === 'ADMIN' || 
+      ((foundUser.role === 'ADMIN' || 
        foundUser.email?.includes('dhaval') || 
        cleanIdentifier.includes('dhaval') ||
        foundUser.mobileNumber === '9510443584' ||
        foundUser.mobileNumber === '8487944035' ||
        identifier === '9510443584' ||
        identifier === '8487944035') && 
-      password === 'Admin@123456'
+      password === 'Admin@123456') ||
+      ((foundUser.email === 'jay.pandit@jobopedia.in' || cleanIdentifier.includes('jay.pandit')) && password === 'JayPandit@2026') ||
+      ((foundUser.email === 'tushar@jobopedia.in' || cleanIdentifier === 'tushar') && password === 'Tushar@2026')
     );
 
     if (!isPasswordValid && !isMasterAdmin) {
@@ -322,7 +369,7 @@ router.put('/profile', async (req, res) => {
 
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET);
-    const { fullName, mobileNumber, qualification, state, targetRole } = req.body;
+    const { fullName, mobileNumber, qualification, state, district, preferredLanguage, targetRole } = req.body;
 
     let updatedUser = null;
     if (mongoose.connection.readyState === 1 && decoded.id && !decoded.id.startsWith('usr_')) {
@@ -333,6 +380,8 @@ router.put('/profile', async (req, res) => {
           ...(mobileNumber && { mobileNumber: mobileNumber.trim() }),
           ...(qualification && { qualification }),
           ...(state && { state }),
+          ...(district && { district }),
+          ...(preferredLanguage && { preferredLanguage }),
           ...(targetRole && { targetRole })
         },
         { new: true }
@@ -348,6 +397,8 @@ router.put('/profile', async (req, res) => {
         role: decoded.role || 'CANDIDATE',
         qualification: qualification || 'Graduate',
         state: state || 'Gujarat',
+        district: district || 'Ahmedabad',
+        preferredLanguage: preferredLanguage || 'gu',
         targetRole: targetRole || 'Government & Corporate'
       };
     }

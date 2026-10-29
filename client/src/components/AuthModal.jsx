@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, LogIn, UserPlus, Mail, Lock, User, Phone, 
-  MapPin, GraduationCap, AlertCircle, CheckCircle2, ArrowRight
+  MapPin, GraduationCap, AlertCircle, CheckCircle2, ArrowRight, Globe
 } from 'lucide-react';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode = 'login' }) {
+  const { 
+    language, 
+    setLanguage, 
+    t, 
+    selectedState, 
+    selectedDistrict, 
+    getDistrictsForState, 
+    getSpokenLanguages,
+    handleStateChange: contextHandleStateChange,
+    handleDistrictChange: contextHandleDistrictChange
+  } = useLanguage();
+
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,7 +30,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
     fullName: '',
     email: '',
     mobileNumber: '',
-    state: 'Gujarat',
+    state: selectedState || 'Gujarat',
+    district: selectedDistrict || 'ahmedabad',
+    preferredLanguage: language || 'gu',
     qualification: 'Graduate - Any Stream / Any Discipline'
   });
 
@@ -25,7 +40,15 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
     setMode(initialMode || 'login');
     setError('');
     setSuccessMsg('');
-  }, [isOpen, initialMode]);
+    if (selectedState) {
+      setFormData(prev => ({
+        ...prev,
+        state: selectedState,
+        district: selectedDistrict || prev.district,
+        preferredLanguage: language || prev.preferredLanguage
+      }));
+    }
+  }, [isOpen, initialMode, selectedState, selectedDistrict, language]);
 
   if (!isOpen) return null;
 
@@ -75,6 +98,43 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
     setError('');
   };
 
+  const onStateSelect = (e) => {
+    const newState = e.target.value;
+    const districts = getDistrictsForState(newState);
+    const newDistrict = districts.length > 0 ? districts[0].id : '';
+    const spoken = getSpokenLanguages(newState, newDistrict);
+    const primaryLang = spoken.length > 0 ? spoken[0].code : 'gu';
+
+    setFormData(prev => ({
+      ...prev,
+      state: newState,
+      district: newDistrict,
+      preferredLanguage: primaryLang
+    }));
+    contextHandleStateChange(newState);
+    setLanguage(primaryLang);
+    setError('');
+  };
+
+  const onDistrictSelect = (e) => {
+    const newDistrict = e.target.value;
+    const spoken = getSpokenLanguages(formData.state, newDistrict);
+    const primaryLang = spoken.length > 0 ? spoken[0].code : 'gu';
+
+    setFormData(prev => ({
+      ...prev,
+      district: newDistrict,
+      preferredLanguage: primaryLang
+    }));
+    contextHandleDistrictChange(newDistrict, formData.state);
+    setError('');
+  };
+
+  const onLanguageSelect = (langCode) => {
+    setFormData(prev => ({ ...prev, preferredLanguage: langCode }));
+    setLanguage(langCode);
+  };
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -104,6 +164,11 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
 
       localStorage.setItem('jobopedia_token', data.token);
       localStorage.setItem('jobopedia_user', JSON.stringify(data.user));
+
+      // If user has a preferred language saved, switch to it immediately
+      if (data.user?.preferredLanguage) {
+        setLanguage(data.user.preferredLanguage);
+      }
 
       setSuccessMsg(`Welcome, ${data.user.fullName || 'Candidate'}! Login successful.`);
       
@@ -150,6 +215,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
           mobileNumber: cleanMobile,
           password: cleanPassword,
           state: formData.state,
+          district: formData.district,
+          preferredLanguage: formData.preferredLanguage || language,
           qualification: formData.qualification
         })
       });
@@ -160,6 +227,11 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
 
       localStorage.setItem('jobopedia_token', data.token);
       localStorage.setItem('jobopedia_user', JSON.stringify(data.user));
+
+      // Apply the selected language immediately across entire website
+      if (formData.preferredLanguage) {
+        setLanguage(formData.preferredLanguage);
+      }
 
       setSuccessMsg(`Registration successful! Welcome to Jobopedia, ${cleanName}.`);
 
@@ -392,15 +464,15 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    Home State *
+                    {t('auth_state_label', '૧. રાજ્ય (State)')} *
                   </label>
                   <div className="relative">
                     <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" />
                     <select
                       name="state"
                       value={formData.state}
-                      onChange={handleChange}
-                      className="w-full pl-8 pr-2 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-600 outline-hidden truncate"
+                      onChange={onStateSelect}
+                      className="w-full pl-8 pr-2 py-2 text-xs border border-slate-200 rounded-xl bg-white font-bold text-slate-800 focus:ring-2 focus:ring-blue-600 outline-hidden truncate"
                     >
                       {ALL_INDIAN_STATES.map(s => (
                         <option key={s} value={s}>{s}</option>
@@ -411,21 +483,78 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    Qualification *
+                    {t('auth_district_label', '૨. જિલ્લો (District)')} *
                   </label>
                   <div className="relative">
-                    <GraduationCap className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" />
+                    <MapPin className="w-3.5 h-3.5 text-blue-500 absolute left-2.5 top-3" />
                     <select
-                      name="qualification"
-                      value={formData.qualification}
-                      onChange={handleChange}
-                      className="w-full pl-8 pr-2 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-600 outline-hidden truncate"
+                      name="district"
+                      value={formData.district}
+                      onChange={onDistrictSelect}
+                      className="w-full pl-8 pr-2 py-2 text-xs border border-blue-200 rounded-xl bg-blue-50/50 font-bold text-blue-900 focus:ring-2 focus:ring-blue-600 outline-hidden truncate"
                     >
-                      {ALL_QUALIFICATIONS.map(q => (
-                        <option key={q} value={q}>{q}</option>
+                      {getDistrictsForState(formData.state).map(d => (
+                        <option key={d.id} value={d.id}>
+                          {d.nativeName ? `${d.nativeName} (${d.name})` : d.name}
+                        </option>
                       ))}
                     </select>
                   </div>
+                </div>
+              </div>
+
+              {/* District Spoken Language Interactive Selector */}
+              <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-blue-200 rounded-2xl p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 text-blue-900 font-black text-xs">
+                    <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span>{t('auth_district_lang_title', '૩. જિલ્લા મુજબ બોલાતી ભાષા (District Language)')}</span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase text-blue-700 bg-white px-2 py-0.5 rounded-full border border-blue-200 shadow-2xs">
+                    {language.toUpperCase()} Active
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-tight">
+                  {t('auth_district_lang_desc', 'તમે પસંદ કરશો તે ભાષામાં આખી વેબસાઇટ આપોઆપ રૂપાંતરિત થઈ જશે:')}
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {getSpokenLanguages(formData.state, formData.district).map((lang) => {
+                    const isSelected = (formData.preferredLanguage || language) === lang.code;
+                    return (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => onLanguageSelect(lang.code)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center space-x-1 cursor-pointer ${
+                          isSelected
+                            ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-500/30'
+                            : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span>{lang.name}</span>
+                        {isSelected && <CheckCircle2 className="w-3 h-3 text-white ml-0.5" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  {t('auth_qual_label', 'શૈક્ષણિક લાયકાત (Qualification)')} *
+                </label>
+                <div className="relative">
+                  <GraduationCap className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" />
+                  <select
+                    name="qualification"
+                    value={formData.qualification}
+                    onChange={handleChange}
+                    className="w-full pl-8 pr-2 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-600 outline-hidden truncate"
+                  >
+                    {ALL_QUALIFICATIONS.map(q => (
+                      <option key={q} value={q}>{q}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -435,17 +564,17 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
                 className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-sm rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>{loading ? 'Creating Account...' : 'Create Account (ખાતું બનાવો)'}</span>
+                <span>{loading ? 'Creating Account...' : t('auth_register_submit', 'Create Account & Apply Language')}</span>
               </button>
 
               <div className="pt-2 text-center">
-                <span className="text-xs text-slate-500">Already registered? </span>
+                <span className="text-xs text-slate-500">{t('auth_switch_to_login', 'Already have an account?')} </span>
                 <button
                   type="button"
                   onClick={() => { setMode('login'); setError(''); }}
                   className="text-xs font-extrabold text-blue-600 hover:text-blue-800 underline cursor-pointer"
                 >
-                  Sign In / Login here
+                  {t('auth_login_tab', 'Sign In / Login here')}
                 </button>
               </div>
             </form>

@@ -304,6 +304,43 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PATCH /api/jobs/:id/instagram-status (Toggle or set Instagram checklist status for Admin)
+router.patch('/:id/instagram-status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { postedToInstagram } = req.body;
+
+    let job = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      job = await Job.findById(id);
+    }
+    if (!job) {
+      job = await Job.findOne({ $or: [{ slug: id }, { _id: id }] });
+    }
+
+    if (!job) {
+      return res.status(404).json({ success: false, error: "Job not found" });
+    }
+
+    const newStatus = typeof postedToInstagram === 'boolean' ? postedToInstagram : !job.postedToInstagram;
+    job.postedToInstagram = newStatus;
+    job.postedToInstagramAt = newStatus ? new Date() : null;
+    await job.save();
+
+    console.log(`[Admin Instagram Checklist] Job "${job.title}" marked as ${newStatus ? 'POSTED' : 'PENDING'}`);
+
+    res.json({
+      success: true,
+      message: newStatus ? "✅ Marked as Posted to Instagram!" : "⏳ Marked as Pending Instagram Post",
+      jobId: job._id,
+      postedToInstagram: job.postedToInstagram,
+      postedToInstagramAt: job.postedToInstagramAt
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // DELETE /api/jobs/:id (Remove job)
 router.delete('/:id', async (req, res) => {
   try {

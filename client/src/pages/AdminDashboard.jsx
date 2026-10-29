@@ -5,7 +5,7 @@ import {
   CheckCircle2, Bell, Send, Smartphone, Monitor, Trash2, 
   Search, BarChart3, TrendingUp, Calendar, FileSpreadsheet, 
   RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles, MessageSquare, LogOut,
-  AlertTriangle, Copy, Layers, ShieldAlert
+  AlertTriangle, Copy, Layers, ShieldAlert, Instagram, ExternalLink, CheckSquare, Square, Share2
 } from 'lucide-react';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
@@ -15,6 +15,16 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const [successToast, setSuccessToast] = useState('');
   const [jobPostingStatus, setJobPostingStatus] = useState('idle'); // 'idle' | 'posting' | 'done'
   const [bulkJobsStatus, setBulkJobsStatus] = useState('idle'); // 'idle' | 'posting' | 'done'
+
+  // Instagram Checklist State (Admin social media post manager)
+  const [instagramJobs, setInstagramJobs] = useState([]);
+  const [instagramStats, setInstagramStats] = useState({ total: 0, pending: 0, posted: 0 });
+  const [loadingInstagram, setLoadingInstagram] = useState(false);
+  const [instagramFilter, setInstagramFilter] = useState('all'); // 'all' | 'pending' | 'posted'
+  const [instagramSearch, setInstagramSearch] = useState('');
+  const [selectedInstaJobIds, setSelectedInstaJobIds] = useState([]);
+  const [copyToastJobId, setCopyToastJobId] = useState(null);
+  const [togglingInstaId, setTogglingInstaId] = useState(null);
 
   // Push Notification Broadcast State
   const [broadcastForm, setBroadcastForm] = useState({
@@ -392,6 +402,106 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
     }
   };
 
+  // --- INSTAGRAM CHECKLIST LOGIC ---
+  const fetchInstagramChecklist = async () => {
+    setLoadingInstagram(true);
+    try {
+      const res = await fetch('/api/admin/jobs/instagram-checklist');
+      const data = await res.json();
+      if (data.success) {
+        setInstagramJobs(data.jobs || []);
+        setInstagramStats({
+          total: data.totalCount || 0,
+          pending: data.pendingCount || 0,
+          posted: data.postedCount || 0
+        });
+      }
+    } catch (e) {
+      console.error("Error fetching Instagram checklist:", e);
+    } finally {
+      setLoadingInstagram(false);
+    }
+  };
+
+  const handleToggleInstagramStatus = async (jobId, currentStatus) => {
+    setTogglingInstaId(jobId);
+    try {
+      const newStatus = !currentStatus;
+      const res = await fetch(`/api/jobs/${jobId}/instagram-status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postedToInstagram: newStatus })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setInstagramJobs(prev => prev.map(j => {
+          if ((j._id || j.id) === jobId) {
+            return {
+              ...j,
+              postedToInstagram: newStatus,
+              postedToInstagramAt: newStatus ? new Date().toISOString() : null
+            };
+          }
+          return j;
+        }));
+        setInstagramStats(prev => ({
+          ...prev,
+          posted: newStatus ? prev.posted + 1 : Math.max(0, prev.posted - 1),
+          pending: newStatus ? Math.max(0, prev.pending - 1) : prev.pending + 1
+        }));
+        setSuccessToast(data.message || (newStatus ? '✅ Marked as posted to Instagram!' : '⏳ Marked as pending'));
+        setTimeout(() => setSuccessToast(''), 3000);
+      } else {
+        alert(data.error || 'Failed to update Instagram status');
+      }
+    } catch (err) {
+      alert('Error updating status: ' + err.message);
+    } finally {
+      setTogglingInstaId(null);
+    }
+  };
+
+  const handleBulkInstagramStatus = async (markAsPosted) => {
+    if (selectedInstaJobIds.length === 0) return;
+    try {
+      const res = await fetch('/api/admin/jobs/instagram-bulk-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobIds: selectedInstaJobIds, postedToInstagram: markAsPosted })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast(data.message);
+        setSelectedInstaJobIds([]);
+        fetchInstagramChecklist();
+        setTimeout(() => setSuccessToast(''), 3500);
+      }
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const copyInstagramCaption = (job) => {
+    const jobId = job.slug || job._id || job.id;
+    const directUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/?job=${encodeURIComponent(jobId)}`
+      : `https://jobopedia.in/?job=${encodeURIComponent(jobId)}`;
+
+    const caption = `🚨 NEW VACANCY ALERT | Jobopedia.in 🇮🇳\n\n🏛️ Post: ${job.title}\n🏢 Department: ${job.department || job.organization || 'Official Recruitment'}\n👥 Total Vacancies: ${job.vacancies || 'Open'}\n💰 Salary / Pay Scale: ${job.salary || 'Official Pay Matrix'}\n🎓 Required Qualification: ${job.qualification || 'Graduate'}\n📅 Application Last Date: ${job.lastDate || 'Closing Soon'}\n\n🔗 Apply Link & Details: Check Link in Bio or visit:\n${directUrl}\n\n👉 Tag & share with your friends looking for career openings!\n\n#Jobopedia #SarkariNaukri #GovtJobs2026 #GujaratJobs #PrivateJobs #HiringAlert #EmploymentNews #IndiaJobs #CareerSetu`;
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(caption);
+      setCopyToastJobId(job._id || job.id);
+      setSuccessToast(`📋 Instagram caption copied for "${job.title}"! Paste directly into your Instagram post.`);
+      setTimeout(() => {
+        setCopyToastJobId(null);
+        setSuccessToast('');
+      }, 4000);
+    } else {
+      alert("Caption copied:\n\n" + caption);
+    }
+  };
+
   // --- SMART DUPLICATE JOBS LOGIC ---
   const fetchDuplicates = async () => {
     setLoadingDuplicates(true);
@@ -623,6 +733,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
     fetchAllAdminJobs();
     fetchAnalytics();
     fetchComplaints();
+    fetchInstagramChecklist();
   }, []);
 
   // Live auto-refresh of visitor analytics every 5 seconds when Dhaval is viewing
@@ -727,6 +838,8 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
       const data = await res.json();
       setBulkJobsStatus('done');
       setSuccessToast(data.message || '✅ DONE! Jobs successfully uploaded to MongoDB Atlas!');
+      fetchInstagramChecklist();
+      fetchAllAdminJobs();
       setTimeout(() => {
         setSuccessToast('');
         setBulkJobsStatus('idle');
@@ -802,6 +915,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
       setSuccessToast(`✅ DONE! "${singleJob.title}" has been published to MongoDB Atlas! Auto-notifications sent to matched candidates.`);
       fetchAllAdminJobs();
       fetchDuplicates();
+      fetchInstagramChecklist();
       setTimeout(() => {
         setSuccessToast('');
         setJobPostingStatus('idle');
@@ -970,6 +1084,28 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
         >
           <PlusCircle className="w-4 h-4" />
           <span>JOB POSTING FORM (NEW VACANCY)</span>
+        </button>
+
+        {/* INSTAGRAM UPLOAD CHECKLIST TAB */}
+        <button
+          onClick={() => { setActiveTab('instagram'); fetchInstagramChecklist(); }}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+            activeTab === 'instagram' 
+              ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white shadow-md' 
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Instagram className="w-4 h-4 text-pink-500" />
+          <span>📸 INSTAGRAM UPLOAD CHECKLIST</span>
+          {instagramStats.pending > 0 ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-slate-950 shadow-xs animate-pulse">
+              ⏳ {instagramStats.pending} PENDING
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-xs">
+              ✓ ALL DONE
+            </span>
+          )}
         </button>
 
         <button
@@ -1534,6 +1670,368 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
           </form>
         </div>
       )}
+
+      {/* TAB: INSTAGRAM UPLOAD CHECKLIST (ADMIN SOCIAL MEDIA MANAGER) */}
+      {activeTab === 'instagram' && (() => {
+        const filteredInstagramJobs = instagramJobs.filter(job => {
+          if (instagramFilter === 'pending' && job.postedToInstagram) return false;
+          if (instagramFilter === 'posted' && !job.postedToInstagram) return false;
+
+          if (instagramSearch) {
+            const q = instagramSearch.toLowerCase();
+            const match = (job.title || '').toLowerCase().includes(q) ||
+                          (job.department || '').toLowerCase().includes(q) ||
+                          (job.category || '').toLowerCase().includes(q) ||
+                          (job.qualification || '').toLowerCase().includes(q);
+            if (!match) return false;
+          }
+          return true;
+        });
+
+        const toggleSelectInstaJob = (id) => {
+          setSelectedInstaJobIds(prev => 
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+          );
+        };
+
+        const toggleSelectAllInstaJobs = () => {
+          if (selectedInstaJobIds.length === filteredInstagramJobs.length) {
+            setSelectedInstaJobIds([]);
+          } else {
+            setSelectedInstaJobIds(filteredInstagramJobs.map(j => j._id || j.id));
+          }
+        };
+
+        return (
+          <div className="space-y-6">
+            
+            {/* Header Banner */}
+            <div className="bg-gradient-to-r from-purple-950 via-slate-950 to-pink-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-pink-500/30 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-orange-500/20 border border-pink-400/30 text-pink-300 text-xs font-black uppercase tracking-wider">
+                    <Instagram className="w-4 h-4 text-pink-400" />
+                    <span>Admin Social Media Tracker (@jobopedia.in)</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    📸 Instagram Upload Checklist
+                  </h2>
+                  <p className="text-xs sm:text-sm text-pink-100/90 max-w-2xl font-medium leading-relaxed">
+                    Checklist of all recently uploaded jobs on the website. After uploading a post, reel, or story on Instagram (@jobopedia.in), simply tick the box to mark it done. Saved in MongoDB Atlas in real-time.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                  <a
+                    href="https://www.instagram.com/jobopedia.in/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2.5 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-500 hover:opacity-90 text-white rounded-xl text-xs font-black shadow-lg transition flex items-center space-x-2 cursor-pointer"
+                  >
+                    <Instagram className="w-4 h-4 text-white" />
+                    <span>Open @jobopedia.in</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                  <button
+                    onClick={fetchInstagramChecklist}
+                    className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/20 transition cursor-pointer"
+                    title="Refresh Checklist"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loadingInstagram ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs">
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Website Jobs</div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{instagramStats.total}</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">Synced with Database</div>
+              </div>
+
+              <div className="bg-amber-50/80 rounded-2xl p-5 border border-amber-200 shadow-xs">
+                <div className="text-xs font-bold text-amber-700 uppercase tracking-wider flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                  <span>Pending Instagram Posts</span>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-amber-900 mt-1">{instagramStats.pending}</div>
+                <div className="text-[11px] text-amber-700 mt-0.5">Needs to be posted on Insta</div>
+              </div>
+
+              <div className="bg-emerald-50/80 rounded-2xl p-5 border border-emerald-200 shadow-xs">
+                <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center space-x-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Posted to Instagram</span>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-emerald-900 mt-1">{instagramStats.posted}</div>
+                <div className="text-[11px] text-emerald-700 mt-0.5">Checked &amp; published</div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-5 border border-pink-200 shadow-xs">
+                <div className="text-xs font-bold text-purple-700 uppercase tracking-wider">Upload Progress</div>
+                <div className="text-2xl sm:text-3xl font-black text-purple-900 mt-1">
+                  {instagramStats.total > 0 ? Math.round((instagramStats.posted / instagramStats.total) * 100) : 0}%
+                </div>
+                <div className="text-[11px] text-purple-600 mt-0.5">Coverage of website posts</div>
+              </div>
+            </div>
+
+            {/* Filter and Action Toolbar */}
+            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                {/* Filter Pills */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => setInstagramFilter('all')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      instagramFilter === 'all'
+                        ? 'bg-slate-900 text-white font-extrabold shadow-xs'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    All Jobs ({instagramStats.total})
+                  </button>
+
+                  <button
+                    onClick={() => setInstagramFilter('pending')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
+                      instagramFilter === 'pending'
+                        ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
+                        : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                    }`}
+                  >
+                    <span>⏳ Pending Upload ({instagramStats.pending})</span>
+                  </button>
+
+                  <button
+                    onClick={() => setInstagramFilter('posted')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
+                      instagramFilter === 'posted'
+                        ? 'bg-emerald-600 text-white font-black shadow-xs'
+                        : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+                    }`}
+                  >
+                    <span>✅ Uploaded to Instagram ({instagramStats.posted})</span>
+                  </button>
+                </div>
+
+                {/* Bulk Actions & Selection Indicator */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={toggleSelectAllInstaJobs}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    {selectedInstaJobIds.length === filteredInstagramJobs.length && filteredInstagramJobs.length > 0
+                      ? 'Deselect All'
+                      : 'Select All'}
+                  </button>
+
+                  {selectedInstaJobIds.length > 0 && (
+                    <>
+                      <span className="text-xs font-bold text-slate-500">
+                        {selectedInstaJobIds.length} selected:
+                      </span>
+                      <button
+                        onClick={() => handleBulkInstagramStatus(true)}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
+                      >
+                        ✓ Mark as Posted
+                      </button>
+                      <button
+                        onClick={() => handleBulkInstagramStatus(false)}
+                        className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition cursor-pointer"
+                      >
+                        ✕ Mark as Pending
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={instagramSearch}
+                  onChange={(e) => setInstagramSearch(e.target.value)}
+                  placeholder="Search jobs by title, department, qualification, or sector..."
+                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
+                />
+              </div>
+            </div>
+
+            {/* Checklist Jobs Cards */}
+            {loadingInstagram ? (
+              <div className="bg-white rounded-3xl p-12 text-center text-xs font-bold text-slate-500 border border-slate-200">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mb-2"></div>
+                <div>Loading Instagram upload checklist...</div>
+              </div>
+            ) : filteredInstagramJobs.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 border border-slate-200 text-center space-y-2">
+                <Instagram className="w-12 h-12 text-slate-300 mx-auto" />
+                <h3 className="text-base font-bold text-slate-800">No jobs match this filter</h3>
+                <p className="text-xs text-slate-500">Try changing the status filter or clearing your search term.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredInstagramJobs.map((job) => {
+                  const jobId = job._id || job.id;
+                  const isPosted = Boolean(job.postedToInstagram);
+                  const isSelected = selectedInstaJobIds.includes(jobId);
+                  const isToggling = togglingInstaId === jobId;
+                  const isGovt = job.category === 'govt' || job.sector === 'GOVERNMENT';
+                  const isIntern = job.category === 'internship';
+
+                  return (
+                    <div
+                      key={jobId}
+                      className={`rounded-2xl p-4 sm:p-5 border transition-all shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                        isPosted 
+                          ? 'bg-emerald-50/40 border-emerald-200 hover:border-emerald-300' 
+                          : 'bg-white border-slate-200 hover:border-amber-300'
+                      }`}
+                    >
+                      {/* Left: Checkbox & Job Information */}
+                      <div className="flex items-start space-x-3.5 flex-1 min-w-0">
+                        {/* Interactive Main Instagram Checkbox */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleInstagramStatus(jobId, isPosted)}
+                          disabled={isToggling}
+                          className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center transition shrink-0 cursor-pointer ${
+                            isPosted 
+                              ? 'bg-emerald-600 text-white shadow-xs hover:bg-emerald-700' 
+                              : 'bg-white border-2 border-slate-300 hover:border-pink-500 text-transparent hover:text-slate-300'
+                          }`}
+                          title={isPosted ? "Click to uncheck (mark as pending)" : "Click to mark as posted on Instagram"}
+                        >
+                          <Check className={`w-4 h-4 stroke-[3] ${isPosted ? 'text-white' : 'opacity-0'}`} />
+                        </button>
+
+                        <div className="space-y-1.5 flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {/* Sector / Category badge */}
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                              isGovt ? 'bg-blue-100 text-blue-800' :
+                              isIntern ? 'bg-purple-100 text-purple-800' :
+                              'bg-emerald-100 text-emerald-800'
+                            }`}>
+                              {isGovt ? 'Govt Job' : isIntern ? 'Internship' : 'Corporate MNC'}
+                            </span>
+
+                            {/* Instagram Status Pill */}
+                            {isPosted ? (
+                              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center space-x-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                <span>POSTED TO INSTAGRAM</span>
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center space-x-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+                                <span>PENDING UPLOAD</span>
+                              </span>
+                            )}
+
+                            {job.createdAt && (
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                Uploaded: {new Date(job.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                            )}
+
+                            {isPosted && job.postedToInstagramAt && (
+                              <span className="text-[10px] text-emerald-700 font-semibold">
+                                • Posted: {new Date(job.postedToInstagramAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Title */}
+                          <h3 className={`text-sm sm:text-base font-extrabold leading-snug truncate ${
+                            isPosted ? 'text-slate-800' : 'text-slate-900'
+                          }`}>
+                            {job.title}
+                          </h3>
+
+                          {/* Details Row */}
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 font-medium">
+                            <span className="text-slate-500 font-bold">🏢 {job.department || job.organization}</span>
+                            <span>•</span>
+                            <span className="text-emerald-700 font-bold">💰 {job.salary}</span>
+                            <span>•</span>
+                            <span className="text-slate-500">👥 {job.vacancies || 'Open'} Posts</span>
+                            <span>•</span>
+                            <span className="text-purple-700">🎓 {job.qualification || 'Graduate'}</span>
+                            <span>•</span>
+                            <span className="text-rose-600 font-bold">📅 Till: {job.lastDate || 'Closing Soon'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Actions */}
+                      <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+                        {/* 1-Click Copy Caption Button */}
+                        <button
+                          type="button"
+                          onClick={() => copyInstagramCaption(job)}
+                          className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-2xs ${
+                            copyToastJobId === jobId
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-800 border border-purple-200'
+                          }`}
+                          title="Copy ready-to-post Instagram caption with hashtags"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>{copyToastJobId === jobId ? 'Caption Copied!' : 'Copy Caption'}</span>
+                        </button>
+
+                        {/* View Job Link */}
+                        <a
+                          href={`/?job=${encodeURIComponent(job.slug || jobId)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1"
+                          title="View on Website"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>View Job</span>
+                        </a>
+
+                        {/* Toggle Check Status Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleInstagramStatus(jobId, isPosted)}
+                          disabled={isToggling}
+                          className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center space-x-1.5 cursor-pointer shadow-xs ${
+                            isPosted
+                              ? 'bg-emerald-100 text-emerald-800 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 border border-emerald-300'
+                              : 'bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white'
+                          }`}
+                        >
+                          {isPosted ? (
+                            <>
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>✓ Posted (Undo)</span>
+                            </>
+                          ) : (
+                            <>
+                              <Instagram className="w-3.5 h-3.5 text-white" />
+                              <span>Mark as Posted</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* TAB 2: DHAVAL'S VISITOR ANALYTICS & TRAFFIC ANALYSIS + BULK OPS */}
       {activeTab === 'dhaval' && (

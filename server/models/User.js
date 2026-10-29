@@ -11,6 +11,8 @@ const UserSchema = new mongoose.Schema({
     default: 'CANDIDATE' 
   },
   state: { type: String, default: 'Gujarat' },
+  district: { type: String, default: 'Ahmedabad' },
+  preferredLanguage: { type: String, default: 'gu' },
   qualification: { type: String, default: 'Graduate' },
   targetRole: { type: String },
   resumeTitle: { type: String, default: 'Candidate_ATS_Resume.pdf' },
