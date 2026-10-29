@@ -488,10 +488,16 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
+    <div 
+      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden notranslate" 
+      translate="no"
+    >
       
       {/* Modal Container */}
-      <div className="bg-slate-100 rounded-3xl w-full max-w-[1480px] h-[95vh] flex flex-col shadow-2xl border border-slate-700/50 overflow-hidden">
+      <div 
+        className="bg-slate-100 rounded-3xl w-full max-w-[1480px] h-[95vh] flex flex-col shadow-2xl border border-slate-700/50 overflow-hidden notranslate" 
+        translate="no"
+      >
         
         {/* Top Header Bar */}
         <div className="bg-[#0B1E33] text-white px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0 border-b border-blue-900/60 no-print">
@@ -1473,7 +1479,8 @@ export default function ResumeBuilder({ isOpen, onClose, user }) {
             {/* Live Document Canvas without artificial outer box borders */}
             <div 
               id="printable-resume"
-              className="w-full max-w-[760px] space-y-4"
+              className="w-full max-w-[760px] space-y-4 notranslate"
+              translate="no"
               style={{ fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif" }}
             >
               

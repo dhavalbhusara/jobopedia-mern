@@ -55,6 +55,45 @@ html, body {
   background: #94a3b8;
 }
 
+/* Google Translate Widget Clean Reskin & Hidden System Elements */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame,
+iframe.goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+#google_translate_element {
+  display: none !important;
+}
+
+.skiptranslate:not(.allow-translate) {
+  display: none !important;
+}
+
+/* Ensure resume builder and admin never get translated */
+.notranslate,
+[translate="no"] {
+  -webkit-touch-callout: none;
+}
+
 /* Dedicated ATS Resume Multi-Page Print Stylesheet */
 @media print {
   html, body {

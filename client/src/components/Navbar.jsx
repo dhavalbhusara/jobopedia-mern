@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 import { useLanguage } from '../context/LanguageContext';
+import { ALL_INDIAN_STATES } from '../constants/referenceData';
 
 export default function Navbar({ 
   currentView, 
@@ -18,7 +19,7 @@ export default function Navbar({
   onLogout,
   onSelectJob 
 }) {
-  const { language, setLanguage, t, supportedLanguages } = useLanguage();
+  const { language, setLanguage, t, supportedLanguages, selectedState, handleStateChange, getSpokenLanguages } = useLanguage();
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -262,14 +263,14 @@ export default function Navbar({
             {/* Right Side Actions: Language Selector, Notifications, Search, Login & (ADMIN ONLY PORTAL) */}
             <div className="flex items-center space-x-1.5 sm:space-x-2.5">
               
-              {/* Language Selector Dropdown (Quick 1-Click Multi-lingual switcher) */}
+              {/* Language Selector Dropdown with State-wise and Direct Language switching */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setLangMenuOpen(!langMenuOpen)}
-                  onBlur={() => setTimeout(() => setLangMenuOpen(false), 250)}
-                  className="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl border border-blue-200 hover:border-blue-400 bg-blue-50/70 hover:bg-blue-100 text-blue-900 text-xs font-bold transition cursor-pointer shadow-2xs"
-                  title={t('language_picker', 'ભાષા પસંદ કરો')}
+                  onBlur={() => setTimeout(() => setLangMenuOpen(false), 300)}
+                  className="flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-blue-200 hover:border-blue-400 bg-blue-50/70 hover:bg-blue-100 text-blue-900 text-xs font-bold transition cursor-pointer shadow-2xs"
+                  title={t('language_picker', 'ભાષા બદલો / Translate Website')}
                 >
                   <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                   <span className="font-extrabold text-xs">{currentLangObj?.label || 'ગુજરાતી'}</span>
@@ -277,34 +278,80 @@ export default function Navbar({
                 </button>
 
                 {langMenuOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-50 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
-                    <div className="px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 border-b border-slate-100 flex items-center justify-between">
-                      <span>{t('language_picker', 'ભાષા પસંદ કરો')}</span>
-                      <span className="text-[9px] text-blue-700 bg-blue-100 font-black px-1.5 py-0.5 rounded">
+                  <div 
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white rounded-3xl shadow-2xl border border-slate-200 p-3 z-50 text-xs font-semibold animate-in fade-in slide-in-from-top-2 space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <div className="flex items-center space-x-1.5 text-slate-800 font-black text-xs">
+                        <Globe className="w-4 h-4 text-blue-600" />
+                        <span>વેબસાઇટની ભાષા (Translate)</span>
+                      </div>
+                      <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-black border border-blue-200">
                         {language.toUpperCase()}
                       </span>
                     </div>
-                    <div className="py-1 max-h-64 overflow-y-auto">
-                      {supportedLanguages.map((lang) => (
-                        <button
-                          key={lang.code}
-                          type="button"
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => { setLanguage(lang.code); setLangMenuOpen(false); }}
-                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer ${
-                            language === lang.code 
-                              ? 'bg-blue-50 text-blue-700 font-extrabold' 
-                              : 'text-slate-700 hover:bg-slate-50'
-                          }`}
-                        >
-                          <span className="flex items-center space-x-2">
-                            <span className="text-sm">{lang.flag}</span>
-                            <span className="font-bold">{lang.label}</span>
-                            <span className="text-[10px] text-slate-400 font-normal">({lang.englishName})</span>
-                          </span>
-                          {language === lang.code && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
-                        </button>
-                      ))}
+
+                    {/* State-Based Language Selector */}
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 space-y-1.5">
+                      <label className="block text-[11px] font-black text-slate-700">
+                        📍 રાજ્ય મુજબ ભાષા (By State):
+                      </label>
+                      <select
+                        value={selectedState || 'Gujarat'}
+                        onChange={(e) => handleStateChange(e.target.value)}
+                        className="w-full px-2.5 py-1.5 text-xs font-bold text-slate-800 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
+                      >
+                        {ALL_INDIAN_STATES.map((st) => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </select>
+
+                      {/* State Spoken Languages Pills */}
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {getSpokenLanguages(selectedState).map((sl) => (
+                          <button
+                            key={sl.code}
+                            type="button"
+                            onClick={() => { setLanguage(sl.code); setLangMenuOpen(false); }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-black transition flex items-center space-x-1 cursor-pointer ${
+                              language === sl.code
+                                ? 'bg-blue-600 text-white shadow-2xs'
+                                : 'bg-white text-slate-700 border border-slate-200 hover:bg-blue-50'
+                            }`}
+                          >
+                            <span>{sl.name || sl.label}</span>
+                            {language === sl.code && <Check className="w-3 h-3 text-white" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Direct All Languages List */}
+                    <div>
+                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1 pb-1">
+                        બધી ભારતીય ભાષાઓ (All Languages):
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto pr-1">
+                        {supportedLanguages.map((lang) => (
+                          <button
+                            key={lang.code}
+                            type="button"
+                            onClick={() => { setLanguage(lang.code); setLangMenuOpen(false); }}
+                            className={`flex items-center justify-between p-2 rounded-xl text-left transition cursor-pointer ${
+                              language === lang.code 
+                                ? 'bg-blue-50 text-blue-700 font-black border border-blue-200' 
+                                : 'text-slate-700 hover:bg-slate-50 border border-transparent'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-1.5 truncate">
+                              <span>{lang.flag}</span>
+                              <span className="truncate">{lang.label}</span>
+                            </div>
+                            {language === lang.code && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 ml-1" />}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}

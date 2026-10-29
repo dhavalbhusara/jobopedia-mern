@@ -293,6 +293,217 @@ export const STATE_DISTRICTS_DATA = {
     ]
   },
 
+  "Haryana": {
+    name: "Haryana",
+    nativeName: "हरियाणा",
+    defaultLang: "hi",
+    spokenLanguages: [
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: true },
+      { code: "en", name: "English", isPrimary: false },
+      { code: "pa", name: "ਪੰਜਾਬੀ (Punjabi)", isPrimary: false }
+    ],
+    districts: [
+      { id: "gurugram", name: "Gurugram", nativeName: "गुरुग्राम", defaultLang: "hi" },
+      { id: "faridabad", name: "Faridabad", nativeName: "फरीदाबाद", defaultLang: "hi" },
+      { id: "panipat", name: "Panipat", nativeName: "पानीपत", defaultLang: "hi" },
+      { id: "ambala", name: "Ambala", nativeName: "अंबाला", defaultLang: "hi" },
+      { id: "karnal", name: "Karnal", nativeName: "करनाल", defaultLang: "hi" },
+      { id: "hisar", name: "Hisar", nativeName: "हिसार", defaultLang: "hi" },
+      { id: "rohtak", name: "Rohtak", nativeName: "रोहतक", defaultLang: "hi" }
+    ]
+  },
+
+  "Kerala": {
+    name: "Kerala",
+    nativeName: "കേരളം",
+    defaultLang: "ml",
+    spokenLanguages: [
+      { code: "ml", name: "മലയാളം (Malayalam)", isPrimary: true },
+      { code: "en", name: "English", isPrimary: false }
+    ],
+    districts: [
+      { id: "thiruvananthapuram", name: "Thiruvananthapuram", nativeName: "തിരുവനന്തപുരം", defaultLang: "ml" },
+      { id: "ernakulam", name: "Ernakulam (Kochi)", nativeName: "എറണാകുളം", defaultLang: "ml" },
+      { id: "kozhikode", name: "Kozhikode", nativeName: "കോഴിക്കോട്", defaultLang: "ml" },
+      { id: "thrissur", name: "Thrissur", nativeName: "തൃശ്ശൂർ", defaultLang: "ml" },
+      { id: "kollam", name: "Kollam", nativeName: "കൊല്ലം", defaultLang: "ml" }
+    ]
+  },
+
+  "Odisha": {
+    name: "Odisha",
+    nativeName: "ଓଡ଼ିଶା",
+    defaultLang: "or",
+    spokenLanguages: [
+      { code: "or", name: "ଓଡ଼ିଆ (Odia)", isPrimary: true },
+      { code: "en", name: "English", isPrimary: false },
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: false }
+    ],
+    districts: [
+      { id: "khordha", name: "Khordha (Bhubaneswar)", nativeName: "ଭୁବନେଶ୍ୱର", defaultLang: "or" },
+      { id: "cuttack", name: "Cuttack", nativeName: "କଟକ", defaultLang: "or" },
+      { id: "ganjam", name: "Ganjam (Berhampur)", nativeName: "ଗଞ୍ଜାମ", defaultLang: "or" },
+      { id: "puri", name: "Puri", nativeName: "ପୁରୀ", defaultLang: "or" },
+      { id: "sambalpur", name: "Sambalpur", nativeName: "ସମ୍ବଲପୁର", defaultLang: "or" }
+    ]
+  },
+
+  "Jharkhand": {
+    name: "Jharkhand",
+    nativeName: "झारखंड",
+    defaultLang: "hi",
+    spokenLanguages: [
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: true },
+      { code: "en", name: "English", isPrimary: false },
+      { code: "bn", name: "বাংলা (Bengali)", isPrimary: false }
+    ],
+    districts: [
+      { id: "ranchi", name: "Ranchi", nativeName: "राँची", defaultLang: "hi" },
+      { id: "jamshedpur", name: "East Singhbhum (Jamshedpur)", nativeName: "जमशेदपुर", defaultLang: "hi" },
+      { id: "dhanbad", name: "Dhanbad", nativeName: "धनबाद", defaultLang: "hi" },
+      { id: "bokaro", name: "Bokaro", nativeName: "बोकारो", defaultLang: "hi" }
+    ]
+  },
+
+  "Chhattisgarh": {
+    name: "Chhattisgarh",
+    nativeName: "छत्तीसगढ़",
+    defaultLang: "hi",
+    spokenLanguages: [
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: true },
+      { code: "en", name: "English", isPrimary: false }
+    ],
+    districts: [
+      { id: "raipur", name: "Raipur", nativeName: "रायपुर", defaultLang: "hi" },
+      { id: "durg", name: "Durg (Bhilai)", nativeName: "दुर्ग (भिलाई)", defaultLang: "hi" },
+      { id: "bilaspur", name: "Bilaspur", nativeName: "बिलासपुर", defaultLang: "hi" },
+      { id: "korba", name: "Korba", nativeName: "कोरबा", defaultLang: "hi" }
+    ]
+  },
+
+  "Assam": {
+    name: "Assam",
+    nativeName: "অসম",
+    defaultLang: "as",
+    spokenLanguages: [
+      { code: "as", name: "অসমীয়া (Assamese)", isPrimary: true },
+      { code: "bn", name: "বাংলা (Bengali)", isPrimary: false },
+      { code: "en", name: "English", isPrimary: false },
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: false }
+    ],
+    districts: [
+      { id: "kamrup_metro", name: "Kamrup Metropolitan (Guwahati)", nativeName: "গুৱাহাটী", defaultLang: "as" },
+      { id: "dibrugarh", name: "Dibrugarh", nativeName: "ডিব্ৰুগড়", defaultLang: "as" },
+      { id: "silchar", name: "Cachar (Silchar)", nativeName: "শিলচৰ", defaultLang: "as" },
+      { id: "jorhat", name: "Jorhat", nativeName: "যোৰহাট", defaultLang: "as" }
+    ]
+  },
+
+  "Jammu and Kashmir": {
+    name: "Jammu and Kashmir",
+    nativeName: "جموں و کشمیر / जम्मू और कश्मीर",
+    defaultLang: "ur",
+    spokenLanguages: [
+      { code: "ur", name: "اردو (Urdu)", isPrimary: true },
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: false },
+      { code: "en", name: "English", isPrimary: false }
+    ],
+    districts: [
+      { id: "srinagar", name: "Srinagar", nativeName: "سری نگر", defaultLang: "ur" },
+      { id: "jammu", name: "Jammu", nativeName: "जम्मू", defaultLang: "hi" },
+      { id: "anantnag", name: "Anantnag", nativeName: "اننت ناگ", defaultLang: "ur" },
+      { id: "baramulla", name: "Baramulla", nativeName: "بارામૂલા", defaultLang: "ur" }
+    ]
+  },
+
+  "Uttarakhand": {
+    name: "Uttarakhand",
+    nativeName: "उत्तराखंड",
+    defaultLang: "hi",
+    spokenLanguages: [
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: true },
+      { code: "en", name: "English", isPrimary: false }
+    ],
+    districts: [
+      { id: "dehradun", name: "Dehradun", nativeName: "देहरादून", defaultLang: "hi" },
+      { id: "haridwar", name: "Haridwar", nativeName: "हरिद्वार", defaultLang: "hi" },
+      { id: "nainital", name: "Nainital", nativeName: "नैनीताल", defaultLang: "hi" }
+    ]
+  },
+
+  "Himachal Pradesh": {
+    name: "Himachal Pradesh",
+    nativeName: "हिमाचल प्रदेश",
+    defaultLang: "hi",
+    spokenLanguages: [
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: true },
+      { code: "en", name: "English", isPrimary: false }
+    ],
+    districts: [
+      { id: "shimla", name: "Shimla", nativeName: "शिमला", defaultLang: "hi" },
+      { id: "kangra", name: "Kangra (Dharamshala)", nativeName: "कांगड़ा", defaultLang: "hi" },
+      { id: "mandi", name: "Mandi", nativeName: "मंडी", defaultLang: "hi" }
+    ]
+  },
+
+  "Goa": {
+    name: "Goa",
+    nativeName: "गोवा",
+    defaultLang: "mr",
+    spokenLanguages: [
+      { code: "mr", name: "मराठी / Konkani", isPrimary: true },
+      { code: "en", name: "English", isPrimary: false },
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: false }
+    ],
+    districts: [
+      { id: "north_goa", name: "North Goa (Panaji)", nativeName: "उत्तर गोवा", defaultLang: "mr" },
+      { id: "south_goa", name: "South Goa (Margao)", nativeName: "दक्षिण गोवा", defaultLang: "mr" }
+    ]
+  },
+
+  "Dadra and Nagar Haveli and Daman and Diu": {
+    name: "Dadra and Nagar Haveli and Daman and Diu",
+    nativeName: "દાદરા અને નગર હવેલી અને દમણ અને દીવ",
+    defaultLang: "gu",
+    spokenLanguages: [
+      { code: "gu", name: "ગુજરાતી (Gujarati)", isPrimary: true },
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: false },
+      { code: "en", name: "English", isPrimary: false }
+    ],
+    districts: [
+      { id: "daman", name: "Daman", nativeName: "દમણ", defaultLang: "gu" },
+      { id: "diu", name: "Diu", nativeName: "દીવ", defaultLang: "gu" },
+      { id: "silvassa", name: "Silvassa", nativeName: "સેલવાસ", defaultLang: "gu" }
+    ]
+  },
+
+  "Chandigarh": {
+    name: "Chandigarh",
+    nativeName: "ਚੰਡੀਗੜ੍ਹ / चंडीगढ़",
+    defaultLang: "pa",
+    spokenLanguages: [
+      { code: "pa", name: "ਪੰਜਾਬੀ (Punjabi)", isPrimary: true },
+      { code: "hi", name: "हिंदी (Hindi)", isPrimary: false },
+      { code: "en", name: "English", isPrimary: false }
+    ],
+    districts: [
+      { id: "chandigarh_city", name: "Chandigarh", nativeName: "ਚੰਡੀਗੜ੍ਹ", defaultLang: "pa" }
+    ]
+  },
+
+  "Puducherry": {
+    name: "Puducherry",
+    nativeName: "புதுச்சேரி",
+    defaultLang: "ta",
+    spokenLanguages: [
+      { code: "ta", name: "தமிழ் (Tamil)", isPrimary: true },
+      { code: "en", name: "English", isPrimary: false }
+    ],
+    districts: [
+      { id: "puducherry_district", name: "Puducherry", nativeName: "புதுச்சேரி", defaultLang: "ta" }
+    ]
+  },
+
   "All India / Central": {
     name: "All India / Central",
     nativeName: "અખિલ ભારત / કેન્દ્રીય",
@@ -319,7 +530,11 @@ export const SUPPORTED_LANGUAGES = [
   { code: "ta", label: "தமிழ்", englishName: "Tamil", flag: "🇮🇳" },
   { code: "te", label: "తెలుగు", englishName: "Telugu", flag: "🇮🇳" },
   { code: "kn", label: "ಕನ್ನಡ", englishName: "Kannada", flag: "🇮🇳" },
-  { code: "pa", label: "ਪੰਜਾਬੀ", englishName: "Punjabi", flag: "🇮🇳" }
+  { code: "pa", label: "ਪੰਜਾਬੀ", englishName: "Punjabi", flag: "🇮🇳" },
+  { code: "ml", label: "മലയാളം", englishName: "Malayalam", flag: "🇮🇳" },
+  { code: "or", label: "ଓଡ଼ିଆ", englishName: "Odia", flag: "🇮🇳" },
+  { code: "as", label: "অসমীয়া", englishName: "Assamese", flag: "🇮🇳" },
+  { code: "ur", label: "اردو", englishName: "Urdu", flag: "🇮🇳" }
 ];
 
 // Complete Multi-Lingual Website UI Translations

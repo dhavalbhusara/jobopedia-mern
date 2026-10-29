@@ -7,16 +7,68 @@ import {
 
 const LanguageContext = createContext();
 
+// Function to update Google Translate cookies and fire full DOM translation
+function triggerGoogleTranslate(langCode) {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  const target = langCode || 'gu';
+  const hostname = window.location.hostname;
+
+  if (target === 'en') {
+    // Reset back to original English
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${hostname};`;
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${hostname};`;
+    const combo = document.querySelector('.goog-te-combo') || document.querySelector('select.goog-te-combo');
+    if (combo) {
+      combo.value = 'en';
+      combo.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    return;
+  }
+
+  // Set translation cookies
+  document.cookie = `googtrans=/en/${target}; path=/;`;
+  document.cookie = `googtrans=/auto/${target}; path=/;`;
+  if (hostname && hostname !== 'localhost') {
+    document.cookie = `googtrans=/en/${target}; domain=.${hostname}; path=/;`;
+    document.cookie = `googtrans=/auto/${target}; domain=.${hostname}; path=/;`;
+  }
+
+  const applyToSelect = (select) => {
+    if (!select) return false;
+    select.value = target;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  };
+
+  const select = document.querySelector('.goog-te-combo') || document.querySelector('select.goog-te-combo');
+  if (select) {
+    applyToSelect(select);
+  } else {
+    let tries = 0;
+    const interval = setInterval(() => {
+      tries++;
+      const s = document.querySelector('.goog-te-combo') || document.querySelector('select.goog-te-combo');
+      if (s) {
+        applyToSelect(s);
+        clearInterval(interval);
+      } else if (tries > 12) {
+        clearInterval(interval);
+      }
+    }, 250);
+  }
+}
+
 export function LanguageProvider({ children }) {
   // 1. Initial Language State from localStorage or default 'gu' (Gujarati)
   const [language, setLanguageState] = useState(() => {
     try {
       const stored = localStorage.getItem('jobopedia_language');
-      if (stored && UI_TRANSLATIONS[stored]) return stored;
+      if (stored && (UI_TRANSLATIONS[stored] || SUPPORTED_LANGUAGES.some(l => l.code === stored))) return stored;
       const storedUser = localStorage.getItem('jobopedia_user');
       if (storedUser) {
         const u = JSON.parse(storedUser);
-        if (u.preferredLanguage && UI_TRANSLATIONS[u.preferredLanguage]) {
+        if (u.preferredLanguage) {
           return u.preferredLanguage;
         }
       }
@@ -53,9 +105,9 @@ export function LanguageProvider({ children }) {
     }
   });
 
-  // Persist language on change & update html lang attribute
+  // Persist language on change & trigger full-page instant DOM translation (all jobs & descriptions)
   const setLanguage = (langCode) => {
-    const validLang = UI_TRANSLATIONS[langCode] ? langCode : 'gu';
+    const validLang = langCode || 'gu';
     setLanguageState(validLang);
     try {
       localStorage.setItem('jobopedia_language', validLang);
@@ -63,11 +115,15 @@ export function LanguageProvider({ children }) {
         document.documentElement.lang = validLang;
       }
     } catch (e) {}
+
+    // Translate entire webpage (all dynamic jobs and descriptions)
+    triggerGoogleTranslate(validLang);
   };
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.documentElement.lang = language;
+      triggerGoogleTranslate(language);
     }
   }, [language]);
 

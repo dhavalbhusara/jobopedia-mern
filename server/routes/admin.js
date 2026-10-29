@@ -514,7 +514,28 @@ router.delete('/jobs/:jobId', async (req, res) => {
 // GET /api/admin/jobs/instagram-checklist - Get recently uploaded jobs with Instagram upload status
 router.get('/jobs/instagram-checklist', async (req, res) => {
   try {
-    const jobs = await Job.find().sort({ createdAt: -1 }).lean();
+    let jobs = [];
+    try {
+      jobs = await Job.find().sort({ createdAt: -1 }).lean();
+    } catch (e) {
+      console.warn("MongoDB Job.find error in instagram checklist:", e.message);
+    }
+
+    if (!jobs || jobs.length === 0) {
+      try {
+        const ORGANIZED_JOBS = require('../data/organizedJobs');
+        jobs = ORGANIZED_JOBS.map((j, idx) => ({
+          ...j,
+          _id: j.slug || String(idx + 1),
+          id: j.slug || String(idx + 1),
+          postedToInstagram: false
+        }));
+      } catch (err) {}
+    }
+
+    // Ensure newest uploaded jobs appear at the top
+    jobs.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
     const totalCount = jobs.length;
     const postedCount = jobs.filter(j => j.postedToInstagram === true).length;
     const pendingCount = totalCount - postedCount;

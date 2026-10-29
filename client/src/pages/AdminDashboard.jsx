@@ -674,8 +674,24 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
       setDuplicateWarningModal(null);
       setJobPostingStatus('done');
       setSuccessToast(`✅ DONE! "${duplicateWarningModal.payload.title}" has been published!`);
+      
+      if (data.job) {
+        const newlyCreated = {
+          ...data.job,
+          postedToInstagram: false,
+          createdAt: data.job.createdAt || new Date().toISOString()
+        };
+        setInstagramJobs(prev => [newlyCreated, ...prev]);
+        setInstagramStats(prev => ({
+          ...prev,
+          total: prev.total + 1,
+          pending: prev.pending + 1
+        }));
+      }
+
       fetchAllAdminJobs();
       fetchDuplicates();
+      fetchInstagramChecklist();
       setTimeout(() => {
         setSuccessToast('');
         setJobPostingStatus('idle');
@@ -913,6 +929,21 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
 
       setJobPostingStatus('done');
       setSuccessToast(`✅ DONE! "${singleJob.title}" has been published to MongoDB Atlas! Auto-notifications sent to matched candidates.`);
+      
+      if (data.job) {
+        const newlyCreated = {
+          ...data.job,
+          postedToInstagram: false,
+          createdAt: data.job.createdAt || new Date().toISOString()
+        };
+        setInstagramJobs(prev => [newlyCreated, ...prev]);
+        setInstagramStats(prev => ({
+          ...prev,
+          total: prev.total + 1,
+          pending: prev.pending + 1
+        }));
+      }
+
       fetchAllAdminJobs();
       fetchDuplicates();
       fetchInstagramChecklist();
@@ -960,7 +991,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 notranslate" translate="no">
       
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800 shadow-xl">
