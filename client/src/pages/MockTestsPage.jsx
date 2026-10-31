@@ -13,7 +13,7 @@ export default function MockTestsPage({ setCurrentView }) {
           <span>Home</span>
         </button>
         <span>/</span>
-        <span className="text-slate-800">ઓનલાઇન મોક ટેસ્ટ્સ (Mock Tests CBT)</span>
+        <span className="text-slate-800">Online Mock Tests & Practice CBT</span>
       </div>
 
       {/* Hero Banner */}
@@ -22,10 +22,10 @@ export default function MockTestsPage({ setCurrentView }) {
           ⚡ 2026 CBT Online Examination Simulator
         </span>
         <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight">
-          ઓનલાઇન મોક ટેસ્ટ્સ &amp; પ્રેક્ટિસ પેપર્સ (Mock Tests MCQs)
+          Online Mock Tests & Practice Question Papers
         </h1>
         <p className="text-xs sm:text-sm text-indigo-200 max-w-2xl leading-relaxed">
-          GSSSB CCE, Gujarat Police Constable, Talati અને GPSC માટે ટાઈમર, નેગેટિવ માર્કિંગ, ત્વરિત પરિણામ અને વિગતવાર સોલ્યુશન્સ સાથે સંપૂર્ણ તૈયારી.
+          Real-time CBT examination simulation with live timer, negative marking, instant scorecards, and detailed question solutions across Central & State exams.
         </p>
       </div>
 

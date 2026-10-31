@@ -76,10 +76,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
         res = await fetch(directUrl, options);
         const directCt = res.headers.get('content-type') || '';
         if (!directCt.includes('application/json')) {
-          throw new Error('સર્વર શરૂ થઈ રહ્યું છે (Server is waking up from sleep). કૃપા કરીને 5 સેકન્ડ રાહ જોઈને ફરી ક્લિક કરો.');
+          throw new Error('Server is starting up. Please wait 5 seconds and click again.');
         }
       } catch (err) {
-        throw new Error(err.message || 'સર્વર કનેક્શન થઈ શક્યું નથી. કૃપા કરીને થોડી સેકન્ડ પછી ફરી પ્રયાસ કરો.');
+        throw new Error(err.message || 'Could not connect to server. Please try again in a few moments.');
       }
     }
 
@@ -87,7 +87,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
     try {
       data = await res.json();
     } catch (parseErr) {
-      throw new Error('સર્વર શરૂ થઈ રહ્યું છે. કૃપા કરીને 5 સેકન્ડ પછી ફરી સાઇન ઇન કરો.');
+      throw new Error('Server is waking up. Please wait a few seconds and try signing in again.');
     }
 
     return { res, data };
@@ -289,7 +289,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
               }`}
             >
               <LogIn className="w-3.5 h-3.5" />
-              <span>🔑 Login (લૉગિન)</span>
+              <span>🔑 Login</span>
             </button>
 
             <button
@@ -302,7 +302,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
               }`}
             >
               <UserPlus className="w-3.5 h-3.5" />
-              <span>📝 Register (ખાતું બનાવો)</span>
+              <span>📝 Register</span>
             </button>
           </div>
         </div>
@@ -369,7 +369,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
                 className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-sm rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
               >
                 <LogIn className="w-4 h-4" />
-                <span>{loading ? 'Signing In...' : 'Sign In (લૉગિન કરો)'}</span>
+                <span>{loading ? 'Signing In...' : 'Sign In'}</span>
               </button>
 
               <div className="pt-2 text-center">
@@ -463,7 +463,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    {t('auth_state_label', '૧. રાજ્ય (State)')} *
+                    {t('auth_state_label', '1. Select State')} *
                   </label>
                   <div className="relative">
                     <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" />
@@ -482,7 +482,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    {t('auth_district_label', '૨. જિલ્લો (District)')} *
+                    {t('auth_district_label', '2. Select District')} *
                   </label>
                   <div className="relative">
                     <MapPin className="w-3.5 h-3.5 text-blue-500 absolute left-2.5 top-3" />
@@ -507,14 +507,14 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1.5 text-blue-900 font-black text-xs">
                     <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <span>{t('auth_district_lang_title', '૩. જિલ્લા મુજબ બોલાતી ભાષા (District Language)')}</span>
+                    <span>{t('auth_district_lang_title', '3. Preferred Language')}</span>
                   </div>
                   <span className="text-[10px] font-black uppercase text-blue-700 bg-white px-2 py-0.5 rounded-full border border-blue-200 shadow-2xs">
                     {language.toUpperCase()} Active
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-600 leading-tight">
-                  {t('auth_district_lang_desc', 'તમે પસંદ કરશો તે ભાષામાં આખી વેબસાઇટ આપોઆપ રૂપાંતરિત થઈ જશે:')}
+                  {t('auth_district_lang_desc', 'Choose your preferred language or continue in default English:')}
                 </p>
                 <div className="flex flex-wrap gap-1.5 pt-0.5">
                   {getSpokenLanguages(formData.state, formData.district).map((lang) => {
@@ -540,7 +540,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  {t('auth_qual_label', 'શૈક્ષણિક લાયકાત (Qualification)')} *
+                  {t('auth_qual_label', 'Highest Qualification')} *
                 </label>
                 <div className="relative">
                   <GraduationCap className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" />

@@ -127,7 +127,7 @@ export default function JobDetailsModal({ job, isOpen, onClose, onStartMockTest 
           <div className="space-y-3">
             <h4 className="text-sm font-black text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
               <FileText className="w-4 h-4 text-slate-600" />
-              <span>સંપૂર્ણ વિગતો અને જોબનું વર્ણન (Full Job Description &amp; Scope)</span>
+              <span>Full Job Description &amp; Scope</span>
             </h4>
             <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200 whitespace-pre-line">
               {job.description || 'Full notification details are published by the recruiting board. Candidates must review age limits, fee structure, and syllabi before submitting the online form.'}

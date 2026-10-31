@@ -33,10 +33,10 @@ export default function ContactPage({ setCurrentView }) {
           Support Desk
         </span>
         <h1 className="text-3xl font-black text-slate-900">
-          સંપર્ક કરો (Contact Jobopedia)
+          Contact Jobopedia Support
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
-          ભરતી વિશે કોઈ પ્રશ્ન હોય અથવા ઓનલાઈન ફોર્મ ભરવામાં મદદ જોઈતી હોય તો અમારો સંપર્ક કરો.
+          Have an inquiry regarding job postings, mock tests, or require assistance? Reach out to our team.
         </p>
       </div>
 
@@ -45,9 +45,9 @@ export default function ContactPage({ setCurrentView }) {
         {/* Contact Info Card */}
         <div className="md:col-span-5 bg-gradient-to-br from-[#0B1528] to-slate-900 text-white rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
           <div>
-            <h3 className="text-lg font-black text-white">હેલ્પલાઇન &amp; સહાયતા</h3>
+            <h3 className="text-lg font-black text-white">Helpline &amp; Support Desk</h3>
             <p className="text-xs text-slate-300 mt-1">
-              અમારી ટીમ સોમવાર થી શનિવાર સવારે 9:00 થી સાંજે 8:00 સુધી ઉપલબ્ધ છે.
+              Our candidate assistance team is active Monday through Saturday from 9:00 AM to 8:00 PM IST.
             </p>
           </div>
 
@@ -113,7 +113,7 @@ export default function ContactPage({ setCurrentView }) {
               className="w-full py-2.5 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-500 hover:opacity-95 text-white rounded-2xl text-xs font-black shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer"
             >
               <Instagram className="w-4 h-4" />
-              <span>Instagram પર જોડાઓ (@jobopedia.in)</span>
+              <span>Connect on Instagram (@jobopedia.in)</span>
             </a>
           </div>
         </div>
@@ -125,21 +125,21 @@ export default function ContactPage({ setCurrentView }) {
               <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-black text-slate-900">સંદેશો મોકલાઈ ગયો છે!</h3>
+              <h3 className="text-lg font-black text-slate-900">Message Sent Successfully!</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                તમારો પ્રશ્ન સફળતાપૂર્વક સબમિટ થઈ ગયો છે. અમારી સપોર્ટ ટીમ 24 કલાકમાં તમારો સંપર્ક કરશે.
+                Thank you for contacting us. Your message has been received and our candidate support desk will respond within 24 hours.
               </p>
               <button 
                 onClick={() => setSubmitted(false)}
-                className="text-xs font-bold text-blue-600 hover:underline pt-2"
+                className="text-xs font-bold text-blue-600 hover:underline pt-2 cursor-pointer"
               >
-                બીજો મેસેજ મોકલો (Send another)
+                Send another message
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">તમારું પૂરું નામ (Full Name)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
                 <input 
                   type="text" 
                   required
@@ -152,7 +152,7 @@ export default function ContactPage({ setCurrentView }) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">ઈમેઈલ (Email)</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
                   <input 
                     type="email" 
                     required
@@ -163,26 +163,26 @@ export default function ContactPage({ setCurrentView }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">મોબાઈલ નંબર (Mobile)</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Mobile Number</label>
                   <input 
                     type="tel" 
                     required
                     value={formData.mobile}
                     onChange={(e) => setFormData({...formData, mobile: e.target.value})}
-                    placeholder="e.g. 8487944035" 
+                    placeholder="e.g. 9876543210" 
                     className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">તમારો પ્રશ્ન અથવા સંદેશો (Message)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Your Inquiry / Message</label>
                 <textarea 
                   rows={4}
                   required
                   value={formData.message}
                   onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  placeholder="ભરતી વિશે કંઈપણ પૂછો..." 
+                  placeholder="Describe your question, job notification inquiry, or feedback..." 
                   className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none resize-none"
                 ></textarea>
               </div>
@@ -192,7 +192,7 @@ export default function ContactPage({ setCurrentView }) {
                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>સંદેશો મોકલો (Submit Inquiry)</span>
+                <span>Submit Inquiry</span>
               </button>
             </form>
           )}

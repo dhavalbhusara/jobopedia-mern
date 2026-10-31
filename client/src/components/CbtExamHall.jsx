@@ -355,7 +355,7 @@ export default function CbtExamHall({ test, onExit }) {
             
             <div>
               <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                Question Palette (પ્રશ્ન નેવિગેશન)
+                Question Palette
               </h4>
               <p className="text-[11px] text-slate-500 mt-0.5">
                 Click any number to jump directly to that question

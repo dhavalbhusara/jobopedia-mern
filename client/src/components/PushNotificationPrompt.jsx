@@ -110,11 +110,11 @@ export default function PushNotificationPrompt({ user }) {
             </div>
 
             <h3 className="text-sm sm:text-base font-black text-white leading-snug">
-              Website Notifications મંજૂર કરો (Allow Job Alerts)
+              Allow Instant Job Notifications
             </h3>
 
             <p className="text-xs text-slate-300 leading-relaxed font-medium">
-              નવી સરકારી ભરતી કે પ્રાઈવેટ જોબ અપલોડ થતાં જ તમારા મોબાઈલ અને કમ્પ્યુટર પર સીધી ફ્રી એલર્ટ મેળવવા માટે નોટિફિકેશન મંજૂર કરો.
+              Get instant free notifications on your mobile and desktop whenever a new Government recruitment or Corporate vacancy is published.
             </p>
           </div>
         </div>

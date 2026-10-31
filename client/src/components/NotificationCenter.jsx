@@ -278,13 +278,13 @@ export default function NotificationCenter({ user }) {
                   <div className="space-y-1.5">
                     <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>Chrome Push Active (ચાલુ છે)</span>
+                      <span>Push Notifications Active</span>
                     </div>
                     <h4 className="text-lg font-black text-slate-900 pt-1">
-                      તમારા ફોનમાં નોટિફિકેશન ચાલુ છે!
+                      Live Job Notifications are Active on your device!
                     </h4>
                     <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
-                      Chrome કે વેબસાઈટ બંધ હશે તો પણ નવી સરકારી ભરતી કે પ્રાઈવેટ જોબ અપલોડ થતાં જ તમારા આ ફોન પર સીધા ફ્રી એલર્ટ મળતા રહેશે.
+                      Even if the browser or website is closed, you will receive real-time free alerts directly on your device whenever new jobs are posted.
                     </p>
                   </div>
 
@@ -295,7 +295,7 @@ export default function NotificationCenter({ user }) {
                       className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
                     >
                       <Volume2 className="w-4 h-4 text-emerald-400" />
-                      <span>{testSent ? '✓ Test Alert Sent to Device!' : 'Send Test Notification (ટેસ્ટ કરો)'}</span>
+                      <span>{testSent ? '✓ Test Alert Sent to Device!' : 'Send Test Notification'}</span>
                     </button>
 
                     <button
@@ -303,7 +303,7 @@ export default function NotificationCenter({ user }) {
                       onClick={() => setIsOpen(false)}
                       className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-bold transition cursor-pointer"
                     >
-                      બંધ કરો (Close)
+                      Close
                     </button>
                   </div>
                 </>
@@ -319,10 +319,10 @@ export default function NotificationCenter({ user }) {
                       <span>Permissions Blocked</span>
                     </div>
                     <h4 className="text-base font-black text-slate-900 pt-1">
-                      Chrome માં નોટિફિકેશન Block થયેલ છે
+                      Push Notifications are Blocked in Browser
                     </h4>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      ચાલુ કરવા માટે ઉપર બ્રાઉઝરના URL ની બાજુમાં <strong>તાળા (🔒 Lock)</strong> ના આઇકોન પર ક્લિક કરીને <strong>Notifications: Allow</strong> સિલેક્ટ કરો.
+                      To enable notifications, click the <strong>🔒 Lock icon</strong> next to the website address bar and choose <strong>Notifications: Allow</strong>.
                     </p>
                   </div>
 
@@ -331,7 +331,7 @@ export default function NotificationCenter({ user }) {
                     onClick={() => setIsOpen(false)}
                     className="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
                   >
-                    સમજાયું (OK)
+                    Got it (OK)
                   </button>
                 </>
               ) : (
@@ -343,10 +343,10 @@ export default function NotificationCenter({ user }) {
 
                   <div className="space-y-1.5">
                     <h4 className="text-lg font-black text-slate-900">
-                      Chrome Notifications ચાલુ કરો
+                      Enable Real-Time Job Notifications
                     </h4>
                     <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
-                      વેબસાઇટ બંધ હોય ત્યારે પણ નવી ભરતીના લાઈવ એલર્ટ તમારા ફોન પર મેળવવા માટે On કરો.
+                      Turn ON notifications to receive instant career alerts on your phone or PC as soon as new jobs are published.
                     </p>
                   </div>
 
@@ -358,7 +358,7 @@ export default function NotificationCenter({ user }) {
                       className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-sm shadow-lg shadow-blue-500/25 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95 disabled:opacity-50"
                     >
                       <Bell className="w-5 h-5 text-amber-300 animate-pulse" />
-                      <span>{isSubscribing ? 'Connecting Chrome...' : '🔔 Turn ON Notifications (ઓન કરો)'}</span>
+                      <span>{isSubscribing ? 'Connecting Chrome...' : '🔔 Turn ON Live Job Alerts'}</span>
                     </button>
 
                     <button
@@ -366,7 +366,7 @@ export default function NotificationCenter({ user }) {
                       onClick={() => setIsOpen(false)}
                       className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-bold transition cursor-pointer"
                     >
-                      પછી કરીશ (Not Now)
+                      Not Now
                     </button>
                   </div>
                 </>

@@ -66,7 +66,7 @@ export default function JobDetailPage({ job: initialJob, setCurrentView, onStart
     return (
       <div className="max-w-3xl mx-auto px-4 py-28 text-center space-y-4">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto shadow-md"></div>
-        <h2 className="text-xl font-black text-slate-800">જોબની સંપૂર્ણ વિગતો મેળવી રહ્યા છીએ...</h2>
+        <h2 className="text-xl font-black text-slate-800">Loading complete job details...</h2>
         <p className="text-xs text-slate-500 font-medium">Please wait while we retrieve the authentic verified job notification from database.</p>
       </div>
     );
@@ -78,15 +78,15 @@ export default function JobDetailPage({ job: initialJob, setCurrentView, onStart
         <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-3xl flex items-center justify-center mx-auto border border-amber-200 shadow-sm">
           <FileText className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-black text-slate-900">આ જોબ જાહેરાત મળી નથી</h2>
+        <h2 className="text-2xl font-black text-slate-900">Job Opening Not Found or Expired</h2>
         <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-          તમે જે શેર કરેલી લિંક પર ક્લિક કર્યું છે તે જોબની મુદત પૂર્ણ થઈ ગઈ હોઈ શકે છે અથવા લિંક બદલાઈ ગઈ છે.
+          The job link you clicked may have expired or is no longer active. Explore our homepage for all latest recruitment openings.
         </p>
         <button
           onClick={() => setCurrentView('home')}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-lg transition cursor-pointer"
         >
-          હોમપેજ પર તમામ નવી ભરતીઓ જુઓ (Explore All Jobs)
+          Explore All Live Jobs on Homepage
         </button>
       </div>
     );
@@ -111,12 +111,12 @@ export default function JobDetailPage({ job: initialJob, setCurrentView, onStart
   const handleWhatsAppShare = () => {
     const text = encodeURIComponent(
       `🏛️ *${currentJob.title}*\n` +
-      `🏢 ડિપાર્ટમેન્ટ / સંસ્થા: ${currentJob.department || currentJob.organization || currentJob.company}\n` +
-      `💰 પગાર ધોરણ: ${currentJob.salary}\n` +
-      `👥 કુલ જગ્યાઓ: ${currentJob.vacancies ? `${currentJob.vacancies} Posts` : 'Active Vacancies'}\n` +
-      `📅 છેલ્લી તારીખ: ${currentJob.lastDate || 'Closing Soon'}\n` +
-      `📍 સ્થળ: ${currentJob.state || 'All India'}\n\n` +
-      `👉 આ જોબની સંપૂર્ણ વિગતો વાંચવા અને સીધી અરજી કરવા અહીં ક્લિક કરો:\n${shareUrl}`
+      `🏢 Department / Org: ${currentJob.department || currentJob.organization || currentJob.company}\n` +
+      `💰 Salary / Pay Scale: ${currentJob.salary}\n` +
+      `👥 Total Vacancies: ${currentJob.vacancies ? `${currentJob.vacancies} Posts` : 'Active Vacancies'}\n` +
+      `📅 Last Date to Apply: ${currentJob.lastDate || 'Closing Soon'}\n` +
+      `📍 Job Location: ${currentJob.state || 'All India'}\n\n` +
+      `👉 Click here to view complete job details and apply directly:\n${shareUrl}`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -362,7 +362,7 @@ export default function JobDetailPage({ job: initialJob, setCurrentView, onStart
                 <Briefcase className="w-4 h-4" />
               </span>
               <h2 className="text-lg font-black text-slate-900">
-                Detailed Job Description &amp; Responsibilities (વિગતવાર વર્ણન)
+                Detailed Job Description &amp; Responsibilities
               </h2>
             </div>
             
@@ -387,7 +387,7 @@ export default function JobDetailPage({ job: initialJob, setCurrentView, onStart
                 <GraduationCap className="w-4 h-4" />
               </span>
               <h2 className="text-lg font-black text-slate-900">
-                Eligibility &amp; Educational Qualification (લાયકાત અને શરતો)
+                Eligibility &amp; Educational Qualification
               </h2>
             </div>
 
@@ -429,7 +429,7 @@ export default function JobDetailPage({ job: initialJob, setCurrentView, onStart
                 <Award className="w-4 h-4" />
               </span>
               <h2 className="text-lg font-black text-slate-900">
-                Selection Process &amp; Examination Pattern (પસંદગી પ્રક્રિયા)
+                Selection Process &amp; Examination Pattern
               </h2>
             </div>
 
@@ -494,10 +494,10 @@ export default function JobDetailPage({ job: initialJob, setCurrentView, onStart
               </span>
               <div>
                 <h3 className="text-sm font-black text-slate-900">
-                  Share this Job (મિત્રો સાથે શેર કરો)
+                  Share this Job with Friends &amp; Groups
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">
-                  આ ડાયરેક્ટ લિંક પર ક્લિક કરતાં જ આ જ જોબ ખૂલશે
+                  Recipients clicking this link will open this exact job page directly
                 </p>
               </div>
             </div>
@@ -549,7 +549,7 @@ export default function JobDetailPage({ job: initialJob, setCurrentView, onStart
             </div>
 
             <p className="text-[10px] text-slate-500 font-medium text-center">
-              💡 WhatsApp, Telegram કે Social Media પર મોકલીને મિત્રોને જાણ કરો.
+              💡 Share via WhatsApp, Telegram, or Social Media to help candidates apply.
             </p>
           </div>
 

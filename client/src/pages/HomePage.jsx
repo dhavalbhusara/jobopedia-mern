@@ -276,7 +276,7 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                 Official Recruitment Departments
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
-                Browse by Department (સત્તાવાર ભરતી વિભાગો)
+                Browse by Official Department
               </h2>
               <p className="text-xs text-slate-500 font-medium">
                 Filter official recruitment openings across UPSC, SSC, Railways, Banking, Defence, Healthcare &amp; Education
@@ -344,7 +344,7 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                 <span>Private &amp; Corporate Career Sectors</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
-                Browse Private Jobs by Sector (ખાનગી અને કોર્પોરેટ સેક્ટર્સ)
+                Browse Private Jobs by Sector
               </h2>
               <p className="text-xs text-slate-500 font-medium">
                 Filter verified openings across IT &amp; Software, Pharma, Banking BFSI, Manufacturing, Sales &amp; Top Corporate Industries
@@ -388,7 +388,7 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                       {sec.name}
                     </h4>
                     <div className="text-[10px] text-slate-500 font-semibold truncate mt-0.5">
-                      {sec.gujaratiName}
+                      {sec.subTitle || sec.companies}
                     </div>
                     <div className="mt-2">
                       <span className={`text-[10px] font-black px-2 py-0.5 rounded-full inline-block ${sec.badgeColor}`}>

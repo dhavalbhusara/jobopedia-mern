@@ -83,6 +83,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'it',
     name: 'IT & Software / Tech',
+    subTitle: 'Software, Cloud & Tech Startups',
     gujaratiName: 'માહિતી ટેકનોલોજી & સોફ્ટવેર',
     icon: '💻',
     color: 'from-blue-600 to-indigo-600',
@@ -96,6 +97,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'pharma',
     name: 'Pharma & Healthcare',
+    subTitle: 'Pharmaceuticals & Healthcare Plants',
     gujaratiName: 'ફાર્માસ્યુટિકલ & હેલ્થકેર',
     icon: '💊',
     color: 'from-emerald-600 to-teal-600',
@@ -109,6 +111,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'banking',
     name: 'Banking, Finance & BFSI',
+    subTitle: 'Banking, FinTech & Insurance',
     gujaratiName: 'બેન્કિંગ, ફાઇનાન્સ & ઇન્સ્યોરન્સ',
     icon: '🏦',
     color: 'from-indigo-600 to-purple-600',
@@ -122,6 +125,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'manufacturing',
     name: 'Manufacturing & Engineering',
+    subTitle: 'Core Engineering & Manufacturing Plants',
     gujaratiName: 'મેન્યુફેક્ચરિંગ & એન્જિનિયરિંગ',
     icon: '🏭',
     color: 'from-amber-600 to-orange-600',
@@ -135,6 +139,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'sales',
     name: 'Sales & Marketing',
+    subTitle: 'Sales, Marketing & Growth',
     gujaratiName: 'સેલ્સ & બિઝનેસ ડેવલપમેન્ટ',
     icon: '📈',
     color: 'from-rose-600 to-pink-600',
@@ -148,6 +153,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'education',
     name: 'Education & EdTech',
+    subTitle: 'Teaching, Universities & EdTech',
     gujaratiName: 'શિક્ષણ & પ્રાઇવેટ ટ્રેઇનિંગ',
     icon: '📚',
     color: 'from-purple-600 to-violet-600',
@@ -161,6 +167,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'automobile',
     name: 'Automobile & EV Industry',
+    subTitle: 'Automobile, EV & OEM Industry',
     gujaratiName: 'ઓટોમોબાઇલ & ઇવી ઇન્ડસ્ટ્રી',
     icon: '🚗',
     color: 'from-cyan-600 to-blue-600',
@@ -174,6 +181,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'retail',
     name: 'E-Commerce & Retail',
+    subTitle: 'E-Commerce, Malls & Retail Chains',
     gujaratiName: 'ઇ-કોમર્સ & રિટેલ સ્ટોર્સ',
     icon: '🛒',
     color: 'from-orange-600 to-amber-600',
@@ -187,6 +195,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'logistics',
     name: 'Logistics & Supply Chain',
+    subTitle: 'Supply Chain, Cargo & Warehousing',
     gujaratiName: 'લોજિસ્ટિક્સ & સપ્લાય ચેઇન',
     icon: '🚚',
     color: 'from-teal-600 to-emerald-600',
@@ -200,6 +209,7 @@ export const ALL_PRIVATE_SECTORS = [
   {
     id: 'hr',
     name: 'HR, Admin & Operations',
+    subTitle: 'Talent Acquisition, BPO & Back Office',
     gujaratiName: 'એચ.આર & બેક ઓફિસ એડમિન',
     icon: '👥',
     color: 'from-slate-700 to-zinc-800',

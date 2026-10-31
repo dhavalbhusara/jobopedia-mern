@@ -297,7 +297,7 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
                         }}
                         className="flex-1 py-2 px-3 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-bold text-center transition cursor-pointer"
                       >
-                        સંપૂર્ણ વિગતો / View Details
+                        View Full Details
                       </button>
                       <button
                         type="button"
@@ -347,23 +347,23 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
             </div>
 
             <div className="bg-emerald-950/70 border border-emerald-500/50 rounded-2xl p-4">
-              <div className="text-xs font-bold text-emerald-300 uppercase">પગાર ધોરણ (Official Pay Scale &amp; Monthly Salary)</div>
+              <div className="text-xs font-bold text-emerald-300 uppercase">Official Pay Scale &amp; Monthly Salary</div>
               <div className="text-xl sm:text-2xl font-black text-emerald-300 mt-1">{modalJob.salary}</div>
               <p className="text-xs text-emerald-200/80 mt-1">Includes Basic Pay + DA + HRA + Transport &amp; Medical Allowances.</p>
             </div>
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-2">
-              <div className="text-xs font-bold text-amber-300">સત્તાવાર જોબ વર્ણન (Job Scope &amp; Official Duties):</div>
+              <div className="text-xs font-bold text-amber-300">Official Job Description &amp; Scope:</div>
               <p className="text-sm text-slate-200 leading-relaxed">{modalJob.description}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="bg-white/5 p-3 rounded-xl border border-white/10">
-                <span className="text-slate-400 block font-semibold">લાયકાત (Eligibility):</span>
+                <span className="text-slate-400 block font-semibold">Educational Eligibility:</span>
                 <span className="font-bold text-white text-sm">{modalJob.eligibility}</span>
               </div>
               <div className="bg-white/5 p-3 rounded-xl border border-white/10">
-                <span className="text-slate-400 block font-semibold">કુલ જગાઓ (Total Vacancies):</span>
+                <span className="text-slate-400 block font-semibold">Total Available Vacancies:</span>
                 <span className="font-bold text-white text-sm">{modalJob.vacancies} Posts</span>
               </div>
             </div>

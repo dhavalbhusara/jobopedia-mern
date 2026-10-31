@@ -162,7 +162,7 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
           <span>Home</span>
         </button>
         <span>/</span>
-        <span className="text-slate-800">પ્રાઇવેટ &amp; MNC જોબ્સ (Corporate Careers)</span>
+        <span className="text-slate-800">Private &amp; MNC Corporate Careers</span>
       </div>
 
       {/* Hero Banner */}
@@ -177,10 +177,10 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
         </div>
 
         <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight">
-          પ્રાઇવેટ અને MNC કેરિયર પોર્ટલ (Private Jobs Hub)
+          Private &amp; Corporate MNC Careers Portal
         </h1>
         <p className="text-xs sm:text-sm text-emerald-100 max-w-2xl leading-relaxed">
-          ભારતની લીડિંગ આઇટી કંપનીઓ, ફાર્માસ્યુટિકલ પ્લાન્ટ્સ, બેન્કિંગ સેક્ટર અને એન્જિનિયરિંગ ક્ષેત્રની વેરિફાઇડ નોકરીઓ વાર્ષિક પેકેજ અને લાયકાત સાથે.
+          Verified job openings across leading IT tech giants, pharmaceutical plants, banking BFSI, and core engineering industries with detailed annual CTC packages and eligibility.
         </p>
       </div>
 

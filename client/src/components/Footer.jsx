@@ -71,7 +71,7 @@ export default function Footer({ setCurrentView }) {
             <h4 className="font-black text-white text-sm">Organization</h4>
             <ul className="space-y-1.5 text-slate-400">
               <li><button onClick={() => navigateTo('about')} className="hover:text-white transition cursor-pointer">About Jobopedia</button></li>
-              <li><button onClick={() => navigateTo('privacy-policy')} className="hover:text-amber-400 font-semibold transition cursor-pointer">Privacy Policy (ગોપનીયતા નીતિ)</button></li>
+              <li><button onClick={() => navigateTo('privacy-policy')} className="hover:text-amber-400 font-semibold transition cursor-pointer">Privacy Policy</button></li>
               <li><button onClick={() => navigateTo('contact')} className="hover:text-white transition cursor-pointer">Contact Support Desk</button></li>
               <li>UPSC Civil Services 2026</li>
               <li>Gujarat Police Constable &amp; PSI</li>

@@ -252,7 +252,7 @@ export default function Navbar({
                       onClick={() => { setResourcesOpen(false); setCurrentView('privacy-policy'); }}
                       className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 font-bold transition cursor-pointer"
                     >
-                      <span>🔒 Privacy Policy (ગોપનીયતા નીતિ)</span>
+                      <span>🔒 Privacy Policy</span>
                     </button>
                   </div>
                 )}
@@ -270,7 +270,7 @@ export default function Navbar({
                   onClick={() => setLangMenuOpen(!langMenuOpen)}
                   onBlur={() => setTimeout(() => setLangMenuOpen(false), 300)}
                   className="flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-blue-200 hover:border-blue-400 bg-blue-50/70 hover:bg-blue-100 text-blue-900 text-xs font-bold transition cursor-pointer shadow-2xs"
-                  title={t('language_picker', 'ભાષા બદલો / Translate Website')}
+                  title={'Translate Website / Select Language'}
                 >
                   <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                   <span className="font-extrabold text-xs">{currentLangObj?.label || 'English'}</span>
@@ -285,7 +285,7 @@ export default function Navbar({
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                       <div className="flex items-center space-x-1.5 text-slate-800 font-black text-xs">
                         <Globe className="w-4 h-4 text-blue-600" />
-                        <span>વેબસાઇટની ભાષા (Translate)</span>
+                        <span>Select Website Language</span>
                       </div>
                       <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-black border border-blue-200">
                         {language.toUpperCase()}
@@ -295,7 +295,7 @@ export default function Navbar({
                     {/* State-Based Language Selector */}
                     <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 space-y-1.5">
                       <label className="block text-[11px] font-black text-slate-700">
-                        📍 રાજ્ય મુજબ ભાષા (By State):
+                        📍 State Regional Languages:
                       </label>
                       <select
                         value={selectedState || 'Gujarat'}
@@ -330,7 +330,7 @@ export default function Navbar({
                     {/* Direct All Languages List */}
                     <div>
                       <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1 pb-1">
-                        બધી ભારતીય ભાષાઓ (All Languages):
+                        🌐 All Supported Languages:
                       </div>
                       <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto pr-1">
                         {supportedLanguages.map((lang) => (
@@ -621,7 +621,7 @@ export default function Navbar({
                   className="w-full p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-left cursor-pointer flex items-center space-x-2 font-bold"
                 >
                   <MessageSquare className="w-4 h-4 text-rose-600" />
-                  <span>📢 Submit Complaint (ફરિયાદ)</span>
+                  <span>📢 Submit Grievance / Feedback</span>
                 </button>
               </div>
             </div>

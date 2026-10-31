@@ -158,10 +158,10 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
           🎓 College Students &amp; Freshers Portal 2026
         </span>
         <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight">
-          સરકારી અને કોર્પોરેટ ઇન્ટર્નશિપ્સ (Internships Hub)
+          Government & Corporate Internships Hub
         </h1>
         <p className="text-xs sm:text-sm text-emerald-100 max-w-2xl leading-relaxed">
-          કોલેજ વિદ્યાર્થીઓ અને ફ્રેશર્સ માટે માસિક સ્ટાઈપેન્ડ (₹12,000 થી ₹28,000), સર્ટિફિકેટ અને પ્રી-પ્લેસમેન્ટ ઓફર (PPO) સાથે વેરિફાઇડ તકો.
+          Verified internship openings for college students and freshers with monthly stipends (₹12,000 to ₹35,000), official certificates, and Pre-Placement Offers (PPO).
         </p>
       </div>
 

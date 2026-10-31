@@ -151,7 +151,7 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
           <span>Home</span>
         </button>
         <span>/</span>
-        <span className="text-slate-800">સરકારી નોકરીઓ (Government Jobs)</span>
+        <span className="text-slate-800">Government Jobs (Central & State)</span>
       </div>
 
       {/* Hero Banner */}
@@ -167,10 +167,10 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
         </div>
 
         <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight">
-          સરકારી ભરતી પોર્ટલ (Government Jobs Hub)
+          Government Jobs Portal & Recruitment Hub
         </h1>
         <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
-          UPSC, GPSC, GSSSB, ગુજરાત પોલીસ, રેલવે RRB, બેન્કિંગ અને SSC ના તમામ સત્તાવાર નોટિફિકેશન, પગાર ધોરણ (Salary), વયમર્યાદા અને ડાયરેક્ટ ઓનલાઈન ફોર્મ લિંક્સ.
+          Official recruitment notifications, pay scale matrices, eligibility requirements, and direct application links across UPSC, SSC, Railways RRB, Banking, Defence, and State Services.
         </p>
       </div>
 

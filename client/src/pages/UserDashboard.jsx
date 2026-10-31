@@ -468,7 +468,7 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
             }`}
           >
             <MessageSquare className="w-4 h-4 text-rose-500" />
-            <span>Help Desk &amp; Grievances (ફરિયાદ)</span>
+            <span>Help Desk &amp; Grievances</span>
           </button>
         </div>
 
@@ -794,7 +794,7 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                 </span>
                 <div>
                   <h3 className="text-lg font-black text-slate-900">
-                    Candidate Grievance &amp; Help Desk (ફરિયાદ નિવારણ)
+                    Candidate Grievance &amp; Help Desk
                   </h3>
                   <p className="text-xs text-slate-600 font-medium mt-0.5">
                     If you face any problem in job application, expired link, or need technical help, write here. Your ticket goes directly to Dhaval Admin Panel.
@@ -844,7 +844,7 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Subject (વિષય) *</label>
+                    <label className="block font-bold text-slate-700 mb-1">Subject *</label>
                     <input
                       type="text"
                       required
@@ -856,7 +856,7 @@ export default function UserDashboard({ user, setUser, setCurrentView, openResum
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Detailed Description (વિગતવાર સમજાવો) *</label>
+                    <label className="block font-bold text-slate-700 mb-1">Detailed Description *</label>
                     <textarea
                       rows={4}
                       required

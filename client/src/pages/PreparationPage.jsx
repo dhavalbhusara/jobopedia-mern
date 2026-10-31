@@ -25,10 +25,10 @@ export default function PreparationPage({ setCurrentView }) {
           🎯 Official 2026 Examination Roadmaps
         </span>
         <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight">
-          પરીક્ષા તૈયારી ગાઈડ &amp; દૈનિક સ્ટડી ટાઈમટેબલ
+          Exam Preparation Guide &amp; Daily Study Timetable
         </h1>
         <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
-          ગુજરાત સરકારની મહત્વપૂર્ણ સ્પર્ધાત્મક પરીક્ષાઓ (GSSSB CCE, Police, Talati, GPSC) પાસ કરવા માટે સિલેબસ વેઇટેજ, ટાઈમટેબલ અને ટોપર્સ સ્ટ્રેટેજી.
+          Comprehensive syllabus blueprints, subject weightage, study roadmaps, and topper strategies for competitive examinations (GSSSB CCE, Police Constable, Talati, GPSC &amp; SSC).
         </p>
       </div>
 
@@ -37,16 +37,16 @@ export default function PreparationPage({ setCurrentView }) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
-              GSSSB નવી પદ્ધતિ (New Pattern)
+              GSSSB New Pattern 2026
             </span>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-              1. GSSSB CCE (Group A &amp; B) પ્રિલિમ્સ બ્લુપ્રિન્ટ — 100 ગુણ (60 મિનિટ)
+              1. GSSSB CCE (Group A &amp; B) Prelims Blueprint — 100 Marks (60 Minutes)
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              જુનિયર ક્લાર્ક, સિનિયર ક્લાર્ક, હેડ ક્લાર્ક અને ઓફિસ આસિસ્ટન્ટ માટે
+              For Junior Clerk, Senior Clerk, Head Clerk, and Office Assistant posts
             </p>
           </div>
-          <button 
+          <button
             onClick={() => downloadBlueprint('GSSSB CCE')}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
           >
@@ -58,54 +58,54 @@ export default function PreparationPage({ setCurrentView }) {
         {/* 4 Subjects Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-2">
-            <div className="text-2xl font-black text-blue-600">40 ગુણ</div>
-            <h4 className="text-sm font-bold text-slate-900">રીઝનિંગ (Reasoning)</h4>
+            <div className="text-2xl font-black text-blue-600">40 Marks</div>
+            <h4 className="text-sm font-bold text-slate-900">Reasoning &amp; Analytics</h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              કોડિંગ-ડિકોડિંગ, બ્લડ રિલેશન, દિશા અને અંતર, કેલેન્ડર, ઘડિયાળ અને બેઠક વ્યવસ્થા.
+              Coding-Decoding, Blood Relations, Direction &amp; Distance, Calendars, Clocks, and Seating Arrangements.
             </p>
           </div>
 
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-2">
-            <div className="text-2xl font-black text-amber-600">30 ગુણ</div>
-            <h4 className="text-sm font-bold text-slate-900">મેથ્સ (Quantitative Aptitude)</h4>
+            <div className="text-2xl font-black text-amber-600">30 Marks</div>
+            <h4 className="text-sm font-bold text-slate-900">Quantitative Aptitude</h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              ટકાવારી, નફો-ખોટ, ગુણોત્તર, સમય અને કાર્ય, સાદું અને ચક્રવૃદ્ધિ વ્યાજ, સરેરાશ.
+              Percentages, Profit &amp; Loss, Ratio &amp; Proportion, Time &amp; Work, Simple &amp; Compound Interest, Averages.
             </p>
           </div>
 
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-2">
-            <div className="text-2xl font-black text-emerald-600">15 ગુણ</div>
-            <h4 className="text-sm font-bold text-slate-900">ગુજરાતી વ્યાકરણ (Gujarati)</h4>
+            <div className="text-2xl font-black text-emerald-600">15 Marks</div>
+            <h4 className="text-sm font-bold text-slate-900">Regional Language &amp; Grammar</h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              જોડણી, સમાસ, અલંકાર, છંદ, સમાનાર્થી, વિરુદ્ધાર્થી અને શબ્દસમૂહ માટે એક શબ્દ.
+              Orthography, Compounds, Figures of Speech, Synonyms, Antonyms, and Idiomatic Expressions.
             </p>
           </div>
 
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-2">
-            <div className="text-2xl font-black text-purple-600">15 ગુણ</div>
-            <h4 className="text-sm font-bold text-slate-900">અંગ્રેજી (English Grammar)</h4>
+            <div className="text-2xl font-black text-purple-600">15 Marks</div>
+            <h4 className="text-sm font-bold text-slate-900">English Grammar &amp; Vocab</h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Tenses, Voice (Active/Passive), Direct-Indirect, Prepositions, Idioms &amp; Vocab.
+              Tenses, Active &amp; Passive Voice, Direct &amp; Indirect Speech, Prepositions, Idioms &amp; Vocabulary.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Blueprint 2: Gujarat Police Constable */}
+      {/* Blueprint 2: Police Constable */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-              ગુજરાત પોલીસ ભરતી 2026
+              Police &amp; PSI Recruitment 2026
             </span>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-              2. ગુજરાત પોલીસ કોન્સ્ટેબલ અને PSI ભરતી બ્લુપ્રિન્ટ
+              2. Police Constable &amp; Sub-Inspector (PSI) Examination Blueprint
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              શારીરિક કસોટી (PET/PST) અને 200 ગુણની લેખિત પરીક્ષા માળખું
+              Physical Efficiency &amp; Measurement Test (PET/PST) and 200-Mark Written Exam Pattern
             </p>
           </div>
-          <button 
+          <button
             onClick={() => downloadBlueprint('Gujarat Police')}
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
           >
@@ -118,24 +118,24 @@ export default function PreparationPage({ setCurrentView }) {
           <div className="p-5 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-3">
             <h4 className="text-sm font-bold text-emerald-900 flex items-center space-x-2">
               <span>🏃</span>
-              <span>સ્ટેપ 1: શારીરિક કસોટી (Physical Test)</span>
+              <span>Step 1: Physical Efficiency Test (PET)</span>
             </h4>
             <ul className="text-xs text-slate-700 space-y-2 list-disc pl-5">
-              <li><strong>પુરુષ ઉમેદવારો:</strong> 5000 મીટર દોડ — મહત્તમ 25 મિનિટમાં પૂર્ણ કરવાની રહેશે.</li>
-              <li><strong>મહિલા ઉમેદવારો:</strong> 1600 મીટર દોડ — મહત્તમ 9 મિનિટ 30 સેકન્ડમાં પૂર્ણ કરવાની રહેશે.</li>
-              <li><strong>ઊંચાઈ (Height):</strong> સામાન્ય વર્ગ ૧૬૫ સે.મી., અનામત વર્ગ ૧૬૨ સે.મી.</li>
+              <li><strong>Male Candidates:</strong> 5000 meters run — to be completed within 25 minutes.</li>
+              <li><strong>Female Candidates:</strong> 1600 meters run — to be completed within 9 minutes 30 seconds.</li>
+              <li><strong>Minimum Height Standards:</strong> General Category 165 cm, Reserved Categories 162 cm.</li>
             </ul>
           </div>
 
           <div className="p-5 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-3">
             <h4 className="text-sm font-bold text-blue-900 flex items-center space-x-2">
               <span>📝</span>
-              <span>સ્ટેપ 2: લેખિત પરીક્ષા (Written Exam - 200 Marks)</span>
+              <span>Step 2: Written Examination (200 Marks)</span>
             </h4>
             <ul className="text-xs text-slate-700 space-y-2 list-disc pl-5">
-              <li><strong>ભારતીય ન્યાય સંહિતા (BNS / IPC):</strong> કાયદાના મૂળભૂત નિયમો અને અધિકારો.</li>
-              <li><strong>ભારતનું બંધારણ (Polity):</strong> મૂળભૂત હક્કો, ફરજો, રાષ્ટ્રપતિ, રાજ્યપાલ, ન્યાયતંત્ર.</li>
-              <li><strong>ગુજરાતનો ઇતિહાસ અને ભૂગોળ:</strong> જિલ્લાઓ, નદીઓ, અભયારણ્યો, સાહિત્યકારો.</li>
+              <li><strong>Bharatiya Nyaya Sanhita (BNS / Penal Code):</strong> Foundational legal statutes and procedural rights.</li>
+              <li><strong>Constitution of India (Polity):</strong> Fundamental Rights, Duties, President, Judiciary, State Executive.</li>
+              <li><strong>General Studies &amp; Geography:</strong> National Geography, Key Rivers, Sanctuaries, and Historical Heritage.</li>
             </ul>
           </div>
         </div>
@@ -144,25 +144,25 @@ export default function PreparationPage({ setCurrentView }) {
       {/* Daily Study Routine Recommendation */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-950 text-white rounded-3xl p-6 sm:p-8 space-y-5">
         <h3 className="text-xl font-black text-amber-300">
-          ⏰ ટોપર્સનું આદર્શ દૈનિક સ્ટડી ટાઈમટેબલ (Ideal Daily Schedule)
+          ⏰ Topper's Recommended Daily Study Timetable (Ideal Schedule)
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1">
-            <div className="text-amber-400 font-bold">સવારે 06:00 - 09:00</div>
-            <div className="font-bold text-white text-sm">કરંટ અફેર્સ &amp; જીકે (GK)</div>
-            <p className="text-slate-300">તાજા વર્તમાન બનાવો, ગુજરાત પાક્ષિક, અખબાર વાંચન અને દૈનિક ક્વિઝ.</p>
+            <div className="text-amber-400 font-bold">Morning 06:00 - 09:00</div>
+            <div className="font-bold text-white text-sm">Current Affairs &amp; General Knowledge</div>
+            <p className="text-slate-300">National events, daily editorial reading, official gazettes, and practice quizzes.</p>
           </div>
 
           <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1">
-            <div className="text-emerald-400 font-bold">બપોરે 11:00 - 02:00</div>
-            <div className="font-bold text-white text-sm">ગણિત અને રીઝનિંગ પ્રેક્ટિસ</div>
-            <p className="text-slate-300">દરરોજ ઓછામાં ઓછા 50 દાખલા સોલ્વ કરો; શોર્ટકટ ટ્રીક્સ નોંધો.</p>
+            <div className="text-emerald-400 font-bold">Afternoon 11:00 - 02:00</div>
+            <div className="font-bold text-white text-sm">Quantitative Aptitude &amp; Reasoning</div>
+            <p className="text-slate-300">Solve at least 50 numerical and analytical questions daily; note down shortcuts.</p>
           </div>
 
           <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-1">
-            <div className="text-blue-400 font-bold">સાંજે 07:00 - 10:00</div>
-            <div className="font-bold text-white text-sm">મોક ટેસ્ટ &amp; રિવિઝન</div>
-            <p className="text-slate-300">ઓનલાઈન મોક ટેસ્ટ આપો, ભૂલોનું એનાલિસિસ કરો અને દિવસનું રિવિઝન કરો.</p>
+            <div className="text-blue-400 font-bold">Evening 07:00 - 10:00</div>
+            <div className="font-bold text-white text-sm">Online Mock Tests &amp; Revision</div>
+            <p className="text-slate-300">Attempt full-length CBT practice tests, analyze incorrect answers, and revise daily notes.</p>
           </div>
         </div>
       </div>
