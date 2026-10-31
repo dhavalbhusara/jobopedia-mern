@@ -5,7 +5,7 @@ import {
   CheckCircle2, Bell, Send, Smartphone, Monitor, Trash2, 
   Search, BarChart3, TrendingUp, Calendar, FileSpreadsheet, 
   RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles, MessageSquare, LogOut,
-  AlertTriangle, Copy, Layers, ShieldAlert, Instagram, ExternalLink, CheckSquare, Square, Share2
+  AlertTriangle, Copy, Layers, ShieldAlert, Instagram, ExternalLink, CheckSquare, Square, Share2, Link2
 } from 'lucide-react';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
@@ -25,6 +25,15 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const [selectedInstaJobIds, setSelectedInstaJobIds] = useState([]);
   const [copyToastJobId, setCopyToastJobId] = useState(null);
   const [togglingInstaId, setTogglingInstaId] = useState(null);
+
+  // Shareable Job Links & Bulk Copy State
+  const [shareLinksDomain, setShareLinksDomain] = useState('https://jobopedia-mern.vercel.app');
+  const [shareLinksIdType, setShareLinksIdType] = useState('id'); // 'id' (MongoDB ID) | 'slug' (SEO Title Slug)
+  const [shareLinksSearch, setShareLinksSearch] = useState('');
+  const [shareLinksCategory, setShareLinksCategory] = useState('all'); // 'all' | 'govt' | 'private' | 'internship'
+  const [selectedShareJobIds, setSelectedShareJobIds] = useState([]);
+  const [copiedShareJobId, setCopiedShareJobId] = useState(null);
+  const [copiedAllMode, setCopiedAllMode] = useState(false);
 
   // Push Notification Broadcast State
   const [broadcastForm, setBroadcastForm] = useState({
@@ -1145,6 +1154,19 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
           <span>JOB POSTING FORM (NEW VACANCY)</span>
         </button>
 
+        {/* SHAREABLE JOB LINKS & BULK COPY TAB */}
+        <button
+          onClick={() => { setActiveTab('share-links'); fetchAllAdminJobs(); }}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-black transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+            activeTab === 'share-links' 
+              ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-md' 
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Link2 className="w-4 h-4 text-emerald-500" />
+          <span>🔗 SHAREABLE JOB LINKS &amp; BULK COPY ({allJobs.length})</span>
+        </button>
+
         {/* INSTAGRAM UPLOAD CHECKLIST TAB */}
         <button
           onClick={() => { setActiveTab('instagram'); fetchInstagramChecklist(); }}
@@ -1770,6 +1792,647 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
         </div>
       )}
 
+      {/* TAB: SHAREABLE JOB LINKS & BULK COPY ENGINE */}
+      {activeTab === 'share-links' && (() => {
+        const getJobIdentifier = (job) => {
+          if (shareLinksIdType === 'slug' && job.slug) return job.slug;
+          return job._id || job.id || job.slug || '';
+        };
+
+        const getJobShareUrl = (job) => {
+          const idVal = getJobIdentifier(job);
+          const base = (shareLinksDomain || 'https://jobopedia-mern.vercel.app').replace(/\/+$/, '');
+          return `${base}/?job=${encodeURIComponent(idVal)}`;
+        };
+
+        const filteredShareJobs = allJobs.filter(job => {
+          if (shareLinksCategory !== 'all' && job.category !== shareLinksCategory) return false;
+          if (shareLinksSearch && shareLinksSearch.trim()) {
+            const q = shareLinksSearch.toLowerCase();
+            const idStr = String(job._id || job.id || '').toLowerCase();
+            const slugStr = String(job.slug || '').toLowerCase();
+            const match = 
+              (job.title || '').toLowerCase().includes(q) ||
+              (job.department || '').toLowerCase().includes(q) ||
+              (job.qualification || '').toLowerCase().includes(q) ||
+              (job.state || '').toLowerCase().includes(q) ||
+              (job.salary || '').toLowerCase().includes(q) ||
+              idStr.includes(q) ||
+              slugStr.includes(q);
+            if (!match) return false;
+          }
+          return true;
+        });
+
+        const toggleSelectShareJob = (id) => {
+          setSelectedShareJobIds(prev => 
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+          );
+        };
+
+        const toggleSelectAllShareJobs = () => {
+          if (selectedShareJobIds.length === filteredShareJobs.length) {
+            setSelectedShareJobIds([]);
+          } else {
+            setSelectedShareJobIds(filteredShareJobs.map(j => j._id || j.id));
+          }
+        };
+
+        const copySingleLink = (job) => {
+          const url = getJobShareUrl(job);
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(url);
+            setCopiedShareJobId(job._id || job.id);
+            setSuccessToast(`🔗 Copied: ${url}`);
+            setTimeout(() => {
+              setCopiedShareJobId(null);
+              setSuccessToast('');
+            }, 3000);
+          } else {
+            prompt("Copy job link:", url);
+          }
+        };
+
+        const handleCopyAllRawLinks = (onlySelected = false) => {
+          const targetJobs = onlySelected 
+            ? filteredShareJobs.filter(j => selectedShareJobIds.includes(j._id || j.id))
+            : filteredShareJobs;
+
+          if (targetJobs.length === 0) {
+            alert("No jobs to copy!");
+            return;
+          }
+
+          const linksList = targetJobs.map(j => getJobShareUrl(j)).join('\n');
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(linksList);
+            setCopiedAllMode(onlySelected ? 'selected-raw' : 'all-raw');
+            setSuccessToast(`📋 Successfully copied ${targetJobs.length} shareable link(s) to clipboard!`);
+            setTimeout(() => {
+              setCopiedAllMode(false);
+              setSuccessToast('');
+            }, 3500);
+          } else {
+            prompt("Copy links:", linksList);
+          }
+        };
+
+        const handleCopyWhatsAppBroadcast = (onlySelected = false) => {
+          const targetJobs = onlySelected 
+            ? filteredShareJobs.filter(j => selectedShareJobIds.includes(j._id || j.id))
+            : filteredShareJobs;
+
+          if (targetJobs.length === 0) {
+            alert("No jobs to copy!");
+            return;
+          }
+
+          let text = `🚀 *LATEST JOB OPENINGS & RECRUITMENT ALERTS | Jobopedia.in* 🇮🇳\n`;
+          text += `📅 Updated: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}\n`;
+          text += `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+          targetJobs.forEach((job, idx) => {
+            const url = getJobShareUrl(job);
+            const num = idx + 1;
+            text += `${num}️⃣ *${job.title}*\n`;
+            text += `🏢 *Dept:* ${job.department || job.organization || 'Official Recruitment'}\n`;
+            if (job.vacancies) text += `👥 *Total Posts:* ${job.vacancies}\n`;
+            if (job.salary) text += `💰 *Salary / Scale:* ${job.salary}\n`;
+            if (job.qualification) text += `🎓 *Qualification:* ${job.qualification}\n`;
+            if (job.lastDate) text += `⏳ *Last Date:* ${job.lastDate}\n`;
+            text += `🔗 *Apply Link:* ${url}\n\n`;
+          });
+
+          text += `━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+          text += `📲 *Forward to your friends & WhatsApp Groups!* \n`;
+          text += `🌐 Explore All Jobs: ${shareLinksDomain}\n`;
+
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(text);
+            setCopiedAllMode(onlySelected ? 'selected-wa' : 'all-wa');
+            setSuccessToast(`📲 Copied ${targetJobs.length} jobs formatted with WhatsApp broadcast links!`);
+            setTimeout(() => {
+              setCopiedAllMode(false);
+              setSuccessToast('');
+            }, 3500);
+          } else {
+            prompt("Copy WhatsApp message:", text);
+          }
+        };
+
+        const handleDownloadTxt = (onlySelected = false) => {
+          const targetJobs = onlySelected 
+            ? filteredShareJobs.filter(j => selectedShareJobIds.includes(j._id || j.id))
+            : filteredShareJobs;
+
+          if (targetJobs.length === 0) {
+            alert("No jobs to export!");
+            return;
+          }
+
+          let content = `JOBOPEDIA SHAREABLE JOB LINKS DIRECTORY\n`;
+          content += `Exported At: ${new Date().toLocaleString('en-IN')}\n`;
+          content += `Total Jobs: ${targetJobs.length}\n`;
+          content += `Base Domain: ${shareLinksDomain}\n`;
+          content += `ID Type: ${shareLinksIdType}\n`;
+          content += `=================================================================\n\n`;
+
+          targetJobs.forEach((j, i) => {
+            content += `[${i + 1}] ${j.title}\n`;
+            content += `Department: ${j.department || 'N/A'}\n`;
+            content += `Category: ${j.category || 'Govt'}\n`;
+            content += `Vacancies: ${j.vacancies || 'N/A'}\n`;
+            content += `Salary: ${j.salary || 'N/A'}\n`;
+            content += `Last Date: ${j.lastDate || 'N/A'}\n`;
+            content += `Direct Link: ${getJobShareUrl(j)}\n\n`;
+          });
+
+          const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `jobopedia-share-links-${new Date().toISOString().slice(0, 10)}.txt`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        };
+
+        const shareSingleOnWhatsApp = (job) => {
+          const url = getJobShareUrl(job);
+          const text = `🚨 *NEW VACANCY ALERT* 🇮🇳\n\n📌 *Post:* ${job.title}\n🏢 *Department:* ${job.department || ''}\n💰 *Salary:* ${job.salary || ''}\n👥 *Vacancies:* ${job.vacancies || ''}\n📅 *Last Date:* ${job.lastDate || ''}\n\n🔗 *Click here to apply directly:*\n${url}\n\n👉 Share with your friends looking for jobs!`;
+          const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+          window.open(waUrl, '_blank');
+        };
+
+        return (
+          <div className="space-y-6">
+            
+            {/* Header Banner */}
+            <div className="bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-emerald-500/30 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-black uppercase tracking-wider">
+                    <Link2 className="w-4 h-4 text-emerald-400" />
+                    <span>Admin Shareable Links &amp; WhatsApp Broadcast Engine</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    🔗 Direct Shareable Job Links Hub
+                  </h2>
+                  <p className="text-xs sm:text-sm text-emerald-100/90 max-w-2xl font-medium leading-relaxed">
+                    Easily copy direct shareable links for every uploaded job (<span className="font-mono text-emerald-300">https://jobopedia-mern.vercel.app/?job=6ae61e05875946327bed11f4</span>). Copy individual links or copy all links together in 1 click for WhatsApp groups, Instagram bio, Telegram, or email updates.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                  <button
+                    onClick={fetchAllAdminJobs}
+                    className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/20 transition cursor-pointer flex items-center space-x-1.5"
+                    title="Reload All Uploaded Jobs"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Refresh List</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Stats Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-emerald-800/60">
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-emerald-500/20">
+                  <div className="text-[10px] font-bold text-emerald-300 uppercase">Total Uploaded Jobs</div>
+                  <div className="text-2xl font-black text-white mt-0.5">{allJobs.length}</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-emerald-500/20">
+                  <div className="text-[10px] font-bold text-emerald-300 uppercase">Filtered Jobs</div>
+                  <div className="text-2xl font-black text-white mt-0.5">{filteredShareJobs.length}</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-emerald-500/20">
+                  <div className="text-[10px] font-bold text-emerald-300 uppercase">Selected for Bulk Copy</div>
+                  <div className="text-2xl font-black text-emerald-400 mt-0.5">{selectedShareJobIds.length}</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-emerald-500/20">
+                  <div className="text-[10px] font-bold text-emerald-300 uppercase">Default Base URL</div>
+                  <div className="text-xs font-mono font-bold text-emerald-200 mt-2 truncate" title={shareLinksDomain}>
+                    {shareLinksDomain.replace('https://', '')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* DOMAIN & LINK FORMAT CONFIGURATION BAR */}
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                {/* Domain Selector */}
+                <div className="space-y-1.5 flex-1">
+                  <label className="text-xs font-black text-slate-800 flex items-center space-x-1.5">
+                    <Globe className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Target Website Domain (Base URL):</span>
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {[
+                      { id: 'https://jobopedia-mern.vercel.app', label: 'Vercel App (Live)' },
+                      { id: 'https://jobopedia.in', label: 'jobopedia.in (Custom)' },
+                      { id: (typeof window !== 'undefined' ? window.location.origin : ''), label: 'Current Origin' }
+                    ].filter(d => Boolean(d.id)).map(dom => (
+                      <button
+                        key={dom.id}
+                        type="button"
+                        onClick={() => setShareLinksDomain(dom.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          shareLinksDomain === dom.id
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                        }`}
+                      >
+                        {dom.label}
+                      </button>
+                    ))}
+                    <input
+                      type="text"
+                      value={shareLinksDomain}
+                      onChange={(e) => setShareLinksDomain(e.target.value)}
+                      placeholder="Custom domain e.g. https://..."
+                      className="px-3 py-1.5 rounded-xl text-xs font-mono bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 w-64"
+                    />
+                  </div>
+                </div>
+
+                {/* Identifier Type Selector */}
+                <div className="space-y-1.5 shrink-0">
+                  <label className="text-xs font-black text-slate-800 flex items-center space-x-1.5">
+                    <Code className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Link Parameter Format:</span>
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setShareLinksIdType('id')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                        shareLinksIdType === 'id'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                      }`}
+                      title="Generates links using the MongoDB 24-character ID (exact format requested)"
+                    >
+                      MongoDB ID (?job=6ae61e05875...)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShareLinksIdType('slug')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                        shareLinksIdType === 'slug'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                      }`}
+                      title="Generates SEO slug links (?job=title-slug)"
+                    >
+                      SEO Slug (?job=title-slug)
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* MASTER BULK ACTION TOOLBAR (EK SATH COPY KARNE KE LIYE) */}
+            <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-white rounded-3xl p-5 sm:p-6 border-2 border-emerald-300 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-200 pb-3">
+                <div className="flex items-center space-x-2.5">
+                  <span className="p-2.5 bg-emerald-600 text-white rounded-2xl shadow-sm text-base">
+                    ⚡
+                  </span>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center space-x-2">
+                      <span>1-Click Bulk Copy Actions</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white">
+                        {selectedShareJobIds.length > 0 ? `${selectedShareJobIds.length} Selected` : `All ${filteredShareJobs.length} Jobs`}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-600 font-medium">
+                      Copy all live links at once into your clipboard, or copy a ready-to-send WhatsApp broadcast message with details.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bulk Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Copy All Raw URLs */}
+                  <button
+                    type="button"
+                    onClick={() => handleCopyAllRawLinks(false)}
+                    className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:opacity-95 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer"
+                    title="Copy all job links separated by line breaks"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span>{copiedAllMode === 'all-raw' ? '✓ ALL LINKS COPIED!' : `📋 COPY ALL RAW LINKS (${filteredShareJobs.length})`}</span>
+                  </button>
+
+                  {/* Copy All formatted for WhatsApp */}
+                  <button
+                    type="button"
+                    onClick={() => handleCopyWhatsAppBroadcast(false)}
+                    className="px-4 py-2.5 bg-gradient-to-r from-emerald-700 via-green-600 to-teal-800 hover:opacity-95 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer"
+                    title="Copy full WhatsApp message list with job titles, departments, salaries, and direct links"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>{copiedAllMode === 'all-wa' ? '✓ WHATSAPP LIST COPIED!' : `📲 COPY AS WHATSAPP LIST (${filteredShareJobs.length})`}</span>
+                  </button>
+
+                  {/* Export to TXT */}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadTxt(false)}
+                    className="px-3.5 py-2.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold shadow-xs transition flex items-center space-x-1.5 cursor-pointer"
+                    title="Download links as a .txt file"
+                  >
+                    <Download className="w-4 h-4 text-slate-600" />
+                    <span>Export .TXT</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Selected Items Sub-bar if any checkboxes checked */}
+              {selectedShareJobIds.length > 0 && (
+                <div className="p-3 bg-white/90 rounded-2xl border border-emerald-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center space-x-2 text-xs font-bold text-slate-800">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>You have selected {selectedShareJobIds.length} custom jobs:</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleCopyAllRawLinks(true)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition flex items-center space-x-1 cursor-pointer"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy Selected Links ({selectedShareJobIds.length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyWhatsAppBroadcast(true)}
+                      className="px-3 py-1.5 bg-green-700 hover:bg-green-800 text-white rounded-xl text-xs font-black shadow-xs transition flex items-center space-x-1 cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Copy Selected as WhatsApp ({selectedShareJobIds.length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadTxt(true)}
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Selected</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedShareJobIds([])}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                      Deselect
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* FILTER & SEARCH CONTROLS */}
+            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                
+                {/* Search Bar */}
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search by Job Title, Department, State, ID (e.g. 6ae61...)..."
+                    value={shareLinksSearch}
+                    onChange={(e) => setShareLinksSearch(e.target.value)}
+                    className="w-full pl-10 pr-8 py-2.5 text-xs bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                  {shareLinksSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setShareLinksSearch('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Pills */}
+                <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 md:pb-0">
+                  {[
+                    { id: 'all', label: `All Jobs (${allJobs.length})` },
+                    { id: 'govt', label: `🏛️ Govt (${allJobs.filter(j => j.category === 'govt').length})` },
+                    { id: 'private', label: `🏢 Private (${allJobs.filter(j => j.category === 'private').length})` },
+                    { id: 'internship', label: `🎓 Internships (${allJobs.filter(j => j.category === 'internship').length})` }
+                  ].map(cat => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setShareLinksCategory(cat.id)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                        shareLinksCategory === cat.id
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+              </div>
+
+              {/* Select All Toggle Bar */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                <button
+                  type="button"
+                  onClick={toggleSelectAllShareJobs}
+                  className="font-bold text-slate-700 hover:text-emerald-700 flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    readOnly
+                    checked={filteredShareJobs.length > 0 && selectedShareJobIds.length === filteredShareJobs.length}
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer pointer-events-none"
+                  />
+                  <span>
+                    {selectedShareJobIds.length === filteredShareJobs.length && filteredShareJobs.length > 0
+                      ? 'Deselect All Jobs'
+                      : `Select All Jobs (${filteredShareJobs.length})`}
+                  </span>
+                </button>
+                <div className="text-slate-400 font-medium">
+                  Showing {filteredShareJobs.length} of {allJobs.length} total jobs
+                </div>
+              </div>
+            </div>
+
+            {/* JOBS LIST WITH SHAREABLE LINKS */}
+            {filteredShareJobs.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 border border-slate-200 text-center space-y-3">
+                <Link2 className="w-12 h-12 text-slate-300 mx-auto" />
+                <h3 className="text-base font-bold text-slate-800">No matching jobs found</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  {shareLinksSearch ? `No jobs matched query "${shareLinksSearch}". Try another search term or clear the filter.` : 'No jobs have been uploaded to Jobopedia yet.'}
+                </p>
+                {shareLinksSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setShareLinksSearch('')}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    Clear Search
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredShareJobs.map((job) => {
+                  const jobId = job._id || job.id;
+                  const shareUrl = getJobShareUrl(job);
+                  const isSelected = selectedShareJobIds.includes(jobId);
+                  const isCopied = copiedShareJobId === jobId;
+                  const isGovt = job.category === 'govt' || job.sector === 'GOVERNMENT';
+                  const isIntern = job.category === 'internship';
+
+                  return (
+                    <div
+                      key={jobId}
+                      className={`rounded-2xl p-4 sm:p-5 border transition-all shadow-2xs space-y-3 ${
+                        isSelected 
+                          ? 'bg-emerald-50/50 border-emerald-400 ring-1 ring-emerald-300' 
+                          : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      {/* Top Row: Checkbox, Badges, Title, Meta */}
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectShareJob(jobId)}
+                          className="mt-1 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0"
+                          title="Select job for bulk copy"
+                        />
+                        <div className="space-y-1 flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                              isGovt ? 'bg-blue-100 text-blue-800' :
+                              isIntern ? 'bg-purple-100 text-purple-800' :
+                              'bg-emerald-100 text-emerald-800'
+                            }`}>
+                              {isGovt ? 'Govt Job' : isIntern ? 'Internship' : 'Corporate MNC'}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                              ID: {jobId}
+                            </span>
+                            {job.vacancies && (
+                              <span className="text-[10px] font-bold text-slate-600">
+                                👥 {job.vacancies} Posts
+                              </span>
+                            )}
+                            {job.lastDate && (
+                              <span className="text-[10px] font-bold text-rose-600">
+                                📅 Till: {job.lastDate}
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
+                            {job.title}
+                          </h3>
+
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 font-medium">
+                            <span className="text-slate-700 font-bold">🏢 {job.department || job.organization}</span>
+                            {job.state && (
+                              <>
+                                <span>•</span>
+                                <span>📍 {job.state}</span>
+                              </>
+                            )}
+                            {job.salary && (
+                              <>
+                                <span>•</span>
+                                <span className="text-emerald-700 font-bold">💰 {job.salary}</span>
+                              </>
+                            )}
+                            {job.qualification && (
+                              <>
+                                <span>•</span>
+                                <span className="text-purple-700">🎓 {job.qualification}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Direct Shareable Link Box & Action Buttons */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
+                        {/* URL container */}
+                        <div className="flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-mono text-xs text-slate-700 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
+                          <Link2 className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
+                          <input
+                            type="text"
+                            readOnly
+                            value={shareUrl}
+                            onClick={(e) => e.target.select()}
+                            className="w-full bg-transparent outline-none font-mono text-xs select-all truncate text-slate-800"
+                          />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
+                          {/* 1-Click Copy Link Button */}
+                          <button
+                            type="button"
+                            onClick={() => copySingleLink(job)}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition flex items-center space-x-1.5 cursor-pointer shadow-2xs ${
+                              isCopied
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-slate-900 hover:bg-slate-800 text-white'
+                            }`}
+                            title="Copy shareable link to clipboard"
+                          >
+                            {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{isCopied ? '✓ Copied!' : 'Copy Link'}</span>
+                          </button>
+
+                          {/* WhatsApp Share Button */}
+                          <button
+                            type="button"
+                            onClick={() => shareSingleOnWhatsApp(job)}
+                            className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
+                            title="Share directly to WhatsApp"
+                          >
+                            <Send className="w-3.5 h-3.5 text-green-600" />
+                            <span>WhatsApp</span>
+                          </button>
+
+                          {/* Open / Test Link */}
+                          <a
+                            href={shareUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1"
+                            title="Open link in new tab to test"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Test Link</span>
+                          </a>
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+          </div>
+        );
+      })()}
+
       {/* TAB: INSTAGRAM UPLOAD CHECKLIST (ADMIN SOCIAL MEDIA MANAGER) */}
       {activeTab === 'instagram' && (() => {
         const filteredInstagramJobs = instagramJobs.filter(job => {
@@ -2112,6 +2775,24 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                         >
                           <Copy className="w-3.5 h-3.5" />
                           <span>{copyToastJobId === jobId ? 'Caption Copied!' : 'Copy Caption'}</span>
+                        </button>
+
+                        {/* Direct Shareable Link Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = `https://jobopedia-mern.vercel.app/?job=${encodeURIComponent(jobId)}`;
+                            if (navigator.clipboard) {
+                              navigator.clipboard.writeText(url);
+                              setSuccessToast(`🔗 Direct share link copied: ${url}`);
+                              setTimeout(() => setSuccessToast(''), 3000);
+                            }
+                          }}
+                          className="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-2xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          title="Copy direct shareable link (https://jobopedia-mern.vercel.app/?job=...)"
+                        >
+                          <Link2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Copy Link</span>
                         </button>
 
                         {/* View Job Link */}
@@ -3013,6 +3694,22 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                       </button>
                       <button
                         type="button"
+                        onClick={() => {
+                          const urls = selectedAdminJobIds.map(id => `https://jobopedia-mern.vercel.app/?job=${encodeURIComponent(id)}`).join('\n');
+                          if (navigator.clipboard) {
+                            navigator.clipboard.writeText(urls);
+                            setSuccessToast(`🔗 Copied ${selectedAdminJobIds.length} shareable link(s) to clipboard!`);
+                            setTimeout(() => setSuccessToast(''), 3500);
+                          }
+                        }}
+                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer"
+                        title="Copy direct shareable links for all selected jobs"
+                      >
+                        <Link2 className="w-3.5 h-3.5" />
+                        <span>Copy Share Links ({selectedAdminJobIds.length})</span>
+                      </button>
+                      <button
+                        type="button"
                         onClick={handleBulkDeleteSelectedJobs}
                         className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-1.5 cursor-pointer"
                       >
@@ -3119,6 +3816,23 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const url = `https://jobopedia-mern.vercel.app/?job=${encodeURIComponent(jobId)}`;
+                                  if (navigator.clipboard) {
+                                    navigator.clipboard.writeText(url);
+                                    setSuccessToast(`🔗 Link copied: ${url}`);
+                                    setTimeout(() => setSuccessToast(''), 3000);
+                                  }
+                                }}
+                                className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
+                                title="Copy direct shareable link for this job"
+                              >
+                                <Link2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Link</span>
+                              </button>
+
                               <button
                                 type="button"
                                 onClick={() => setSelectedJobForMcq(job)}
