@@ -32,7 +32,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
     mobileNumber: '',
     state: selectedState || 'Gujarat',
     district: selectedDistrict || 'ahmedabad',
-    preferredLanguage: language || 'gu',
+    preferredLanguage: language || 'en',
     qualification: 'Graduate - Any Stream / Any Discipline'
   });
 
@@ -103,7 +103,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
     const districts = getDistrictsForState(newState);
     const newDistrict = districts.length > 0 ? districts[0].id : '';
     const spoken = getSpokenLanguages(newState, newDistrict);
-    const primaryLang = spoken.length > 0 ? spoken[0].code : 'gu';
+    const primaryLang = spoken.length > 0 ? spoken[0].code : 'en';
 
     setFormData(prev => ({
       ...prev,
@@ -112,14 +112,13 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
       preferredLanguage: primaryLang
     }));
     contextHandleStateChange(newState);
-    setLanguage(primaryLang);
     setError('');
   };
 
   const onDistrictSelect = (e) => {
     const newDistrict = e.target.value;
     const spoken = getSpokenLanguages(formData.state, newDistrict);
-    const primaryLang = spoken.length > 0 ? spoken[0].code : 'gu';
+    const primaryLang = spoken.length > 0 ? spoken[0].code : 'en';
 
     setFormData(prev => ({
       ...prev,

@@ -276,10 +276,10 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                 Official Recruitment Departments
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
-                સત્તાવાર ભરતી વિભાગો (Browse by Department)
+                Browse by Department (સત્તાવાર ભરતી વિભાગો)
               </h2>
               <p className="text-xs text-slate-500 font-medium">
-                UPSC, SSC, રેલવે, બેન્કિંગ, ડિફેન્સ, હેલ્થકેર અને શિક્ષણ ક્ષેત્રની સત્તાવાર ભરતીઓ સીધી ફિલ્ટર કરો
+                Filter official recruitment openings across UPSC, SSC, Railways, Banking, Defence, Healthcare &amp; Education
               </p>
             </div>
             {selectedDept && (
@@ -344,10 +344,10 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                 <span>Private &amp; Corporate Career Sectors</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
-                ખાનગી અને કોર્પોરેટ સેક્ટર્સ (Browse Private Jobs by Sector)
+                Browse Private Jobs by Sector (ખાનગી અને કોર્પોરેટ સેક્ટર્સ)
               </h2>
               <p className="text-xs text-slate-500 font-medium">
-                IT &amp; સોફ્ટવેર, ફાર્માસ્યુટિકલ, બેન્કિંગ BFSI, મેન્યુફેક્ચરિંગ, સેલ્સ &amp; માર્કેટિંગ સહીત તમામ ટોચના પ્રાઇવેટ સેક્ટર્સની જોબ્સ સીધી ફિલ્ટર કરો
+                Filter verified openings across IT &amp; Software, Pharma, Banking BFSI, Manufacturing, Sales &amp; Top Corporate Industries
               </p>
             </div>
             {selectedSector && (

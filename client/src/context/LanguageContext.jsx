@@ -10,16 +10,18 @@ const LanguageContext = createContext();
 // Function to update Google Translate cookies and fire full DOM translation
 function triggerGoogleTranslate(langCode) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
-  const target = langCode || 'gu';
+  const target = langCode || 'en';
   const hostname = window.location.hostname;
 
   if (target === 'en') {
     // Reset back to original English
     document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${hostname};`;
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${hostname};`;
+    if (hostname) {
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${hostname};`;
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${hostname};`;
+    }
     const combo = document.querySelector('.goog-te-combo') || document.querySelector('select.goog-te-combo');
-    if (combo) {
+    if (combo && combo.value !== 'en') {
       combo.value = 'en';
       combo.dispatchEvent(new Event('change', { bubbles: true }));
     }
@@ -60,9 +62,14 @@ function triggerGoogleTranslate(langCode) {
 }
 
 export function LanguageProvider({ children }) {
-  // 1. Initial Language State from localStorage or default 'gu' (Gujarati)
+  // 1. Initial Language State from localStorage or default 'en' (English)
   const [language, setLanguageState] = useState(() => {
     try {
+      if (typeof window !== 'undefined' && localStorage.getItem('jobopedia_lang_default_v2') !== 'true') {
+        localStorage.setItem('jobopedia_lang_default_v2', 'true');
+        localStorage.setItem('jobopedia_language', 'en');
+        return 'en';
+      }
       const stored = localStorage.getItem('jobopedia_language');
       if (stored && (UI_TRANSLATIONS[stored] || SUPPORTED_LANGUAGES.some(l => l.code === stored))) return stored;
       const storedUser = localStorage.getItem('jobopedia_user');
@@ -72,9 +79,9 @@ export function LanguageProvider({ children }) {
           return u.preferredLanguage;
         }
       }
-      return 'gu'; // Default to Gujarati
+      return 'en'; // Default to English
     } catch {
-      return 'gu';
+      return 'en';
     }
   });
 
@@ -107,10 +114,11 @@ export function LanguageProvider({ children }) {
 
   // Persist language on change & trigger full-page instant DOM translation (all jobs & descriptions)
   const setLanguage = (langCode) => {
-    const validLang = langCode || 'gu';
+    const validLang = langCode || 'en';
     setLanguageState(validLang);
     try {
       localStorage.setItem('jobopedia_language', validLang);
+      localStorage.setItem('jobopedia_lang_default_v2', 'true');
       if (typeof document !== 'undefined') {
         document.documentElement.lang = validLang;
       }
@@ -137,48 +145,39 @@ export function LanguageProvider({ children }) {
   const getSpokenLanguages = (stateName, districtId) => {
     const sData = STATE_DISTRICTS_DATA[stateName] || STATE_DISTRICTS_DATA['Gujarat'];
     return sData.spokenLanguages || [
+      { code: 'en', name: 'English' },
       { code: 'gu', name: 'ગુજરાતી (Gujarati)' },
-      { code: 'hi', name: 'हिंदी (Hindi)' },
-      { code: 'en', name: 'English' }
+      { code: 'hi', name: 'हिंदी (Hindi)' }
     ];
   };
 
-  // Helper: When user changes state, auto-update district and pick recommended spoken language
+  // Helper: When user changes state, auto-update district
   const handleStateChange = (newState) => {
     setSelectedState(newState);
     const districts = getDistrictsForState(newState);
     if (districts.length > 0) {
-      const firstDistrict = districts[0];
-      setSelectedDistrict(firstDistrict.id);
-      if (firstDistrict.defaultLang && UI_TRANSLATIONS[firstDistrict.defaultLang]) {
-        setLanguage(firstDistrict.defaultLang);
-      }
+      setSelectedDistrict(districts[0].id);
     } else {
       setSelectedDistrict('');
     }
   };
 
-  // Helper: When user changes district, auto-switch to district's native language if desired
-  const handleDistrictChange = (newDistrictId, stateName = selectedState) => {
+  // Helper: When user changes district, update selected district
+  const handleDistrictChange = (newDistrictId) => {
     setSelectedDistrict(newDistrictId);
-    const districts = getDistrictsForState(stateName);
-    const matched = districts.find(d => d.id === newDistrictId || d.name.toLowerCase() === newDistrictId.toLowerCase());
-    if (matched && matched.defaultLang && UI_TRANSLATIONS[matched.defaultLang]) {
-      setLanguage(matched.defaultLang);
-    }
   };
 
   // Translation function t(key, fallback)
   const t = (key, fallback = '') => {
     if (!key) return fallback;
-    const currentDict = UI_TRANSLATIONS[language] || UI_TRANSLATIONS['gu'];
+    const currentDict = UI_TRANSLATIONS[language] || UI_TRANSLATIONS['en'];
     if (currentDict && currentDict[key]) {
       return currentDict[key];
     }
-    // Fallback order: Gujarati -> Hindi -> English -> fallback argument
+    // Fallback order: English -> Gujarati -> Hindi -> fallback argument
+    if (UI_TRANSLATIONS['en'] && UI_TRANSLATIONS['en'][key]) return UI_TRANSLATIONS['en'][key];
     if (UI_TRANSLATIONS['gu'] && UI_TRANSLATIONS['gu'][key]) return UI_TRANSLATIONS['gu'][key];
     if (UI_TRANSLATIONS['hi'] && UI_TRANSLATIONS['hi'][key]) return UI_TRANSLATIONS['hi'][key];
-    if (UI_TRANSLATIONS['en'] && UI_TRANSLATIONS['en'][key]) return UI_TRANSLATIONS['en'][key];
     return fallback || key;
   };
 

@@ -17,10 +17,29 @@
     <!-- Pre-load Stored Language into Google Translate Cookie before initialization -->
     <script>
       try {
-        var savedLang = localStorage.getItem('jobopedia_language') || 'gu';
+        // Migration: Ensure default website language is English for all users
+        if (localStorage.getItem('jobopedia_lang_default_v2') !== 'true') {
+          localStorage.setItem('jobopedia_lang_default_v2', 'true');
+          localStorage.setItem('jobopedia_language', 'en');
+        }
+
+        var savedLang = localStorage.getItem('jobopedia_language') || 'en';
+        var hostname = window.location.hostname;
+
         if (savedLang && savedLang !== 'en') {
           document.cookie = "googtrans=/en/" + savedLang + "; path=/;";
           document.cookie = "googtrans=/auto/" + savedLang + "; path=/;";
+          if (hostname && hostname !== 'localhost') {
+            document.cookie = "googtrans=/en/" + savedLang + "; domain=." + hostname + "; path=/;";
+            document.cookie = "googtrans=/auto/" + savedLang + "; domain=." + hostname + "; path=/;";
+          }
+        } else {
+          // Default is English: explicitly remove translation cookies so website renders in clean English
+          document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          if (hostname) {
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=." + hostname + ";";
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + hostname + ";";
+          }
         }
       } catch (e) {}
     </script>

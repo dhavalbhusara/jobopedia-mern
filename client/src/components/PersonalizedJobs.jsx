@@ -198,7 +198,7 @@ export default function PersonalizedJobs({
               </span>
               <div>
                 <span className="text-slate-500 font-semibold block text-[11px] uppercase tracking-wider">
-                  Active Private Sector Filter (ક્ષેત્ર મુજબ ફિલ્ટર)
+                  Active Private Sector Filter (Industry Filter)
                 </span>
                 <strong className="text-emerald-950 font-black text-sm">
                   {ALL_PRIVATE_SECTORS.find(s => s.id === selectedSector || s.name.toLowerCase().includes(selectedSector.toLowerCase()))?.name || selectedSector}

@@ -78,10 +78,10 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
             </div>
 
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
-              📅 સાપ્તાહિક સરકારી ભરતી કેલેન્ડર — {calendarData.monthName}
+              📅 Weekly Government Recruitment Calendar — {calendarData.monthName}
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 font-medium">
-              1 થી 7 તારીખ કે કોઈપણ દિવસ પર ક્લિક કરો; અંદર જ નોકરીનું સંપૂર્ણ વર્ણન (Job Description) અને પગાર ધોરણ (Salary) જુઓ.
+              Click on any date from 1 to 7 to view complete Job Description, Eligibility and Pay Scale (Salary).
             </p>
           </div>
 
@@ -207,14 +207,14 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
                 <div>
                   <div className="flex items-center space-x-2">
                     <h3 className="text-sm sm:text-base font-black text-white">
-                      આ તારીખની સરકારી ભરતીઓ ({activeDay.dateStr})
+                      Govt Vacancies on this Date ({activeDay.dateStr})
                     </h3>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
                       {activeDay.jobsCount} Jobs Active
                     </span>
                   </div>
                   <p className="text-xs text-slate-300">
-                    નીચે ભરતીનું સત્તાવાર વર્ણન (Job Description) અને પગાર ધોરણ (Salary) આપેલું છે.
+                    Official job responsibilities, eligibility criteria and exact salary details are listed below.
                   </p>
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
 
             {activeDay.jobsCount === 0 ? (
               <div className="py-6 text-center text-xs text-slate-300">
-                આ તારીખે કોઈ વિશેષ છેલ્લી તારીખ નથી. અઠવાડિયાની અન્ય તારીખો પર ક્લિક કરીને સરકારી નોકરીઓ જુઓ.
+                No application deadline on this date. Click other dates of the week to explore active government recruitment openings.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -247,7 +247,7 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
                           {job.department}
                         </span>
                         <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
-                          {job.vacancies} જગાઓ
+                          {job.vacancies} Posts
                         </span>
                       </div>
 
@@ -259,7 +259,7 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
                       <div className="bg-emerald-950/60 border border-emerald-500/40 rounded-xl p-2.5 flex items-center justify-between text-xs">
                         <div className="flex items-center space-x-1.5 text-emerald-300">
                           <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
-                          <span className="text-[11px] font-bold">પગાર ધોરણ (Salary):</span>
+                          <span className="text-[11px] font-bold">Pay Scale (Salary):</span>
                         </div>
                         <span className="text-xs sm:text-sm font-black text-emerald-200">
                           {job.salary}
@@ -270,7 +270,7 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
                       <div className="bg-slate-950/60 border border-white/10 rounded-xl p-3 space-y-1">
                         <div className="flex items-center space-x-1.5 text-amber-300 text-[11px] font-extrabold">
                           <FileText className="w-3.5 h-3.5" />
-                          <span>જોબનું વર્ણન અને કામનું સ્વરૂપ (Job Description):</span>
+                          <span>Official Job Description &amp; Responsibilities:</span>
                         </div>
                         <p className="text-xs text-slate-200 font-medium leading-relaxed line-clamp-3">
                           {job.description}
@@ -279,11 +279,11 @@ export default function WeeklyGovtJobCalendar({ onSelectJob }) {
 
                       <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300 pt-1">
                         <div>
-                          <span className="text-[10px] text-slate-400 block font-semibold">લાયકાત (Eligibility):</span>
+                          <span className="text-[10px] text-slate-400 block font-semibold">Eligibility:</span>
                           <span className="truncate block font-medium">{job.eligibility}</span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-400 block font-semibold">છેલ્લી તારીખ:</span>
+                          <span className="text-[10px] text-slate-400 block font-semibold">Last Date:</span>
                           <strong className="text-amber-300 font-bold">{job.lastDate}</strong>
                         </div>
                       </div>

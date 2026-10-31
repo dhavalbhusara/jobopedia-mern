@@ -273,7 +273,7 @@ export default function Navbar({
                   title={t('language_picker', 'ભાષા બદલો / Translate Website')}
                 >
                   <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                  <span className="font-extrabold text-xs">{currentLangObj?.label || 'ગુજરાતી'}</span>
+                  <span className="font-extrabold text-xs">{currentLangObj?.label || 'English'}</span>
                   <ChevronDown className="w-3 h-3 text-blue-500 shrink-0" />
                 </button>
 

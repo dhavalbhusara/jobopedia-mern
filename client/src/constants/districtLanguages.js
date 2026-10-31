@@ -520,11 +520,11 @@ export const STATE_DISTRICTS_DATA = {
   }
 };
 
-// Available languages catalogue
+// Available languages catalogue (Default English)
 export const SUPPORTED_LANGUAGES = [
+  { code: "en", label: "English", englishName: "English", flag: "🌐" },
   { code: "gu", label: "ગુજરાતી", englishName: "Gujarati", flag: "🇮🇳" },
   { code: "hi", label: "हिंदी", englishName: "Hindi", flag: "🇮🇳" },
-  { code: "en", label: "English", englishName: "English", flag: "🌐" },
   { code: "mr", label: "मराठी", englishName: "Marathi", flag: "🇮🇳" },
   { code: "bn", label: "বাংলা", englishName: "Bengali", flag: "🇮🇳" },
   { code: "ta", label: "தமிழ்", englishName: "Tamil", flag: "🇮🇳" },

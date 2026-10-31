@@ -92,7 +92,7 @@ router.post('/register', async (req, res) => {
           password: hashedPassword,
           state: state || 'Gujarat',
           district: district || 'Ahmedabad',
-          preferredLanguage: preferredLanguage || 'gu',
+          preferredLanguage: preferredLanguage || 'en',
           qualification: qualification || 'Graduate',
           role: 'CANDIDATE',
           isVerified: true
@@ -120,7 +120,7 @@ router.post('/register', async (req, res) => {
       password: hashedPassword,
       state: state || 'Gujarat',
       district: district || 'Ahmedabad',
-      preferredLanguage: preferredLanguage || 'gu',
+      preferredLanguage: preferredLanguage || 'en',
       qualification: qualification || 'Graduate',
       role: 'CANDIDATE',
       createdAt: new Date().toISOString()
@@ -397,7 +397,7 @@ router.put('/profile', async (req, res) => {
         qualification: qualification || 'Graduate',
         state: state || 'Gujarat',
         district: district || 'Ahmedabad',
-        preferredLanguage: preferredLanguage || 'gu',
+        preferredLanguage: preferredLanguage || 'en',
         targetRole: targetRole || 'Government & Corporate'
       };
     }
