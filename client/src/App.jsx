@@ -36,18 +36,11 @@ export default function App() {
     }
   });
 
-  // Automatically open Login modal on website load if visitor is not logged in AND NOT on a direct shared job link
+  // Automatically open Login & Register modal on website load if visitor is not logged in (for any link including shared job links)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(() => {
     try {
       const stored = localStorage.getItem('jobopedia_user');
-      if (stored) return false;
-      if (typeof window !== 'undefined') {
-        const p = new URLSearchParams(window.location.search);
-        if (p.get('job') || p.get('jobId') || window.location.pathname.startsWith('/job/')) {
-          return false;
-        }
-      }
-      return true;
+      return !stored;
     } catch {
       return true;
     }
@@ -68,7 +61,6 @@ export default function App() {
       }
 
       if (targetJobId) {
-        setIsAuthModalOpen(false);
         setLoadingDirectJob(true);
 
         try {
@@ -142,7 +134,13 @@ export default function App() {
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
-    setCurrentView('home');
+    setIsAuthModalOpen(false);
+    // If user opened a shared job link or had a job selected, keep them on the job view so they can see and apply directly!
+    if (selectedJob || currentView === 'job-detail') {
+      setCurrentView('job-detail');
+    } else {
+      setCurrentView('home');
+    }
   };
 
   // Automatically request browser notification permission on website load
