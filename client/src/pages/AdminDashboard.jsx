@@ -5,11 +5,54 @@ import {
   CheckCircle2, Bell, Send, Smartphone, Monitor, Trash2, 
   Search, BarChart3, TrendingUp, Calendar, FileSpreadsheet, 
   RefreshCw, Eye, Check, X, Plus, Filter, Globe, Sparkles, MessageSquare, LogOut,
-  AlertTriangle, Copy, Layers, ShieldAlert, Instagram, ExternalLink, CheckSquare, Square, Share2, Link2
+  AlertTriangle, Copy, Layers, ShieldAlert, Instagram, ExternalLink, CheckSquare, Square, Share2, Link2,
+  Clock, CalendarDays, ArrowDownUp
 } from 'lucide-react';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 
+const BACKEND_BASE_URL = 'https://jobopedia-backend.onrender.com';
+
+const safeAdminFetch = async (endpoint, options = {}) => {
+  let res = null;
+  let isHtml = false;
+  try {
+    res = await fetch(endpoint, options);
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      isHtml = true;
+    }
+  } catch (err) {
+    isHtml = true;
+  }
+
+  if (isHtml || !res || (!res.ok && res.status >= 500)) {
+    try {
+      const directUrl = `${BACKEND_BASE_URL}${endpoint}`;
+      res = await fetch(directUrl, options);
+      const directCt = res.headers.get('content-type') || '';
+      if (!directCt.includes('application/json')) {
+        throw new Error('Backend server is waking up from sleep (Render free tier). Please wait 10 seconds and try again.');
+      }
+    } catch (directErr) {
+      throw new Error(directErr.message || 'Could not connect to backend server. Please wait a few moments and try again.');
+    }
+  }
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (parseErr) {
+    throw new Error('Backend returned non-JSON response while starting up. Please wait 10 seconds and try again.');
+  }
+
+  return { res, data };
+};
+
 export default function AdminDashboard({ setCurrentView, user, onLogout }) {
+  // Pre-warm backend container as soon as Admin opens Dashboard
+  useEffect(() => {
+    fetch(`${BACKEND_BASE_URL}/api/health`).catch(() => {});
+  }, []);
   const [activeTab, setActiveTab] = useState('hr');
   const [candidates, setCandidates] = useState([]);
   const [successToast, setSuccessToast] = useState('');
@@ -34,6 +77,136 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const [selectedShareJobIds, setSelectedShareJobIds] = useState([]);
   const [copiedShareJobId, setCopiedShareJobId] = useState(null);
   const [copiedAllMode, setCopiedAllMode] = useState(false);
+
+  // Shareable Job Links Date Filter, Sort & Grouping State
+  const [shareLinksDateFilter, setShareLinksDateFilter] = useState('all'); // 'all' | 'today' | 'yesterday' | 'last7' | 'last30' | 'custom'
+  const [shareLinksCustomDate, setShareLinksCustomDate] = useState('');
+  const [shareLinksSort, setShareLinksSort] = useState('newest'); // 'newest' | 'oldest' | 'deadline' | 'title'
+  const [shareLinksGroupByDate, setShareLinksGroupByDate] = useState(false);
+
+  // Manage Jobs tab Date Filter & Sort
+  const [adminJobsDateFilter, setAdminJobsDateFilter] = useState('all');
+  const [adminJobsCustomDate, setAdminJobsCustomDate] = useState('');
+  const [adminJobsSort, setAdminJobsSort] = useState('newest');
+
+  // Date helper methods
+  const getJobDateString = (job) => {
+    if (job.createdAt) {
+      try {
+        const d = new Date(job.createdAt);
+        if (!isNaN(d.getTime())) {
+          return d.toISOString().split('T')[0];
+        }
+      } catch (e) {}
+    }
+    return '';
+  };
+
+  const getTodayStr = () => new Date().toISOString().split('T')[0];
+  const getYesterdayStr = () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  };
+
+  const filterJobByDate = (job, dateFilter, customDate) => {
+    if (dateFilter === 'all' && !customDate) return true;
+    const jobDateStr = getJobDateString(job);
+    if (!jobDateStr) return dateFilter === 'all';
+
+    const todayStr = getTodayStr();
+    const yesterdayStr = getYesterdayStr();
+
+    if (dateFilter === 'today') return jobDateStr === todayStr;
+    if (dateFilter === 'yesterday') return jobDateStr === yesterdayStr;
+    if (dateFilter === 'last7') {
+      const jobTime = new Date(jobDateStr).getTime();
+      const diffDays = (new Date().getTime() - jobTime) / (1000 * 60 * 60 * 24);
+      return diffDays >= 0 && diffDays <= 7;
+    }
+    if (dateFilter === 'last30') {
+      const jobTime = new Date(jobDateStr).getTime();
+      const diffDays = (new Date().getTime() - jobTime) / (1000 * 60 * 60 * 24);
+      return diffDays >= 0 && diffDays <= 30;
+    }
+    if (dateFilter === 'custom' && customDate) {
+      return jobDateStr === customDate;
+    }
+    return true;
+  };
+
+  const sortJobsList = (list, sortOption) => {
+    return [...list].sort((a, b) => {
+      if (sortOption === 'newest') {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      }
+      if (sortOption === 'oldest') {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      }
+      if (sortOption === 'deadline') {
+        const dateA = a.lastDate || '9999-99-99';
+        const dateB = b.lastDate || '9999-99-99';
+        return dateA.localeCompare(dateB);
+      }
+      if (sortOption === 'title') {
+        return (a.title || '').localeCompare(b.title || '');
+      }
+      return 0;
+    });
+  };
+
+  const formatJobDateDisplay = (job) => {
+    if (!job.createdAt) return null;
+    try {
+      const d = new Date(job.createdAt);
+      if (isNaN(d.getTime())) return null;
+      return d.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const handleVerifyJsonSyntax = () => {
+    let raw = jobsJson.trim();
+    if (!raw) {
+      alert("⚠️ JSON editor is empty. Please paste your jobs JSON first.");
+      return;
+    }
+    raw = raw.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+    if (raw.startsWith('{') && raw.endsWith('}')) {
+      raw = `[${raw}]`;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        alert("⚠️ Valid JSON object, but Jobopedia expects an array of jobs like [{ ... }] or a single job object { ... }.");
+        return;
+      }
+      alert(`✅ JSON is 100% VALID! Found ${parsed.length} job(s) ready to be uploaded to MongoDB.`);
+    } catch (err) {
+      alert(`❌ JSON Syntax Error:\n${err.message}\n\nPlease check for missing quotes around property names, missing commas between objects, or unescaped characters.`);
+    }
+  };
+
+  const handleCleanQuotes = () => {
+    let cleaned = jobsJson
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'");
+    if (cleaned.trim().startsWith('{') && cleaned.trim().endsWith('}')) {
+      cleaned = `[\n  ${cleaned.trim()}\n]`;
+    }
+    setJobsJson(cleaned);
+    setSuccessToast("🧹 Smart quotes cleaned and JSON auto-formatted!");
+    setTimeout(() => setSuccessToast(''), 3000);
+  };
 
   // Push Notification Broadcast State
   const [broadcastForm, setBroadcastForm] = useState({
@@ -354,25 +527,27 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
     }
   };
 
-  const fetchAllAdminJobs = () => {
+  const fetchAllAdminJobs = async () => {
     setLoadingJobs(true);
     setLoadingGovtJobs(true);
-    Promise.all([
-      fetch('/api/admin/jobs').then(r => r.json()),
-      fetch('/api/mock-tests').then(r => r.json())
-    ]).then(([jobsData, testsData]) => {
-      if (jobsData.success && Array.isArray(jobsData.jobs)) {
-        setAllJobs(jobsData.jobs);
-        setGovtJobs(jobsData.jobs.filter(j => j.category === 'govt'));
+    try {
+      const [jobsResp, testsResp] = await Promise.all([
+        safeAdminFetch('/api/admin/jobs'),
+        safeAdminFetch('/api/mock-tests')
+      ]);
+      if (jobsResp.data && jobsResp.data.success && Array.isArray(jobsResp.data.jobs)) {
+        setAllJobs(jobsResp.data.jobs);
+        setGovtJobs(jobsResp.data.jobs.filter(j => j.category === 'govt'));
       }
-      if (testsData.success && Array.isArray(testsData.tests)) {
-        setMockTestsList(testsData.tests);
+      if (testsResp.data && testsResp.data.success && Array.isArray(testsResp.data.tests)) {
+        setMockTestsList(testsResp.data.tests);
       }
-    }).catch(err => console.error("Error loading admin jobs:", err))
-      .finally(() => {
-        setLoadingJobs(false);
-        setLoadingGovtJobs(false);
-      });
+    } catch (err) {
+      console.error("Error loading admin jobs:", err);
+    } finally {
+      setLoadingJobs(false);
+      setLoadingGovtJobs(false);
+    }
     fetchDuplicates();
   };
 
@@ -872,26 +1047,60 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   };
 
   const handleBulkJobs = async () => {
+    // 1. Sanitize input & clean smart quotes
+    let cleanJson = jobsJson.trim();
+    cleanJson = cleanJson
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'");
+
+    if (cleanJson.startsWith('{') && cleanJson.endsWith('}')) {
+      cleanJson = `[${cleanJson}]`;
+    }
+
+    let parsed = null;
+    try {
+      parsed = JSON.parse(cleanJson);
+    } catch (syntaxErr) {
+      alert("❌ JSON Syntax Error:\n" + syntaxErr.message + "\n\nPlease check for missing commas, unescaped quotes, or syntax issues in your JSON.");
+      return;
+    }
+
+    if (!Array.isArray(parsed)) {
+      alert("❌ Invalid JSON: Expected an array of jobs like [ { ... } ] or a single job object { ... }.");
+      return;
+    }
+
+    if (parsed.length === 0) {
+      alert("❌ Please enter at least 1 job in the JSON.");
+      return;
+    }
+
+    // 2. Perform safe network upload with automatic cold-start failover
     try {
       setBulkJobsStatus('posting');
-      const parsed = JSON.parse(jobsJson);
-      const res = await fetch('/api/admin/jobs/bulk', {
+      const { res, data } = await safeAdminFetch('/api/admin/jobs/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parsed)
       });
-      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || data.message || 'Server error occurred during upload.');
+      }
+
       setBulkJobsStatus('done');
-      setSuccessToast(data.message || '✅ DONE! Jobs successfully uploaded to MongoDB Atlas!');
+      setSuccessToast(data.message || `✅ DONE! ${parsed.length} Jobs successfully uploaded to MongoDB Atlas!`);
       fetchInstagramChecklist();
       fetchAllAdminJobs();
+      // Auto-filter to today so newly uploaded jobs are immediately ready to copy
+      setShareLinksDateFilter('today');
       setTimeout(() => {
         setSuccessToast('');
         setBulkJobsStatus('idle');
       }, 5000);
-    } catch (e) {
+    } catch (networkErr) {
       setBulkJobsStatus('idle');
-      alert("Invalid JSON format: " + e.message);
+      alert("⚠️ Upload Notice: " + networkErr.message);
     }
   };
 
@@ -942,12 +1151,11 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
         qualification: finalQuals.join(', ')
       };
 
-      const res = await fetch('/api/jobs', {
+      const { res, data } = await safeAdminFetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
       
       if (!res.ok) {
         if (data.duplicateWarning) {
@@ -1805,8 +2013,21 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
           return `${base}/?job=${encodeURIComponent(idVal)}`;
         };
 
-        const filteredShareJobs = allJobs.filter(job => {
+        // Date Counts for Share Links
+        const todayDateStr = getTodayStr();
+        const yesterdayDateStr = getYesterdayStr();
+        const todayCount = allJobs.filter(j => getJobDateString(j) === todayDateStr).length;
+        const yesterdayCount = allJobs.filter(j => getJobDateString(j) === yesterdayDateStr).length;
+        const last7Count = allJobs.filter(j => {
+          const ds = getJobDateString(j);
+          if (!ds) return false;
+          const diff = (new Date().getTime() - new Date(ds).getTime()) / (1000 * 60 * 60 * 24);
+          return diff >= 0 && diff <= 7;
+        }).length;
+
+        let filteredShareJobs = allJobs.filter(job => {
           if (shareLinksCategory !== 'all' && job.category !== shareLinksCategory) return false;
+          if (!filterJobByDate(job, shareLinksDateFilter, shareLinksCustomDate)) return false;
           if (shareLinksSearch && shareLinksSearch.trim()) {
             const q = shareLinksSearch.toLowerCase();
             const idStr = String(job._id || job.id || '').toLowerCase();
@@ -1817,12 +2038,38 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
               (job.qualification || '').toLowerCase().includes(q) ||
               (job.state || '').toLowerCase().includes(q) ||
               (job.salary || '').toLowerCase().includes(q) ||
+              (job.sector || '').toLowerCase().includes(q) ||
               idStr.includes(q) ||
               slugStr.includes(q);
             if (!match) return false;
           }
           return true;
         });
+
+        // Apply Date / Title Sorting
+        filteredShareJobs = sortJobsList(filteredShareJobs, shareLinksSort);
+
+        // Group by Date calculation if enabled
+        const groupedShareJobs = {};
+        if (shareLinksGroupByDate) {
+          filteredShareJobs.forEach(job => {
+            const dKey = getJobDateString(job) || 'Earlier Uploaded';
+            if (!groupedShareJobs[dKey]) groupedShareJobs[dKey] = [];
+            groupedShareJobs[dKey].push(job);
+          });
+        }
+
+        const handleCopyGroupLinks = (groupJobs, groupHeading) => {
+          if (!groupJobs || groupJobs.length === 0) return;
+          const linksList = groupJobs.map(j => getJobShareUrl(j)).join('\n');
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(linksList);
+            setSuccessToast(`📋 Copied ${groupJobs.length} link(s) for ${groupHeading}!`);
+            setTimeout(() => setSuccessToast(''), 3000);
+          } else {
+            prompt("Copy links:", linksList);
+          }
+        };
 
         const toggleSelectShareJob = (id) => {
           setSelectedShareJobIds(prev => 
@@ -2242,6 +2489,106 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
                   ))}
                 </div>
 
+              </div>
+
+              {/* DATE-WISE JOBS FILTER BAR (તારીખ મુજબ ફિલ્ટર) */}
+              <div className="pt-3 border-t border-slate-100 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div className="flex items-center space-x-2">
+                    <CalendarDays className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="text-xs font-black text-slate-800 uppercase tracking-wide">
+                      Filter by Upload Date (તારીખ મુજબ જોબ ફિલ્ટર):
+                    </span>
+                  </div>
+
+                  {/* Quick Date Range Pills */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {[
+                      { id: 'all', label: `All Dates (${allJobs.length})` },
+                      { id: 'today', label: `⚡ Today (${todayCount})` },
+                      { id: 'yesterday', label: `Yesterday (${yesterdayCount})` },
+                      { id: 'last7', label: `Last 7 Days (${last7Count})` },
+                      { id: 'last30', label: 'Last 30 Days' }
+                    ].map(df => (
+                      <button
+                        key={df.id}
+                        type="button"
+                        onClick={() => {
+                          setShareLinksDateFilter(df.id);
+                          setShareLinksCustomDate('');
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          shareLinksDateFilter === df.id && !shareLinksCustomDate
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-300'
+                            : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                        }`}
+                      >
+                        {df.label}
+                      </button>
+                    ))}
+
+                    {/* Exact Single Date Selector */}
+                    <div className="flex items-center space-x-1 pl-1">
+                      <span className="text-[11px] font-semibold text-slate-500">Pick Date:</span>
+                      <input
+                        type="date"
+                        value={shareLinksCustomDate}
+                        onChange={(e) => {
+                          setShareLinksCustomDate(e.target.value);
+                          if (e.target.value) setShareLinksDateFilter('custom');
+                        }}
+                        className={`px-2.5 py-1 text-xs rounded-xl border font-mono transition ${
+                          shareLinksCustomDate
+                            ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold ring-2 ring-emerald-300'
+                            : 'border-slate-200 bg-slate-50 text-slate-700'
+                        }`}
+                      />
+                      {(shareLinksDateFilter !== 'all' || shareLinksCustomDate) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShareLinksDateFilter('all');
+                            setShareLinksCustomDate('');
+                          }}
+                          className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-[11px] font-bold cursor-pointer"
+                          title="Reset Date Filter to show all dates"
+                        >
+                          Clear (✕)
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sort Order & Group by Date Controls */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100/80 text-xs">
+                  {/* Sort Selector */}
+                  <div className="flex items-center space-x-2">
+                    <ArrowDownUp className="w-3.5 h-3.5 text-slate-500" />
+                    <span className="font-bold text-slate-700">Sort By:</span>
+                    <select
+                      value={shareLinksSort}
+                      onChange={(e) => setShareLinksSort(e.target.value)}
+                      className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="newest">🕒 Newest Upload First (Default)</option>
+                      <option value="oldest">⏳ Oldest First</option>
+                      <option value="deadline">⏰ Application Deadline (Closing Soon)</option>
+                      <option value="title">🔤 Job Title (A-Z)</option>
+                    </select>
+                  </div>
+
+                  {/* Group by Date Checkbox Toggle */}
+                  <label className="flex items-center space-x-2 font-bold text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={shareLinksGroupByDate}
+                      onChange={(e) => setShareLinksGroupByDate(e.target.checked)}
+                      className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                    />
+                    <span>📅 Group by Upload Date (તારીખ મુજબ ગ્રૂપ કરો)</span>
+                  </label>
+                </div>
               </div>
 
               {/* Select All Toggle Bar */}

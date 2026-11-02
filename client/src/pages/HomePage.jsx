@@ -26,17 +26,32 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
   const [sectorStats, setSectorStats] = useState({});
   const [departmentStats, setDepartmentStats] = useState({});
 
-  // Live Auto-fetch real-time counts for Private Sectors & Govt Departments
+  // Live Auto-fetch real-time counts for Private Sectors & Govt Departments (with failover)
   useEffect(() => {
-    fetch('/api/jobs/sector-stats')
-      .then(res => res.json())
-      .then(data => {
+    const loadStats = async () => {
+      try {
+        let res = null;
+        let isJson = false;
+        try {
+          res = await fetch('/api/jobs/sector-stats');
+          const ct = res.headers.get('content-type') || '';
+          if (ct.includes('application/json')) isJson = true;
+        } catch (e) {}
+
+        if (!isJson || !res || !res.ok) {
+          res = await fetch('https://jobopedia-backend.onrender.com/api/jobs/sector-stats');
+        }
+
+        const data = await res.json();
         if (data.success) {
           if (data.privateSectors) setSectorStats(data.privateSectors);
           if (data.departments) setDepartmentStats(data.departments);
         }
-      })
-      .catch(err => console.error("Error loading sector stats:", err));
+      } catch (err) {
+        console.error("Error loading sector stats:", err);
+      }
+    };
+    loadStats();
   }, []);
 
   const handleSearchSubmit = (e) => {
