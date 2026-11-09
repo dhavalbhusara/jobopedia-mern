@@ -135,6 +135,12 @@ export default function App() {
   const handleLoginSuccess = (userData) => {
     setUser(userData);
     setIsAuthModalOpen(false);
+    // If Admin logged in, take them directly to the Admin Dashboard!
+    if (userData?.role === 'ADMIN') {
+      setCurrentView('admin');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     // If user opened a shared job link or had a job selected, keep them on the job view so they can see and apply directly!
     if (selectedJob || currentView === 'job-detail') {
       setCurrentView('job-detail');
