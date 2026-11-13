@@ -6,11 +6,18 @@ import {
   BookOpen, ChevronRight, HelpCircle, Check, Copy, MessageCircle 
 } from 'lucide-react';
 
-export default function JobDetailPage({ job: initialJob, setCurrentView, onStartMockTest }) {
+export default function JobDetailPage({ job: initialJob, setCurrentView, onStartMockTest, user, onRequireAuth }) {
   const [currentJob, setCurrentJob] = useState(initialJob);
   const [loading, setLoading] = useState(!initialJob);
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // If user is not logged in / not registered, immediately trigger mandatory login/register modal
+  useEffect(() => {
+    if (!user && onRequireAuth) {
+      onRequireAuth();
+    }
+  }, [user, onRequireAuth]);
 
   useEffect(() => {
     if (initialJob) {

@@ -46,6 +46,10 @@ export default function App() {
     }
   });
 
+  // Forced mode: When user tries to view any job without an account, remove Cancel/Close button!
+  const [isAuthForced, setIsAuthForced] = useState(false);
+  const [pendingJob, setPendingJob] = useState(null);
+
   const [loadingDirectJob, setLoadingDirectJob] = useState(false);
 
   // Deep-linking: Read ?job=<id> or ?jobId=<id> or /job/<id> on website load & on popstate
@@ -68,6 +72,15 @@ export default function App() {
           const data = await res.json();
           if (data.success && data.job) {
             setSelectedJob(data.job);
+            // If user is NOT logged in and opened a direct job link, force registration/login without cancel!
+            if (!user) {
+              setPendingJob(data.job);
+              setIsAuthForced(true);
+              setAuthMode('register');
+              setIsAuthModalOpen(true);
+              setLoadingDirectJob(false);
+              return;
+            }
             setCurrentView('job-detail');
             setLoadingDirectJob(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -89,6 +102,14 @@ export default function App() {
             );
             if (match) {
               setSelectedJob(match);
+              if (!user) {
+                setPendingJob(match);
+                setIsAuthForced(true);
+                setAuthMode('register');
+                setIsAuthModalOpen(true);
+                setLoadingDirectJob(false);
+                return;
+              }
               setCurrentView('job-detail');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -114,13 +135,21 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [user]);
 
   const [authMode, setAuthMode] = useState('login');
 
   const handleOpenAuth = (isLogin = true) => {
+    setIsAuthForced(false);
     setAuthMode(isLogin ? 'login' : 'register');
     setIsAuthModalOpen(true);
+  };
+
+  const handleCloseAuth = () => {
+    // Only close if NOT in forced mode
+    if (!isAuthForced) {
+      setIsAuthModalOpen(false);
+    }
   };
 
   const handleLogout = () => {
@@ -129,19 +158,36 @@ export default function App() {
     setUser(null);
     setCurrentView('home');
     setAuthMode('login');
+    setIsAuthForced(false);
     setIsAuthModalOpen(true);
   };
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
     setIsAuthModalOpen(false);
+    setIsAuthForced(false);
+
     // If Admin logged in, take them directly to the Admin Dashboard!
     if (userData?.role === 'ADMIN') {
       setCurrentView('admin');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    // If user opened a shared job link or had a job selected, keep them on the job view so they can see and apply directly!
+
+    // If user clicked a job before logging in, immediately open that job!
+    const targetJob = pendingJob || selectedJob;
+    if (targetJob) {
+      setSelectedJob(targetJob);
+      setPendingJob(null);
+      setCurrentView('job-detail');
+      const jobId = targetJob.slug || targetJob._id || targetJob.id;
+      if (jobId && typeof window !== 'undefined') {
+        window.history.pushState({ jobId, view: 'job-detail' }, '', `/?job=${encodeURIComponent(jobId)}`);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     if (selectedJob || currentView === 'job-detail') {
       setCurrentView('job-detail');
     } else {
@@ -198,6 +244,15 @@ export default function App() {
   }, [currentView]);
 
   const handleOpenJobDetail = (job, updateUrl = true) => {
+    // If user is not logged in / not registered, require registration/login without cancel button!
+    if (!user) {
+      setPendingJob(job);
+      setIsAuthForced(true);
+      setAuthMode('register'); // Show Register tab with Login tab beside it
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     setSelectedJob(job);
     setCurrentView('job-detail');
     if (updateUrl && typeof window !== 'undefined') {
@@ -237,6 +292,12 @@ export default function App() {
           <JobDetailPage 
             job={selectedJob} 
             setCurrentView={navigateToView}
+            user={user}
+            onRequireAuth={() => {
+              setIsAuthForced(true);
+              setAuthMode('register');
+              setIsAuthModalOpen(true);
+            }}
             onStartMockTest={(j) => {
               setSelectedJob(j);
               navigateToView('mock-tests');
@@ -323,9 +384,10 @@ export default function App() {
       
       <AuthModal 
         isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+        onClose={handleCloseAuth} 
         onLoginSuccess={handleLoginSuccess}
         initialMode={authMode}
+        isForced={isAuthForced}
       />
 
       {/* Global Job Details Modal for notifications & universal job viewing */}

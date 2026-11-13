@@ -6,7 +6,7 @@ import {
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode = 'login' }) {
+export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode = 'login', isForced = false }) {
   const { 
     language, 
     setLanguage, 
@@ -49,6 +49,18 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
       }));
     }
   }, [isOpen, initialMode, selectedState, selectedDistrict, language]);
+
+  // Handle Escape key to dismiss only if NOT forced
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isForced && onClose) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isForced, onClose]);
 
   if (!isOpen) return null;
 
@@ -251,30 +263,49 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, initialMode
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-150">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-150"
+      onClick={(e) => {
+        if (!isForced && e.target === e.currentTarget && onClose) {
+          onClose();
+        }
+      }}
+    >
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 transition-all my-auto">
         
         {/* Header with Title and Mode Toggle */}
         <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-6 relative">
-          <button 
-            type="button"
-            onClick={onClose}
-            className="absolute top-5 right-5 p-1.5 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {!isForced && (
+            <button 
+              type="button"
+              onClick={onClose}
+              className="absolute top-5 right-5 p-1.5 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
           
-          <div className="inline-flex items-center space-x-1.5 bg-blue-500/20 text-blue-300 border border-blue-400/30 px-3 py-0.5 rounded-full text-xs font-semibold mb-2.5">
-            <span>Unified Career Portal</span>
-          </div>
+          {isForced ? (
+            <div className="inline-flex items-center space-x-1.5 bg-amber-500/25 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-full text-xs font-bold mb-2.5 shadow-xs">
+              <Lock className="w-3.5 h-3.5" />
+              <span>Login or Registration Required</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center space-x-1.5 bg-blue-500/20 text-blue-300 border border-blue-400/30 px-3 py-0.5 rounded-full text-xs font-semibold mb-2.5">
+              <span>Unified Career Portal</span>
+            </div>
+          )}
 
           <h2 className="text-2xl font-black tracking-tight text-white">
             {mode === 'login' ? 'Sign In to Jobopedia' : 'Create Free Account'}
           </h2>
           <p className="text-xs text-slate-300 mt-1">
-            {mode === 'login' 
-              ? 'Access application trackers, mock test analytics & saved jobs' 
-              : 'Join to receive matching job alerts and mock tests for your degree'}
+            {isForced
+              ? 'Please register for free or sign in to view complete job details, salary breakdown & official application links.'
+              : (mode === 'login' 
+                  ? 'Access application trackers, mock test analytics & saved jobs' 
+                  : 'Join to receive matching job alerts and mock tests for your degree')}
           </p>
 
           {/* Dual Toggle Tabs: LOGIN vs REGISTER */}
