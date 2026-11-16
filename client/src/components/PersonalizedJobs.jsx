@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import JobDetailsModal from './JobDetailsModal';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS, ALL_PRIVATE_SECTORS } from '../constants/referenceData';
+import initialJobsData from '../data/initialJobs.json';
 
 export default function PersonalizedJobs({ 
   externalSearch = '', 
@@ -15,8 +16,24 @@ export default function PersonalizedJobs({
   onSelectJob,
   onClearFilters 
 }) {
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Stale-While-Revalidate: Instant render from cached jobs or pre-bundled snapshot
+  const [jobs, setJobs] = useState(() => {
+    try {
+      const cached = localStorage.getItem('jobopedia_cached_jobs');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return Array.isArray(initialJobsData) ? initialJobsData : [];
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('jobopedia_cached_jobs');
+      if (cached) return false;
+    } catch (e) {}
+    return !(Array.isArray(initialJobsData) && initialJobsData.length > 0);
+  });
   const [category, setCategory] = useState(externalCategory || 'all');
   const [selectedSector, setSelectedSector] = useState(externalSector || null);
 
@@ -56,7 +73,8 @@ export default function PersonalizedJobs({
   }, [category, selectedState, qualification, searchQuery, selectedSector]);
 
   const fetchJobs = () => {
-    setLoading(true);
+    // Only show loading spinner if we don't already have jobs rendered
+    setLoading(prev => jobs.length === 0 ? true : false);
     const params = new URLSearchParams();
     if (category !== 'all') params.set('category', category);
     if (selectedState !== 'all') params.set('state', selectedState);
@@ -67,13 +85,28 @@ export default function PersonalizedJobs({
     fetch(`/api/jobs?${params.toString()}`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.jobs)) {
-          setJobs(data.jobs);
-        } else if (Array.isArray(data)) {
-          setJobs(data);
+        const loadedJobs = (data.success && Array.isArray(data.jobs)) ? data.jobs : (Array.isArray(data) ? data : null);
+        if (loadedJobs && loadedJobs.length > 0) {
+          setJobs(loadedJobs);
+          // Cache when looking at the default national view
+          if (category === 'all' && selectedState === 'all' && qualification === 'all' && !searchQuery && (!selectedSector || selectedSector === 'all')) {
+            try {
+              localStorage.setItem('jobopedia_cached_jobs', JSON.stringify(loadedJobs));
+            } catch (e) {}
+          }
         }
       })
-      .catch(err => console.error("Error loading jobs:", err))
+      .catch(err => {
+        console.warn("Background fetch notice:", err.message);
+        // Fallback directly to backend origin if proxy fails
+        fetch(`https://jobopedia-backend.onrender.com/api/jobs?${params.toString()}`)
+          .then(r => r.json())
+          .then(d => {
+            const lj = (d.success && Array.isArray(d.jobs)) ? d.jobs : (Array.isArray(d) ? d : null);
+            if (lj && lj.length > 0) setJobs(lj);
+          })
+          .catch(() => {});
+      })
       .finally(() => setLoading(false));
   };
 

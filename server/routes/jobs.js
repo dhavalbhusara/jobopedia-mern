@@ -56,6 +56,7 @@ function detectPrivateSector(job) {
 // GET /api/jobs (Filter Logic: Private filtered by selected state; Govt jobs shown across all India)
 router.get('/', async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     const { category, state, qualification, search, sector } = req.query;
     
     let jobs = [];
@@ -135,6 +136,7 @@ router.get('/', async (req, res) => {
 // GET /api/jobs/sector-stats (Live counts for Private Sectors and Govt Departments)
 router.get('/sector-stats', async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     let jobs = [];
     try {
       jobs = await Job.find().lean();
@@ -247,6 +249,7 @@ router.get('/sector-stats', async (req, res) => {
 // GET /api/jobs/weekly-calendar (Generates 1 to 7 dates with live jobs, description & salary)
 router.get('/weekly-calendar', async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     let dbJobs = [];
     try {
       dbJobs = await Job.find({ category: 'govt' }).lean();

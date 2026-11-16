@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Building2, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, Briefcase, Sparkles, Share2 } from 'lucide-react';
 import JobDetailsModal from '../components/JobDetailsModal';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
+import initialJobsData from '../data/initialJobs.json';
 
 export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const initialPrivate = Array.isArray(initialJobsData) ? initialJobsData.filter(j => j.category === 'private') : [];
+  const [jobs, setJobs] = useState(initialPrivate);
+  const [loading, setLoading] = useState(initialPrivate.length === 0);
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
   const [qualFilter, setQualFilter] = useState('all');

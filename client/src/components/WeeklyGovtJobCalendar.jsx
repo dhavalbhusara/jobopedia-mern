@@ -1,22 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { Landmark, Sparkles, DollarSign, FileText, ExternalLink, ArrowRight, X, Share2 } from 'lucide-react';
+import initialCalendarData from '../data/initialCalendar.json';
 
 export default function WeeklyGovtJobCalendar({ onSelectJob }) {
-  const [calendarData, setCalendarData] = useState(null);
+  const [calendarData, setCalendarData] = useState(() => {
+    try {
+      const cached = localStorage.getItem('jobopedia_cached_calendar');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.weeks) return parsed;
+      }
+    } catch (e) {}
+    return initialCalendarData && initialCalendarData.weeks ? initialCalendarData : null;
+  });
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
   const [selectedDayNum, setSelectedDayNum] = useState(2);
   const [modalJob, setModalJob] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('jobopedia_cached_calendar');
+      if (cached) return false;
+    } catch (e) {}
+    return !(initialCalendarData && initialCalendarData.weeks);
+  });
 
   useEffect(() => {
     fetch('/api/jobs/weekly-calendar')
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
+        if (data.success && data.weeks) {
           setCalendarData(data);
+          try {
+            localStorage.setItem('jobopedia_cached_calendar', JSON.stringify(data));
+          } catch (e) {}
         }
       })
-      .catch(err => console.error("Error loading calendar:", err))
+      .catch(err => {
+        console.warn("Calendar refresh warning:", err.message);
+        fetch('https://jobopedia-backend.onrender.com/api/jobs/weekly-calendar')
+          .then(r => r.json())
+          .then(d => {
+            if (d.success && d.weeks) setCalendarData(d);
+          })
+          .catch(() => {});
+      })
       .finally(() => setLoading(false));
   }, []);
 

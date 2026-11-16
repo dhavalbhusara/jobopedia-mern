@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Landmark, MapPin, GraduationCap, Calendar, ArrowRight, ExternalLink, Search, Filter, ArrowLeft, ShieldCheck, Eye, Share2 } from 'lucide-react';
 import JobDetailsModal from '../components/JobDetailsModal';
 import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceData';
+import initialJobsData from '../data/initialJobs.json';
 
 export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const initialGovt = Array.isArray(initialJobsData) ? initialJobsData.filter(j => j.category === 'govt') : [];
+  const [jobs, setJobs] = useState(initialGovt);
+  const [loading, setLoading] = useState(initialGovt.length === 0);
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
   const [qualFilter, setQualFilter] = useState('all');

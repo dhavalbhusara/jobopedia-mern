@@ -23,8 +23,18 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
   const [selectedDept, setSelectedDept] = useState(null);
   const [selectedSector, setSelectedSector] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sectorStats, setSectorStats] = useState({});
-  const [departmentStats, setDepartmentStats] = useState({});
+  const [sectorStats, setSectorStats] = useState(() => {
+    try {
+      const c = localStorage.getItem('jobopedia_cached_sector_stats');
+      return c ? JSON.parse(c) : {};
+    } catch { return {}; }
+  });
+  const [departmentStats, setDepartmentStats] = useState(() => {
+    try {
+      const c = localStorage.getItem('jobopedia_cached_dept_stats');
+      return c ? JSON.parse(c) : {};
+    } catch { return {}; }
+  });
 
   // Live Auto-fetch real-time counts for Private Sectors & Govt Departments (with failover)
   useEffect(() => {
@@ -44,8 +54,14 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
 
         const data = await res.json();
         if (data.success) {
-          if (data.privateSectors) setSectorStats(data.privateSectors);
-          if (data.departments) setDepartmentStats(data.departments);
+          if (data.privateSectors) {
+            setSectorStats(data.privateSectors);
+            try { localStorage.setItem('jobopedia_cached_sector_stats', JSON.stringify(data.privateSectors)); } catch (e) {}
+          }
+          if (data.departments) {
+            setDepartmentStats(data.departments);
+            try { localStorage.setItem('jobopedia_cached_dept_stats', JSON.stringify(data.departments)); } catch (e) {}
+          }
         }
       } catch (err) {
         console.error("Error loading sector stats:", err);
