@@ -6,6 +6,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const OAuthState = require('../models/OAuthState');
+const LinkedInAccount = require('../models/LinkedInAccount');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'jobopedia_super_secure_jwt_secret_2026';
 
@@ -461,6 +464,294 @@ router.put('/profile', async (req, res) => {
   } catch (err) {
     console.error('Update profile error:', err);
     return res.status(500).json({ success: false, error: 'Failed to update profile: ' + err.message });
+  }
+});
+
+// ==============================================================================
+// LINKEDIN OAUTH 2.0 & OPENID CONNECT INTEGRATION (JOBOPEDIA Social Publisher)
+// ==============================================================================
+
+const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID;
+const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET;
+const LINKEDIN_REDIRECT_URI = process.env.LINKEDIN_REDIRECT_URI || 'https://jobopedia.in/api/auth/linkedin/callback';
+
+// 1. GET /api/auth/linkedin/authorize
+// Generates a cryptographically random, session-bound state with 10-min TTL in MongoDB and redirects to LinkedIn
+router.get('/linkedin/authorize', async (req, res) => {
+  try {
+    if (!LINKEDIN_CLIENT_ID || !LINKEDIN_CLIENT_SECRET) {
+      return res.status(500).send('LinkedIn credentials (LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET) are missing from server environment variables.');
+    }
+
+    const state = crypto.randomBytes(24).toString('hex');
+    if (mongoose.connection.readyState === 1) {
+      await OAuthState.create({ state });
+    }
+
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: LINKEDIN_CLIENT_ID,
+      redirect_uri: LINKEDIN_REDIRECT_URI,
+      state: state,
+      scope: 'openid profile email w_member_social'
+    });
+
+    const targetUrl = `https://www.linkedin.com/oauth/v2/authorization?${params.toString()}`;
+    return res.redirect(targetUrl);
+  } catch (err) {
+    console.error('LinkedIn authorize initialization error:', err.message);
+    return res.status(500).send('Failed to initiate LinkedIn OAuth session. Please try again.');
+  }
+});
+
+// 2. GET /api/auth/linkedin/callback
+// Validates state, exchanges authorization code for access token, queries OIDC /v2/userinfo, and saves tokens
+router.get('/linkedin/callback', async (req, res) => {
+  const { code, state, error, error_description } = req.query;
+
+  // Render helper for clean HTML status page
+  const renderResponse = (success, title, message, badgeText = '') => {
+    return res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} | JOBOPEDIA Social Publisher</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid ${success ? '#38bdf8' : '#f87171'};
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .icon { font-size: 56px; margin-bottom: 16px; }
+    h1 { font-size: 24px; margin-bottom: 10px; color: ${success ? '#38bdf8' : '#f87171'}; }
+    p { color: #94a3b8; font-size: 15px; line-height: 1.6; margin-bottom: 20px; }
+    .badge {
+      display: inline-block;
+      background: ${success ? 'rgba(56, 189, 248, 0.15)' : 'rgba(248, 113, 113, 0.15)'};
+      color: ${success ? '#38bdf8' : '#f87171'};
+      border: 1px solid ${success ? '#0284c7' : '#ef4444'};
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .hint {
+      font-size: 13px;
+      color: #64748b;
+      border-top: 1px solid #334155;
+      padding-top: 16px;
+      margin-top: 16px;
+    }
+    .btn {
+      display: inline-block;
+      background: #2563eb;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">${success ? '🎉' : '⚠️'}</div>
+    ${badgeText ? `<div class="badge">${badgeText}</div>` : ''}
+    <h1>${title}</h1>
+    <p>${message}</p>
+    <div class="hint">
+      ${success 
+        ? 'Aap is window ko band karke Google Antigravity me wapas ja sakte hain. Connection live hai.' 
+        : '<a href="/api/auth/linkedin/authorize" class="btn">Try Connecting Again</a>'}
+    </div>
+  </div>
+</body>
+</html>
+    `);
+  };
+
+  // 1. Check for provider error
+  if (!LINKEDIN_CLIENT_ID || !LINKEDIN_CLIENT_SECRET) {
+    return renderResponse(
+      false,
+      'Configuration Required',
+      'LinkedIn credentials (LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET) are missing from server environment variables.',
+      'Missing Server Env'
+    );
+  }
+
+  if (error) {
+    console.error('LinkedIn OAuth access denied by user or provider');
+    return renderResponse(
+      false,
+      'Authorization Cancelled',
+      error_description || 'LinkedIn authorization was cancelled or denied by the user.',
+      'Permission Not Granted'
+    );
+  }
+
+  // 2. Validate mandatory parameters
+  if (!code || !state) {
+    return renderResponse(
+      false,
+      'Invalid Request',
+      'Missing authorization code or state parameter from LinkedIn callback.',
+      'Validation Failed'
+    );
+  }
+
+  try {
+    // 3. Validate state against MongoDB with single-use consumption (Anti-CSRF)
+    if (mongoose.connection.readyState === 1) {
+      const validState = await OAuthState.findOneAndDelete({ state: state.trim() });
+      if (!validState) {
+        return renderResponse(
+          false,
+          'Security Check Failed',
+          'The authorization state was expired or invalid. Please initiate a fresh login attempt to ensure security.',
+          'Expired / Invalid State'
+        );
+      }
+    }
+
+    // 4. Server-to-server token exchange
+    const tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
+    const tokenBody = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: code.trim(),
+      redirect_uri: LINKEDIN_REDIRECT_URI,
+      client_id: LINKEDIN_CLIENT_ID,
+      client_secret: LINKEDIN_CLIENT_SECRET
+    });
+
+    const tokenResponse = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: tokenBody
+    });
+
+    const tokenData = await tokenResponse.json();
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      console.error('LinkedIn token exchange failed with HTTP status:', tokenResponse.status);
+      return renderResponse(
+        false,
+        'Token Exchange Failed',
+        tokenData.error_description || 'Failed to exchange authorization code for an official LinkedIn access token.',
+        `HTTP ${tokenResponse.status}`
+      );
+    }
+
+    const accessToken = tokenData.access_token;
+    const expiresIn = tokenData.expires_in || 5184000; // ~60 days
+    const expiresAt = new Date(Date.now() + (expiresIn * 1000));
+
+    // 5. Query OpenID Connect UserInfo to derive author URN
+    const userinfoUrl = 'https://api.linkedin.com/v2/userinfo';
+    const userinfoResponse = await fetch(userinfoUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    const userinfo = await userinfoResponse.json();
+    if (!userinfoResponse.ok || !userinfo.sub) {
+      console.error('LinkedIn OpenID Connect userinfo lookup failed with status:', userinfoResponse.status);
+      return renderResponse(
+        false,
+        'Profile Verification Failed',
+        'Unable to retrieve authorized member identity from LinkedIn OpenID Connect endpoint.',
+        `OIDC Error ${userinfoResponse.status}`
+      );
+    }
+
+    const sub = userinfo.sub;
+    const personUrn = `urn:li:person:${sub}`;
+    const memberName = userinfo.name || 'Authorized Member';
+    const memberEmail = userinfo.email || '';
+
+    // 6. Secure server-side storage in MongoDB Atlas
+    if (mongoose.connection.readyState === 1) {
+      await LinkedInAccount.findOneAndUpdate(
+        { accountKey: 'primary' },
+        {
+          accountKey: 'primary',
+          personUrn,
+          sub,
+          name: memberName,
+          email: memberEmail,
+          accessToken,
+          expiresAt,
+          updatedAt: new Date()
+        },
+        { upsert: true, new: true }
+      );
+    }
+
+    // 7. Render friendly success page
+    return renderResponse(
+      true,
+      'LinkedIn Connected Successfully!',
+      `Your personal LinkedIn profile has been linked to JOBOPEDIA Social Publisher. You are ready to publish official posts.`,
+      `Connected as: ${memberName}`
+    );
+
+  } catch (err) {
+    console.error('LinkedIn callback unexpected processing error');
+    return renderResponse(
+      false,
+      'Server Error',
+      'An unexpected error occurred while finalizing LinkedIn authorization. Please try again.',
+      'Server Exception'
+    );
+  }
+});
+
+// 3. GET /api/auth/linkedin/status
+// Read-only endpoint for checking authorization health without exposing access tokens or secrets
+router.get('/linkedin/status', async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ success: false, connected: false, error: 'Database connecting' });
+    }
+    const account = await LinkedInAccount.findOne({ accountKey: 'primary' });
+    if (!account) {
+      return res.json({ success: true, connected: false, message: 'No LinkedIn account linked yet' });
+    }
+    const now = new Date();
+    const isExpired = now > account.expiresAt;
+    const daysLeft = Math.max(0, Math.round((account.expiresAt - now) / (1000 * 60 * 60 * 24)));
+
+    return res.json({
+      success: true,
+      connected: !isExpired,
+      name: account.name,
+      email: account.email,
+      personUrn: account.personUrn,
+      expiresAt: account.expiresAt,
+      daysLeft,
+      isExpired
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 
