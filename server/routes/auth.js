@@ -9,6 +9,7 @@ const path = require('path');
 const crypto = require('crypto');
 const OAuthState = require('../models/OAuthState');
 const LinkedInAccount = require('../models/LinkedInAccount');
+const SystemConfig = require('../models/SystemConfig');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'jobopedia_super_secure_jwt_secret_2026';
 
@@ -471,16 +472,37 @@ router.put('/profile', async (req, res) => {
 // LINKEDIN OAUTH 2.0 & OPENID CONNECT INTEGRATION (JOBOPEDIA Social Publisher)
 // ==============================================================================
 
-const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID;
-const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET;
 const LINKEDIN_REDIRECT_URI = process.env.LINKEDIN_REDIRECT_URI || 'https://jobopedia.in/api/auth/linkedin/callback';
+
+async function getLinkedInCredentials() {
+  let clientId = process.env.LINKEDIN_CLIENT_ID;
+  let clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
+
+  if ((!clientId || !clientSecret) && mongoose.connection.readyState === 1) {
+    try {
+      if (!clientId) {
+        const idDoc = await SystemConfig.findOne({ key: 'LINKEDIN_CLIENT_ID' });
+        if (idDoc) clientId = idDoc.value;
+      }
+      if (!clientSecret) {
+        const secDoc = await SystemConfig.findOne({ key: 'LINKEDIN_CLIENT_SECRET' });
+        if (secDoc) clientSecret = secDoc.value;
+      }
+    } catch (e) {
+      console.warn('SystemConfig lookup warning:', e.message);
+    }
+  }
+
+  return { clientId, clientSecret };
+}
 
 // 1. GET /api/auth/linkedin/authorize
 // Generates a cryptographically random, session-bound state with 10-min TTL in MongoDB and redirects to LinkedIn
 router.get('/linkedin/authorize', async (req, res) => {
   try {
-    if (!LINKEDIN_CLIENT_ID || !LINKEDIN_CLIENT_SECRET) {
-      return res.status(500).send('LinkedIn credentials (LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET) are missing from server environment variables.');
+    const { clientId, clientSecret } = await getLinkedInCredentials();
+    if (!clientId || !clientSecret) {
+      return res.status(500).send('LinkedIn credentials (LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET) are missing from server configuration.');
     }
 
     const state = crypto.randomBytes(24).toString('hex');
@@ -490,7 +512,7 @@ router.get('/linkedin/authorize', async (req, res) => {
 
     const params = new URLSearchParams({
       response_type: 'code',
-      client_id: LINKEDIN_CLIENT_ID,
+      client_id: clientId,
       redirect_uri: LINKEDIN_REDIRECT_URI,
       state: state,
       scope: 'openid profile email w_member_social'
@@ -592,12 +614,13 @@ router.get('/linkedin/callback', async (req, res) => {
   };
 
   // 1. Check for provider error
-  if (!LINKEDIN_CLIENT_ID || !LINKEDIN_CLIENT_SECRET) {
+  const { clientId, clientSecret } = await getLinkedInCredentials();
+  if (!clientId || !clientSecret) {
     return renderResponse(
       false,
       'Configuration Required',
-      'LinkedIn credentials (LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET) are missing from server environment variables.',
-      'Missing Server Env'
+      'LinkedIn credentials (LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET) are missing from server configuration.',
+      'Missing Server Config'
     );
   }
 
@@ -641,8 +664,8 @@ router.get('/linkedin/callback', async (req, res) => {
       grant_type: 'authorization_code',
       code: code.trim(),
       redirect_uri: LINKEDIN_REDIRECT_URI,
-      client_id: LINKEDIN_CLIENT_ID,
-      client_secret: LINKEDIN_CLIENT_SECRET
+      client_id: clientId,
+      client_secret: clientSecret
     });
 
     const tokenResponse = await fetch(tokenUrl, {
