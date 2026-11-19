@@ -11,7 +11,7 @@ const OAuthState = require('../models/OAuthState');
 const LinkedInAccount = require('../models/LinkedInAccount');
 const SystemConfig = require('../models/SystemConfig');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'jobopedia_super_secure_jwt_secret_2026';
+const JWT_SECRET = process.env.JWT_SECRET || '519e2c58594799d127a7be956e4a503bfbd01d9ff6dca898249064abf5c47ba9b5523246da83b206a473b6d8946835e57f76ccefa7c6f6c2274ca1fe666da928';
 
 // Persistent Local User File (Fallback backup in sync with MongoDB)
 const localDataDir = path.join(__dirname, '..', 'data');
@@ -205,128 +205,7 @@ router.post('/login', async (req, res) => {
       }
     }
 
-    // Is identifier pointing to Tushar?
-    const isTusharIdentifier = (
-      cleanIdentifier === 'tushar@jobopedia.in' ||
-      cleanIdentifier === 'tushar' ||
-      cleanIdentifier === 'tushar.admin' ||
-      cleanIdentifier === 'tushar.admin@jobopedia.in' ||
-      cleanIdentifier === 'tushar@careersetu.in' ||
-      cleanIdentifier === 'tushar@careersetu.com' ||
-      identifier === '9825000002' ||
-      identifier === '9876543211' ||
-      (foundUser && foundUser.email === 'tushar@jobopedia.in')
-    );
-
-    const isTusharPassword = (
-      rawPassword === 'Tushar@2026' ||
-      lowerPassword === 'tushar@2026' ||
-      rawPassword === 'Admin@123456' ||
-      lowerPassword === 'admin@123456' ||
-      rawPassword === 'Tushar@123' ||
-      lowerPassword === 'tushar@123' ||
-      lowerPassword === 'tushar123'
-    );
-
-    // Is identifier pointing to Dr. Jay Pandit?
-    const isJayPanditIdentifier = (
-      cleanIdentifier === 'jay.pandit@jobopedia.in' ||
-      cleanIdentifier === 'drjaypandit@jobopedia.in' ||
-      cleanIdentifier === 'jaypandit' ||
-      cleanIdentifier.includes('jay.pandit') ||
-      identifier === '9825000001' ||
-      (foundUser && foundUser.email === 'jay.pandit@jobopedia.in')
-    );
-
-    const isJayPanditPassword = (
-      rawPassword === 'JayPandit@2026' ||
-      lowerPassword === 'jaypandit@2026' ||
-      rawPassword === 'Admin@123456' ||
-      lowerPassword === 'admin@123456'
-    );
-
-    // Is identifier pointing to Dhaval?
-    const isDhavalIdentifier = (
-      cleanIdentifier === 'dhaval@jobopedia.in' ||
-      cleanIdentifier === 'dhaval' ||
-      cleanIdentifier.includes('admin') ||
-      cleanIdentifier.includes('dhaval') ||
-      identifier === '9510443584' ||
-      identifier === '8487944035' ||
-      (foundUser && (foundUser.email === 'dhaval@jobopedia.in' || foundUser.email?.includes('dhaval')))
-    );
-
-    const isDhavalPassword = (
-      rawPassword === 'Dhaval@2026' ||
-      lowerPassword === 'dhaval@2026' ||
-      rawPassword === 'Admin@123456' ||
-      lowerPassword === 'admin@123456'
-    );
-
-    // Direct Instant-Access for Tushar Admin
-    if (isTusharIdentifier && isTusharPassword) {
-      const adminPayload = {
-        id: (foundUser && foundUser._id) ? foundUser._id.toString() : 'admin_tushar',
-        fullName: 'Tushar',
-        email: 'tushar@jobopedia.in',
-        mobileNumber: '9825000002',
-        role: 'ADMIN',
-        state: 'Gujarat',
-        qualification: 'Graduate'
-      };
-      const token = jwt.sign(adminPayload, JWT_SECRET, { expiresIn: '14d' });
-      console.log('👑 [Admin Direct Login] Tushar logged in successfully!');
-      return res.json({
-        success: true,
-        message: 'Tushar Admin Login successful',
-        token,
-        user: adminPayload
-      });
-    }
-
-    // Direct Instant-Access for Dr. Jay Pandit Admin
-    if (isJayPanditIdentifier && isJayPanditPassword) {
-      const adminPayload = {
-        id: (foundUser && foundUser._id) ? foundUser._id.toString() : 'admin_dr_jay_pandit',
-        fullName: 'Dr. Jay Pandit',
-        email: 'jay.pandit@jobopedia.in',
-        mobileNumber: '9825000001',
-        role: 'ADMIN',
-        state: 'Gujarat',
-        qualification: 'Doctorate / Post Graduate'
-      };
-      const token = jwt.sign(adminPayload, JWT_SECRET, { expiresIn: '14d' });
-      console.log('👑 [Admin Direct Login] Dr. Jay Pandit logged in successfully!');
-      return res.json({
-        success: true,
-        message: 'Dr. Jay Pandit Admin Login successful',
-        token,
-        user: adminPayload
-      });
-    }
-
-    // Direct Instant-Access for Dhaval Master Admin
-    if (isDhavalIdentifier && isDhavalPassword) {
-      const adminPayload = {
-        id: (foundUser && foundUser._id) ? foundUser._id.toString() : 'admin_dhaval_master',
-        fullName: 'Dhaval Bhusara',
-        email: 'dhaval@jobopedia.in',
-        mobileNumber: '8487944035',
-        role: 'ADMIN',
-        state: 'Gujarat',
-        qualification: 'Graduate'
-      };
-      const token = jwt.sign(adminPayload, JWT_SECRET, { expiresIn: '14d' });
-      console.log('👑 [Admin Direct Login] Dhaval Admin logged in successfully!');
-      return res.json({
-        success: true,
-        message: 'Dhaval Admin Login successful',
-        token,
-        user: adminPayload
-      });
-    }
-
-    // If user not found in database and not matched by master admin shortcuts:
+    // 3. User verification against database
     if (!foundUser) {
       return res.status(401).json({ 
         success: false, 

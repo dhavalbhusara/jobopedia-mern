@@ -13,6 +13,13 @@ import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceDat
 const BACKEND_BASE_URL = 'https://jobopedia-backend.onrender.com';
 
 const safeAdminFetch = async (endpoint, options = {}) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('jobopedia_token') : null;
+  const mergedHeaders = {
+    ...(options.headers || {}),
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+  options = { ...options, headers: mergedHeaders };
+
   let res = null;
   let isHtml = false;
   try {
@@ -49,6 +56,14 @@ const safeAdminFetch = async (endpoint, options = {}) => {
 };
 
 export default function AdminDashboard({ setCurrentView, user, onLogout }) {
+  // Security Guard: Immediately kick out any non-admin attempting to view Admin Portal
+  useEffect(() => {
+    if (!user || user.role !== 'ADMIN') {
+      console.warn("Security Alert: Unauthorized access attempt to Admin Portal.");
+      if (setCurrentView) setCurrentView('home');
+    }
+  }, [user, setCurrentView]);
+
   // Pre-warm backend container as soon as Admin opens Dashboard
   useEffect(() => {
     fetch(`${BACKEND_BASE_URL}/api/health`).catch(() => {});

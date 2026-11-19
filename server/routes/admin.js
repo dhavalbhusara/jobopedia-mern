@@ -1,10 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const Job = require('../models/Job');
 const MockTest = require('../models/MockTest');
 const Application = require('../models/Application');
 const Notification = require('../models/Notification');
+
+const JWT_SECRET = process.env.JWT_SECRET || '519e2c58594799d127a7be956e4a503bfbd01d9ff6dca898249064abf5c47ba9b5523246da83b206a473b6d8946835e57f76ccefa7c6f6c2274ca1fe666da928';
+
+// Strict Admin Authentication Middleware: Enforce JWT check on ALL admin routes
+router.use((req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Admin authentication token required.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || JWT_SECRET);
+    if (!decoded || decoded.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, error: 'Forbidden: Admin access privileges required.' });
+    }
+    req.adminUser = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ success: false, error: 'Session expired or invalid token. Please log in again.' });
+  }
+});
 
 const SAMPLE_CANDIDATES = [
   {

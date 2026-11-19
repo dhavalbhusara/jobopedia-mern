@@ -26,9 +26,16 @@ export default function App() {
   const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   
-  // Auth User State from localStorage
+  // Auth User State from localStorage (Guarded by Emergency Security Reset v3)
   const [user, setUser] = useState(() => {
     try {
+      // Invalidate all legacy sessions across all visitor browsers immediately
+      if (!localStorage.getItem('jobopedia_security_v3')) {
+        localStorage.removeItem('jobopedia_token');
+        localStorage.removeItem('jobopedia_user');
+        localStorage.setItem('jobopedia_security_v3', 'active_reset_' + Date.now());
+        return null;
+      }
       const stored = localStorage.getItem('jobopedia_user');
       return stored ? JSON.parse(stored) : null;
     } catch {
@@ -321,6 +328,17 @@ export default function App() {
       case 'privacy-policy':
         return <PrivacyPolicyPage setCurrentView={navigateToView} />;
       case 'admin':
+        if (!user || user.role !== 'ADMIN') {
+          return (
+            <HomePage 
+              user={user} 
+              openResumeModal={() => setIsResumeModalOpen(true)}
+              openAuthModal={handleOpenAuth}
+              setCurrentView={navigateToView} 
+              onSelectJob={handleOpenJobDetail}
+            />
+          );
+        }
         return <AdminDashboard setCurrentView={navigateToView} user={user} onLogout={handleLogout} />;
       case 'user-dashboard':
         return (
