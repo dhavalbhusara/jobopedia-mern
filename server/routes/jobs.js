@@ -5,6 +5,7 @@ const Job = require('../models/Job');
 const { slugify } = require('../models/Job');
 const Notification = require('../models/Notification');
 const { sendWebPushToAll } = require('../utils/webPushHelper');
+const { requireAdmin } = require('../middleware/auth');
 const ORGANIZED_JOBS = require('../data/organizedJobs');
 
 // Fallback Seed Jobs in case DB is newly starting or offline
@@ -377,8 +378,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/jobs (Publish new job & trigger auto-notification)
-router.post('/', async (req, res) => {
+// POST /api/jobs (Publish new job & trigger auto-notification - Admin Only)
+router.post('/', requireAdmin, async (req, res) => {
   try {
     let jobData = { ...req.body };
 
@@ -490,7 +491,7 @@ router.post('/', async (req, res) => {
 });
 
 // PATCH /api/jobs/:id/instagram-status (Toggle or set Instagram checklist status for Admin)
-router.patch('/:id/instagram-status', async (req, res) => {
+router.patch('/:id/instagram-status', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { postedToInstagram, adminName, adminEmail } = req.body;
@@ -530,8 +531,8 @@ router.patch('/:id/instagram-status', async (req, res) => {
   }
 });
 
-// DELETE /api/jobs/:id (Remove job)
-router.delete('/:id', async (req, res) => {
+// DELETE /api/jobs/:id (Remove job - Admin Only)
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     let deleted = null;

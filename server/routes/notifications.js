@@ -3,6 +3,7 @@ const router = express.Router();
 const Notification = require('../models/Notification');
 const PushSubscription = require('../models/PushSubscription');
 const { VAPID_PUBLIC_KEY, sendWebPushToAll } = require('../utils/webPushHelper');
+const { requireAdmin } = require('../middleware/auth');
 
 // Default initial notifications if database is fresh
 const SEED_NOTIFICATIONS = [
@@ -171,7 +172,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/notifications/broadcast - Admin sends targeted job alert
-router.post('/broadcast', async (req, res) => {
+router.post('/broadcast', requireAdmin, async (req, res) => {
   try {
     const { title, message, category, targetQualification, targetQualifications, targetState, targetStates, url, jobId } = req.body;
 
@@ -285,8 +286,8 @@ router.post('/subscribe', async (req, res) => {
   }
 });
 
-// POST /api/notifications/test-push - Send immediate test Chrome push notification
-router.post('/test-push', async (req, res) => {
+// POST /api/notifications/test-push - Send immediate test Chrome push notification (Admin Only)
+router.post('/test-push', requireAdmin, async (req, res) => {
   try {
     const { subscription } = req.body;
     

@@ -3,6 +3,9 @@ const cors = require('cors');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
+const { apiLimiter } = require('./middleware/rateLimiter');
+const { noSqlSanitizer } = require('./middleware/security');
+
 const jobsRouter = require('./routes/jobs');
 const adminRouter = require('./routes/admin');
 const mockTestsRouter = require('./routes/mockTests');
@@ -18,16 +21,59 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB Atlas
 connectDB();
 
-// Middleware
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// 1. Security: Hide Express Server Signature
+app.disable('x-powered-by');
+
+// 2. Security: Global HTTP Security Headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+
+// 3. Security: Restricted CORS Policy
+const allowedOrigins = [
+  'https://jobopedia.in',
+  'https://www.jobopedia.in',
+  'https://jobopedia-mern.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.jobopedia.in') ||
+      origin.endsWith('.vercel.app')
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy: Access denied for this origin.'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// 4. Security: Input Sanitization & Payload limits
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+app.use(noSqlSanitizer);
+
+// 5. Security: Global Rate Limiter for general endpoints
+app.use('/api', apiLimiter);
 
 // Health Check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ONLINE',
     service: 'Jobopedia MERN Backend API',
+    security: 'Hardened (CORS, RateLimiting, Sanitized)',
     database: 'MongoDB Atlas Connected',
     timestamp: new Date().toISOString()
   });
@@ -49,7 +95,16 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/complaints', complaintsRouter);
 
+// Global Error Handler (Never expose stack traces in production)
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error.' : err.message
+  });
+});
+
 // Start Server
 app.listen(PORT, () => {
-  console.log(`🚀 [Jobopedia MERN Server] Running on http://localhost:${PORT}`);
+  console.log(`🚀 [Jobopedia MERN Hardened Server] Running on http://localhost:${PORT}`);
 });

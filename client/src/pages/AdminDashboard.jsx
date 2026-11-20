@@ -55,6 +55,27 @@ const safeAdminFetch = async (endpoint, options = {}) => {
   return { res, data };
 };
 
+const authFetch = async (endpoint, options = {}) => {
+  const token = typeof window !== 'undefined' ? (localStorage.getItem('jobopedia_token') || localStorage.getItem('token')) : null;
+  const mergedHeaders = {
+    ...(options.headers || {}),
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+  const finalOptions = { ...options, headers: mergedHeaders };
+  try {
+    const res = await fetch(endpoint, finalOptions);
+    if ((res.status === 404 || res.status >= 500) && !endpoint.startsWith('http')) {
+      return await fetch(`${BACKEND_BASE_URL}${endpoint}`, finalOptions);
+    }
+    return res;
+  } catch (err) {
+    if (!endpoint.startsWith('http')) {
+      return await fetch(`${BACKEND_BASE_URL}${endpoint}`, finalOptions);
+    }
+    throw err;
+  }
+};
+
 export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   // Security Guard: Immediately kick out any non-admin attempting to view Admin Portal
   useEffect(() => {
@@ -495,7 +516,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
 
   const fetchComplaints = () => {
     setLoadingComplaints(true);
-    fetch('/api/complaints')
+    authFetch('/api/complaints')
       .then(r => r.json())
       .then(d => {
         if (d.success && Array.isArray(d.complaints)) {
@@ -508,7 +529,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
 
   const handleUpdateComplaint = async (complaintId, newStatus, reply) => {
     try {
-      const res = await fetch(`/api/complaints/${complaintId}`, {
+      const res = await authFetch(`/api/complaints/${complaintId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -530,7 +551,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const handleDeleteComplaint = async (complaintId) => {
     if (!window.confirm("Are you sure you want to permanently delete this complaint record?")) return;
     try {
-      const res = await fetch(`/api/complaints/${complaintId}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/complaints/${complaintId}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setSuccessToast("🗑️ Complaint removed successfully!");
@@ -568,7 +589,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
 
   const fetchAnalytics = () => {
     setLoadingAnalytics(true);
-    fetch('/api/analytics/stats')
+    authFetch('/api/analytics/stats')
       .then(r => r.json())
       .then(data => {
         if (data.success) {
@@ -584,7 +605,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
       return;
     }
     try {
-      const res = await fetch(`/api/admin/jobs/${jobId}`, {
+      const res = await authFetch(`/api/admin/jobs/${jobId}`, {
         method: 'DELETE'
       });
       const data = await res.json();
@@ -606,7 +627,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const fetchInstagramChecklist = async () => {
     setLoadingInstagram(true);
     try {
-      const res = await fetch('/api/admin/jobs/instagram-checklist');
+      const res = await authFetch('/api/admin/jobs/instagram-checklist');
       const data = await res.json();
       if (data.success) {
         setInstagramJobs(data.jobs || []);
@@ -630,7 +651,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
       const currentAdminName = user?.fullName || user?.email || 'Admin';
       const currentAdminEmail = user?.email || '';
 
-      const res = await fetch(`/api/jobs/${jobId}/instagram-status`, {
+      const res = await authFetch(`/api/jobs/${jobId}/instagram-status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -676,7 +697,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
       const currentAdminName = user?.fullName || user?.email || 'Admin';
       const currentAdminEmail = user?.email || '';
 
-      const res = await fetch('/api/admin/jobs/instagram-bulk-status', {
+      const res = await authFetch('/api/admin/jobs/instagram-bulk-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -725,7 +746,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const fetchDuplicates = async () => {
     setLoadingDuplicates(true);
     try {
-      const res = await fetch('/api/admin/jobs/duplicates');
+      const res = await authFetch('/api/admin/jobs/duplicates');
       const data = await res.json();
       if (data.success) {
         setDuplicateGroups(data.groups || []);
@@ -757,7 +778,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
 
     setIsCleaningDuplicates(true);
     try {
-      const res = await fetch('/api/admin/jobs/duplicates/auto-clean', {
+      const res = await authFetch('/api/admin/jobs/duplicates/auto-clean', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ groupId: 'all' })
@@ -783,7 +804,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
 
     setIsCleaningDuplicates(true);
     try {
-      const res = await fetch('/api/admin/jobs/duplicates/auto-clean', {
+      const res = await authFetch('/api/admin/jobs/duplicates/auto-clean', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ groupId })
@@ -813,7 +834,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
 
     setIsCleaningDuplicates(true);
     try {
-      const res = await fetch('/api/admin/jobs/duplicates/auto-clean', {
+      const res = await authFetch('/api/admin/jobs/duplicates/auto-clean', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ deleteJobIds: selectedDuplicateJobIds })
@@ -860,7 +881,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
     if (!window.confirm(`શું તમે ખરેખર પસંદ કરેલી તમામ ${selectedAdminJobIds.length} જોબ્સ કાયમ માટે ડિલીટ કરવા માંગો છો?`)) return;
 
     try {
-      const res = await fetch('/api/admin/jobs/bulk-delete', {
+      const res = await authFetch('/api/admin/jobs/bulk-delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobIds: selectedAdminJobIds })
@@ -884,7 +905,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
     if (!duplicateWarningModal?.payload) return;
     setJobPostingStatus('posting');
     try {
-      const res = await fetch('/api/jobs', {
+      const res = await authFetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...duplicateWarningModal.payload, forcePublish: true })
@@ -956,7 +977,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   };
 
   useEffect(() => {
-    fetch('/api/admin/candidates')
+    authFetch('/api/admin/candidates')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -989,7 +1010,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
     if (!selectedJobForMcq) return;
     try {
       const parsed = JSON.parse(customMcqJson);
-      const res = await fetch(`/api/admin/jobs/${selectedJobForMcq._id || selectedJobForMcq.id}/mcqs`, {
+      const res = await authFetch(`/api/admin/jobs/${selectedJobForMcq._id || selectedJobForMcq.id}/mcqs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1032,7 +1053,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
         targetQualification: finalQuals.join(', ')
       };
 
-      const res = await fetch('/api/notifications/broadcast', {
+      const res = await authFetch('/api/notifications/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -1122,7 +1143,7 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
   const handleBulkMcqs = async () => {
     try {
       const parsed = JSON.parse(mcqJson);
-      const res = await fetch('/api/admin/mock-tests/bulk', {
+      const res = await authFetch('/api/admin/mock-tests/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

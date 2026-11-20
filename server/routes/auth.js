@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const OAuthState = require('../models/OAuthState');
 const LinkedInAccount = require('../models/LinkedInAccount');
 const SystemConfig = require('../models/SystemConfig');
+const { loginLimiter } = require('../middleware/rateLimiter');
 
 const JWT_SECRET = process.env.JWT_SECRET || '519e2c58594799d127a7be956e4a503bfbd01d9ff6dca898249064abf5c47ba9b5523246da83b206a473b6d8946835e57f76ccefa7c6f6c2274ca1fe666da928';
 
@@ -163,11 +164,21 @@ router.post('/register', async (req, res) => {
 // ==============================================================================
 // POST /api/auth/login - Login with Email OR Phone Number + Password Verification
 // ==============================================================================
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const identifier = (email || req.body.identifier || req.body.mobileNumber || '').trim();
-    const rawPassword = (password || req.body.pass || '').trim();
+    const { email, password } = req.body || {};
+    const rawId = email || req.body?.identifier || req.body?.mobileNumber || '';
+    const rawPass = password || req.body?.pass || '';
+
+    if (typeof rawId !== 'string' || typeof rawPass !== 'string') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid input format.' 
+      });
+    }
+
+    const identifier = rawId.trim();
+    const rawPassword = rawPass.trim();
 
     if (!identifier || !rawPassword) {
       return res.status(400).json({ 

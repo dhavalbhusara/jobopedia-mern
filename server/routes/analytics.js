@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const VisitorLog = require('../models/VisitorLog');
+const { requireAdmin } = require('../middleware/auth');
 
 // Helper to extract clean real IP from reverse proxies (Vercel, Render, Cloudflare)
 function getClientIp(req) {
@@ -107,8 +108,8 @@ router.post('/track', async (req, res) => {
   }
 });
 
-// GET /api/analytics/stats - Aggregate 100% REAL unique daily visitor stats
-router.get('/stats', async (req, res) => {
+// GET /api/analytics/stats - Aggregate 100% REAL unique daily visitor stats (Admin Only)
+router.get('/stats', requireAdmin, async (req, res) => {
   try {
     const todayStr = new Date().toISOString().split('T')[0];
     const thisMonthStr = todayStr.substring(0, 7);

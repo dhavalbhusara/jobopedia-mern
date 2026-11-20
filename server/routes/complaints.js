@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Complaint = require('../models/Complaint');
+const { requireAdmin } = require('../middleware/auth');
 
 // In-memory fallback if database is loading
 let localComplaints = [
@@ -88,7 +89,7 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/complaints - Admin retrieves all complaints
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
   try {
     const { status, search } = req.query;
 
@@ -132,7 +133,7 @@ router.get('/', async (req, res) => {
 });
 
 // PUT /api/complaints/:id - Admin updates status / reply
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { status, adminReply } = req.body;
@@ -170,7 +171,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/complaints/:id - Admin deletes a complaint
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     try {
