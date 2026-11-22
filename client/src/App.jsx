@@ -366,7 +366,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0B1329] text-slate-900 dark:text-slate-100 font-sans antialiased overflow-x-hidden w-full max-w-full transition-colors duration-200">
       <PushNotificationPrompt user={user} />
 
       <Navbar 

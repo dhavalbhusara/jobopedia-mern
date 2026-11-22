@@ -3,10 +3,12 @@ import {
   Search, ChevronDown, Lock, LogOut, User, Sparkles, 
   BookOpen, FileText, Award, Calendar, ExternalLink, 
   Menu, X, Home, Landmark, Building2, GraduationCap, 
-  ChevronRight, Phone, ShieldCheck, MessageSquare, Instagram, Mail, Globe, Check
+  ChevronRight, Phone, ShieldCheck, MessageSquare, Instagram, Mail, Globe, Check,
+  Sun, Moon
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { ALL_INDIAN_STATES } from '../constants/referenceData';
 
 export default function Navbar({ 
@@ -20,6 +22,7 @@ export default function Navbar({
   onSelectJob 
 }) {
   const { language, setLanguage, t, supportedLanguages, selectedState, handleStateChange, getSpokenLanguages } = useLanguage();
+  const { theme, toggleTheme, isDark } = useTheme();
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -99,7 +102,7 @@ export default function Navbar({
       </div>
 
       {/* Main Navbar matching Jobopedia official UI */}
-      <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs print:hidden">
+      <header className="sticky top-0 z-50 bg-white dark:bg-[#0B1329] border-b border-slate-200 dark:border-slate-800/80 shadow-xs print:hidden transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             
@@ -116,25 +119,25 @@ export default function Navbar({
                 onError={(e) => { e.target.src = '/images/careersetu-icon.png'; }}
               />
               <div className="flex flex-col">
-                <span className="font-black text-2xl sm:text-3xl text-slate-900 tracking-tight leading-none group-hover:opacity-90 transition-opacity">
+                <span className="font-black text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight leading-none group-hover:opacity-90 transition-opacity">
                   Job<span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 bg-clip-text text-transparent">opedia</span>
                 </span>
-                <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-500 tracking-wider uppercase mt-1">
+                <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-500 dark:text-slate-400 tracking-wider uppercase mt-1">
                   Govt &amp; Corporate Career Hub
                 </span>
               </div>
             </a>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-3 xl:space-x-5 text-sm font-bold text-slate-700 shrink-0">
+            <nav className="hidden lg:flex items-center space-x-3 xl:space-x-5 text-sm font-bold text-slate-700 dark:text-slate-200 shrink-0">
               
               {/* Home */}
               <button 
                 onClick={() => setCurrentView('home')}
                 className={`transition-colors pb-1 cursor-pointer ${
                   currentView === 'home' 
-                    ? 'text-blue-600 border-b-2 border-blue-600 font-extrabold' 
-                    : 'text-slate-600 hover:text-blue-600'
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 font-extrabold' 
+                    : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400'
                 }`}
               >
                 {t('nav_home', 'Home')}
@@ -145,8 +148,8 @@ export default function Navbar({
                 onClick={() => setCurrentView('govt')}
                 className={`transition-colors pb-1 cursor-pointer ${
                   currentView === 'govt' 
-                    ? 'text-blue-600 border-b-2 border-blue-600 font-extrabold' 
-                    : 'text-slate-600 hover:text-blue-600'
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 font-extrabold' 
+                    : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400'
                 }`}
               >
                 {t('nav_govt_jobs', 'Govt Jobs')}
@@ -157,8 +160,8 @@ export default function Navbar({
                 onClick={() => setCurrentView('private')}
                 className={`transition-colors pb-1 cursor-pointer ${
                   currentView === 'private' 
-                    ? 'text-emerald-600 border-b-2 border-emerald-600 font-extrabold' 
-                    : 'text-slate-600 hover:text-emerald-600'
+                    ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-600 font-extrabold' 
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400'
                 }`}
               >
                 {t('nav_private_jobs', 'Private & MNCs')}
@@ -169,8 +172,8 @@ export default function Navbar({
                 onClick={() => setCurrentView('internships')}
                 className={`transition-colors flex items-center space-x-1.5 pb-1 cursor-pointer ${
                   currentView === 'internships'
-                    ? 'text-emerald-700 border-b-2 border-emerald-600 font-extrabold'
-                    : 'text-slate-600 hover:text-emerald-600'
+                    ? 'text-emerald-700 dark:text-emerald-400 border-b-2 border-emerald-600 font-extrabold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400'
                 }`}
               >
                 <span>{t('nav_internships', 'Internships')}</span>
@@ -184,8 +187,8 @@ export default function Navbar({
                 onClick={() => setCurrentView('mock-tests')}
                 className={`transition-colors flex items-center space-x-1.5 pb-1 cursor-pointer ${
                   currentView === 'mock-tests'
-                    ? 'text-blue-700 border-b-2 border-blue-600 font-extrabold'
-                    : 'text-blue-700 hover:text-blue-900'
+                    ? 'text-blue-700 dark:text-blue-400 border-b-2 border-blue-600 font-extrabold'
+                    : 'text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300'
                 }`}
               >
                 <span>{t('nav_mock_tests', 'Mock Tests (MCQs)')}</span>
@@ -199,58 +202,58 @@ export default function Navbar({
                 <button 
                   onClick={() => setResourcesOpen(!resourcesOpen)}
                   onBlur={() => setTimeout(() => setResourcesOpen(false), 250)}
-                  className="flex items-center space-x-1 text-slate-600 hover:text-blue-600 transition-colors focus:outline-hidden cursor-pointer"
+                  className="flex items-center space-x-1 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-hidden cursor-pointer"
                 >
                   <span>{t('nav_resources', 'Resources')}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
 
                 {resourcesOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-2 z-50 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
                     <button 
                       onClick={() => { setResourcesOpen(false); setCurrentView('preparation'); }}
-                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition cursor-pointer"
                     >
                       <BookOpen className="w-4 h-4 text-purple-600" />
                       <span>Exam Blueprints &amp; Prep Guide</span>
                     </button>
                     <button 
                       onClick={() => { setResourcesOpen(false); navigateTo('home', 'weekly-calendar'); }}
-                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition cursor-pointer"
                     >
                       <Calendar className="w-4 h-4 text-blue-600" />
                       <span>Exam Calendar 2026</span>
                     </button>
                     <button 
                       onClick={() => { setResourcesOpen(false); setCurrentView('mock-tests'); }}
-                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition cursor-pointer"
                     >
                       <Award className="w-4 h-4 text-emerald-600" />
                       <span>Online Mock Tests &amp; MCQs</span>
                     </button>
                     <button 
                       onClick={() => { setResourcesOpen(false); openResumeModal(); }}
-                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition cursor-pointer"
                     >
                       <FileText className="w-4 h-4 text-indigo-600" />
                       <span>Free ATS Resume Builder (Pathways)</span>
                     </button>
-                    <div className="border-t border-slate-100 my-1"></div>
+                    <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
                     <button 
                       onClick={() => { setResourcesOpen(false); setCurrentView('about'); }}
-                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition cursor-pointer"
                     >
                       <span>ℹ️ About Jobopedia</span>
                     </button>
                     <button 
                       onClick={() => { setResourcesOpen(false); setCurrentView('contact'); }}
-                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition cursor-pointer"
                     >
                       <span>📞 Contact Support Desk</span>
                     </button>
                     <button 
                       onClick={() => { setResourcesOpen(false); setCurrentView('privacy-policy'); }}
-                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 font-bold transition cursor-pointer"
+                      className="w-full text-left flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold transition cursor-pointer"
                     >
                       <span>🔒 Privacy Policy</span>
                     </button>
@@ -360,10 +363,31 @@ export default function Navbar({
               {/* Notification Center (Push alerts for Phone & PC) */}
               <NotificationCenter user={user} onSelectJob={onSelectJob} />
 
+              {/* Theme Toggle Button (Light / Dark Mode) */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-100/80 dark:bg-slate-800/90 text-slate-700 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-2xs flex items-center space-x-1"
+                title={isDark ? t('theme_light', 'Switch to Light Mode') : t('theme_dark', 'Switch to Dark Mode')}
+                aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDark ? (
+                  <>
+                    <Sun className="w-4 h-4 text-amber-400 animate-in spin-in-180 duration-300" />
+                    <span className="hidden xl:inline text-[11px] font-black text-amber-300">Light</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-4 h-4 text-slate-700 transition-transform duration-300" />
+                    <span className="hidden xl:inline text-[11px] font-black text-slate-600">Dark</span>
+                  </>
+                )}
+              </button>
+
               {/* Search Icon */}
               <button 
                 onClick={() => navigateTo('home', 'jobs-section')}
-                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
                 title="Search Jobs"
               >
                 <Search className="w-4 h-4" />
@@ -446,7 +470,7 @@ export default function Navbar({
 
         {/* Tablet Dropdown Menu (Screen width md to xl) */}
         {mobileMenuOpen && (
-          <div className="hidden md:block xl:hidden bg-white border-t border-slate-200 px-4 py-4 space-y-3 shadow-2xl max-h-[80vh] overflow-y-auto animate-in slide-in-from-top-2 duration-150">
+          <div className="hidden md:block xl:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 py-4 space-y-3 shadow-2xl max-h-[80vh] overflow-y-auto animate-in slide-in-from-top-2 duration-150">
             
             {/* If Logged In: Show User Card */}
             {user ? (
@@ -487,7 +511,7 @@ export default function Navbar({
                 </div>
               </div>
             ) : (
-              <div className="pb-2 border-b border-slate-100">
+              <div className="pb-2 border-b border-slate-100 dark:border-slate-800">
                 <button
                   onClick={() => { openAuthModal(true); setMobileMenuOpen(false); }}
                   className="w-full py-2.5 text-center text-xs font-black text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-xs transition cursor-pointer"
@@ -496,6 +520,30 @@ export default function Navbar({
                 </button>
               </div>
             )}
+
+            {/* Dark Mode Toggle inside Drawer */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80">
+              <div className="flex items-center space-x-2.5">
+                {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700 dark:text-slate-300" />}
+                <span className="text-xs font-black text-slate-800 dark:text-slate-100">
+                  {isDark ? 'Dark Mode (Active)' : 'Dark Mode (Off)'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
+                  isDark ? 'bg-amber-500' : 'bg-slate-300'
+                }`}
+                aria-label="Toggle dark mode"
+              >
+                <div
+                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                    isDark ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
 
             {/* Navigation Links List */}
             <div className="space-y-1 text-sm font-bold text-slate-700">
@@ -631,55 +679,55 @@ export default function Navbar({
       </header>
 
       {/* Sticky Mobile Bottom Navigation Bar (Visible only on screens < md) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 py-1.5 px-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] print:hidden">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0B1329]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800/90 py-1.5 px-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] print:hidden transition-colors">
         <div className="grid grid-cols-5 items-center text-center">
           
           {/* Home */}
           <button
             onClick={() => { setCurrentView('home'); setMobileMenuOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
-              currentView === 'home' ? 'text-blue-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+              currentView === 'home' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <Home className="w-5 h-5" />
             <span className="text-[10px] mt-0.5 leading-tight">{t('nav_home', 'Home')}</span>
-            {currentView === 'home' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-0.5"></span>}
+            {currentView === 'home' && <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full mt-0.5"></span>}
           </button>
 
           {/* Govt Jobs */}
           <button
             onClick={() => { setCurrentView('govt'); setMobileMenuOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
-              currentView === 'govt' ? 'text-blue-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+              currentView === 'govt' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <Landmark className="w-5 h-5" />
             <span className="text-[10px] mt-0.5 leading-tight">{t('nav_govt_jobs', 'Govt Jobs')}</span>
-            {currentView === 'govt' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-0.5"></span>}
+            {currentView === 'govt' && <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full mt-0.5"></span>}
           </button>
 
           {/* Private Jobs */}
           <button
             onClick={() => { setCurrentView('private'); setMobileMenuOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
-              currentView === 'private' ? 'text-emerald-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+              currentView === 'private' ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <Building2 className="w-5 h-5" />
             <span className="text-[10px] mt-0.5 leading-tight">{t('nav_private_jobs', 'Private')}</span>
-            {currentView === 'private' && <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full mt-0.5"></span>}
+            {currentView === 'private' && <span className="w-1.5 h-1.5 bg-emerald-600 dark:bg-emerald-400 rounded-full mt-0.5"></span>}
           </button>
 
           {/* Mock Tests */}
           <button
             onClick={() => { setCurrentView('mock-tests'); setMobileMenuOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
-              currentView === 'mock-tests' ? 'text-indigo-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+              currentView === 'mock-tests' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <Award className="w-5 h-5" />
             <span className="text-[10px] mt-0.5 leading-tight">{t('nav_mock_tests', 'Mock Tests')}</span>
-            {currentView === 'mock-tests' && <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full mt-0.5"></span>}
+            {currentView === 'mock-tests' && <span className="w-1.5 h-1.5 bg-indigo-600 dark:bg-indigo-400 rounded-full mt-0.5"></span>}
           </button>
 
           {/* User Panel or Login */}
@@ -693,12 +741,12 @@ export default function Navbar({
               setMobileMenuOpen(false);
             }}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
-              currentView === 'user-dashboard' ? 'text-blue-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+              currentView === 'user-dashboard' ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <User className="w-5 h-5" />
             <span className="text-[10px] mt-0.5 leading-tight">{user ? t('nav_candidate_panel', 'My Panel') : t('nav_login', 'Login')}</span>
-            {currentView === 'user-dashboard' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-0.5"></span>}
+            {currentView === 'user-dashboard' && <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full mt-0.5"></span>}
           </button>
 
         </div>

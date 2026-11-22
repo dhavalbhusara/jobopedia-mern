@@ -32,7 +32,7 @@ export default function JobDetailsModal({ job, isOpen, onClose, onStartMockTest 
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 flex flex-col relative my-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col relative my-auto">
         
         {/* Modal Top Header */}
         <div className={`p-6 sm:p-8 text-white relative rounded-t-3xl ${

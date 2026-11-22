@@ -55,6 +55,74 @@ html, body {
   background: #94a3b8;
 }
 
+/* Dark Mode Global Overrides */
+html.dark {
+  color-scheme: dark;
+  background-color: #0b1329;
+}
+
+html.dark body {
+  background-color: #0b1329;
+  color: #f1f5f9;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #0b1329;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Base surface styles for Dark Mode */
+html.dark .bg-white:not([class*="dark:bg-"]):not([class*="bg-gradient-"]):not(#printable-resume):not(#printable-resume *) {
+  background-color: #0f1c34 !important;
+}
+
+html.dark .bg-slate-50:not([class*="dark:bg-"]):not(#printable-resume):not(#printable-resume *) {
+  background-color: #0b1329 !important;
+}
+
+html.dark .bg-slate-100:not([class*="dark:bg-"]):not(#printable-resume):not(#printable-resume *) {
+  background-color: #162444 !important;
+}
+
+html.dark .border-slate-200:not([class*="dark:border-"]):not(#printable-resume):not(#printable-resume *),
+html.dark .border-slate-100:not([class*="dark:border-"]):not(#printable-resume):not(#printable-resume *) {
+  border-color: #1e2e4a !important;
+}
+
+html.dark .text-slate-900:not([class*="dark:text-"]):not(#printable-resume):not(#printable-resume *) {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-800:not([class*="dark:text-"]):not(#printable-resume):not(#printable-resume *) {
+  color: #f1f5f9 !important;
+}
+
+html.dark .text-slate-700:not([class*="dark:text-"]):not(#printable-resume):not(#printable-resume *) {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-600:not([class*="dark:text-"]):not(#printable-resume):not(#printable-resume *) {
+  color: #94a3b8 !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]):not(#printable-resume *),
+html.dark select:not(#printable-resume *),
+html.dark textarea:not(#printable-resume *) {
+  background-color: #0d1a33;
+  color: #f8fafc;
+  border-color: #1e2e4a;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b;
+}
+
 /* Google Translate Widget Clean Reskin & Hidden System Elements */
 .goog-te-banner-frame.skiptranslate,
 .goog-te-banner-frame,

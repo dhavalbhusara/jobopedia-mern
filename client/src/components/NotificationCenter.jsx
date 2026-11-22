@@ -220,8 +220,8 @@ export default function NotificationCenter({ user }) {
         onClick={() => setIsOpen(true)}
         className={`p-2 rounded-xl transition cursor-pointer relative ${
           isOpen 
-            ? 'bg-blue-50 text-blue-600' 
-            : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100'
+            ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400' 
+            : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800'
         }`}
         title="Job & Career Notifications (Phone & PC)"
         aria-label="Notifications"
@@ -242,7 +242,7 @@ export default function NotificationCenter({ user }) {
             onClick={() => setIsOpen(false)} 
           />
 
-          <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-10 animate-in zoom-in-95 duration-150">
+          <div className="relative w-full max-w-sm sm:max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden z-10 animate-in zoom-in-95 duration-150">
             
             {/* Header */}
             <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-5 flex items-center justify-between">
