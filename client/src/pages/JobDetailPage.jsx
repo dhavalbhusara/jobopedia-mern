@@ -12,13 +12,6 @@ export default function JobDetailPage({ job: initialJob, setCurrentView, onStart
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // If user is not logged in / not registered, immediately trigger mandatory login/register modal
-  useEffect(() => {
-    if (!user && onRequireAuth) {
-      onRequireAuth();
-    }
-  }, [user, onRequireAuth]);
-
   useEffect(() => {
     if (initialJob) {
       setCurrentJob(initialJob);

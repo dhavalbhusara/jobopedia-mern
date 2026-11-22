@@ -158,10 +158,44 @@ export default function PrivacyPolicyPage({ setCurrentView }) {
           </p>
         </section>
 
-        {/* Section 7: Grievance & Contact */}
-        <section className="space-y-3 pt-2">
+        {/* Section 7: Google AdSense, DoubleClick DART Cookies & Online Advertising */}
+        <section className="space-y-3">
           <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
             <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-black">7</span>
+            <span>Google AdSense &amp; Third-Party Advertising Cookies</span>
+          </h2>
+          <p>
+            Jobopedia uses <strong>Google AdSense</strong> and authorized advertising partners to serve relevant non-intrusive advertisements to our visitors:
+          </p>
+          <ul className="space-y-2 text-xs sm:text-sm text-slate-700 list-disc pl-5">
+            <li>
+              <strong>Third-Party Vendor Cookies:</strong> Third party vendors, including Google, use cookies to serve advertisements based on a user's prior visits to this website or other websites on the Internet.
+            </li>
+            <li>
+              <strong>Google DART Cookies:</strong> Google's use of advertising cookies enables it and its partners to serve ads to our users based on their visits to Jobopedia and/or other websites across the web.
+            </li>
+            <li>
+              <strong>Opt-Out of Personalized Advertising:</strong> Candidates and users may opt out of personalized advertising at any time by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold underline">Google Ads Settings</a>. Alternatively, users can opt out of a third-party vendor's use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold underline">www.aboutads.info</a>.
+            </li>
+          </ul>
+        </section>
+
+        {/* Section 8: Independent Educational Disclaimer */}
+        <section className="space-y-3">
+          <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
+            <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-black">8</span>
+            <span>Independent Portal &amp; Government Disclaimer</span>
+          </h2>
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs sm:text-sm text-amber-950 space-y-1.5 leading-relaxed font-medium">
+            <p><strong>Non-Government Affiliation:</strong> Jobopedia (jobopedia.in) is an independent private employment news and career assistance portal. We are NOT affiliated with, associated with, endorsed by, or in any way officially connected with any Government agency, department, commission, or public recruitment board.</p>
+            <p><strong>Zero Placement Charges:</strong> Jobopedia does NOT charge any fee from candidates for job employment or application submissions. All candidates are advised to verify details from the respective official governmental gazettes (e.g., upsc.gov.in, ssc.gov.in) before submitting fees.</p>
+          </div>
+        </section>
+
+        {/* Section 9: Grievance & Contact */}
+        <section className="space-y-3 pt-2">
+          <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center space-x-2 border-b border-slate-100 pb-2">
+            <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-black">9</span>
             <span>Grievance Redressal &amp; Support Contact</span>
           </h2>
           <p>

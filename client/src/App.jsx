@@ -21,7 +21,25 @@ import ComplaintModal from './components/ComplaintModal';
 import Footer from './components/Footer';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('home');
+  const [currentView, setCurrentView] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewParam = urlParams.get('view');
+        if (viewParam) {
+          if (viewParam === 'govt-jobs' || viewParam === 'govt') return 'govt';
+          if (viewParam === 'private-jobs' || viewParam === 'private') return 'private';
+          if (viewParam === 'internships') return 'internships';
+          if (viewParam === 'mock-tests') return 'mock-tests';
+          if (viewParam === 'preparation') return 'preparation';
+          if (viewParam === 'about') return 'about';
+          if (viewParam === 'contact') return 'contact';
+          if (viewParam === 'privacy-policy') return 'privacy-policy';
+        }
+      }
+    } catch (e) {}
+    return 'home';
+  });
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -43,17 +61,10 @@ export default function App() {
     }
   });
 
-  // Automatically open Login & Register modal on website load if visitor is not logged in (for any link including shared job links)
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(() => {
-    try {
-      const stored = localStorage.getItem('jobopedia_user');
-      return !stored;
-    } catch {
-      return true;
-    }
-  });
+  // Auth modal is closed by default - opens only on voluntary user action (Login button)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Forced mode: When user tries to view any job without an account, remove Cancel/Close button!
+  // Forced mode disabled to allow open navigation & crawler access
   const [isAuthForced, setIsAuthForced] = useState(false);
   const [pendingJob, setPendingJob] = useState(null);
 
@@ -79,15 +90,6 @@ export default function App() {
           const data = await res.json();
           if (data.success && data.job) {
             setSelectedJob(data.job);
-            // If user is NOT logged in and opened a direct job link, force registration/login without cancel!
-            if (!user) {
-              setPendingJob(data.job);
-              setIsAuthForced(true);
-              setAuthMode('register');
-              setIsAuthModalOpen(true);
-              setLoadingDirectJob(false);
-              return;
-            }
             setCurrentView('job-detail');
             setLoadingDirectJob(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -109,14 +111,6 @@ export default function App() {
             );
             if (match) {
               setSelectedJob(match);
-              if (!user) {
-                setPendingJob(match);
-                setIsAuthForced(true);
-                setAuthMode('register');
-                setIsAuthModalOpen(true);
-                setLoadingDirectJob(false);
-                return;
-              }
               setCurrentView('job-detail');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -133,8 +127,13 @@ export default function App() {
     const handlePopState = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const targetJobId = urlParams.get('job') || urlParams.get('jobId');
+      const viewParam = urlParams.get('view');
       if (targetJobId) {
         checkJobInUrl();
+      } else if (viewParam) {
+        if (viewParam === 'govt-jobs' || viewParam === 'govt') setCurrentView('govt');
+        else if (viewParam === 'private-jobs' || viewParam === 'private') setCurrentView('private');
+        else setCurrentView(viewParam);
       } else {
         setCurrentView('home');
       }
@@ -153,10 +152,8 @@ export default function App() {
   };
 
   const handleCloseAuth = () => {
-    // Only close if NOT in forced mode
-    if (!isAuthForced) {
-      setIsAuthModalOpen(false);
-    }
+    setIsAuthModalOpen(false);
+    setIsAuthForced(false);
   };
 
   const handleLogout = () => {
@@ -166,7 +163,7 @@ export default function App() {
     setCurrentView('home');
     setAuthMode('login');
     setIsAuthForced(false);
-    setIsAuthModalOpen(true);
+    setIsAuthModalOpen(false);
   };
 
   const handleLoginSuccess = (userData) => {
@@ -251,15 +248,6 @@ export default function App() {
   }, [currentView]);
 
   const handleOpenJobDetail = (job, updateUrl = true) => {
-    // If user is not logged in / not registered, require registration/login without cancel button!
-    if (!user) {
-      setPendingJob(job);
-      setIsAuthForced(true);
-      setAuthMode('register'); // Show Register tab with Login tab beside it
-      setIsAuthModalOpen(true);
-      return;
-    }
-
     setSelectedJob(job);
     setCurrentView('job-detail');
     if (updateUrl && typeof window !== 'undefined') {
@@ -275,9 +263,8 @@ export default function App() {
   const navigateToView = (view) => {
     setCurrentView(view);
     if (typeof window !== 'undefined') {
-      if (view !== 'job-detail' && window.location.search.includes('job')) {
-        window.history.pushState({}, '', window.location.pathname);
-      }
+      const newUrl = view === 'home' ? '/' : `/?view=${encodeURIComponent(view)}`;
+      window.history.pushState({ view }, '', newUrl);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -301,8 +288,8 @@ export default function App() {
             setCurrentView={navigateToView}
             user={user}
             onRequireAuth={() => {
-              setIsAuthForced(true);
-              setAuthMode('register');
+              setIsAuthForced(false);
+              setAuthMode('login');
               setIsAuthModalOpen(true);
             }}
             onStartMockTest={(j) => {
