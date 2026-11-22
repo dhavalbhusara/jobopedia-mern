@@ -20,26 +20,50 @@ import PushNotificationPrompt from './components/PushNotificationPrompt';
 import ComplaintModal from './components/ComplaintModal';
 import Footer from './components/Footer';
 
+// Universal URL & View Resolver: Handles ?view=..., clean path /..., and hash scrolling
+export function resolveViewFromLocation() {
+  if (typeof window === 'undefined') return 'home';
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewParam = urlParams.get('view');
+    const path = window.location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
+
+    // 1. Check query parameter ?view=... (e.g., ?view=about, ?view=govt-jobs)
+    if (viewParam) {
+      const v = viewParam.toLowerCase().trim();
+      if (v === 'govt' || v === 'govt-jobs' || v === 'government' || v === 'sarkari') return 'govt';
+      if (v === 'private' || v === 'private-jobs' || v === 'corporate' || v === 'mnc') return 'private';
+      if (v === 'internships' || v === 'internship') return 'internships';
+      if (v === 'mock-tests' || v === 'mocktests' || v === 'mcq' || v === 'cbt') return 'mock-tests';
+      if (v === 'preparation' || v === 'prep' || v === 'blueprint' || v === 'syllabus') return 'preparation';
+      if (v === 'about' || v === 'about-us') return 'about';
+      if (v === 'contact' || v === 'contact-us' || v === 'support') return 'contact';
+      if (v === 'privacy-policy' || v === 'privacy' || v === 'terms' || v === 'policy') return 'privacy-policy';
+      if (v === 'admin' || v === 'admin-dashboard') return 'admin';
+      if (v === 'user-dashboard' || v === 'dashboard' || v === 'candidate') return 'user-dashboard';
+    }
+
+    // 2. Check path /... (e.g., /about, /contact, /privacy-policy, /preparation, /govt-jobs, etc.)
+    if (path) {
+      if (path === 'about' || path === 'about-us') return 'about';
+      if (path === 'contact' || path === 'contact-us' || path === 'support') return 'contact';
+      if (path === 'privacy-policy' || path === 'privacy' || path === 'policy' || path === 'terms') return 'privacy-policy';
+      if (path === 'preparation' || path === 'prep' || path === 'exam-prep' || path === 'syllabus') return 'preparation';
+      if (path === 'govt' || path === 'govt-jobs' || path === 'government-jobs' || path === 'sarkari') return 'govt';
+      if (path === 'private' || path === 'private-jobs' || path === 'corporate-jobs') return 'private';
+      if (path === 'internships' || path === 'internship') return 'internships';
+      if (path === 'mock-tests' || path === 'mocktests' || path === 'cbt') return 'mock-tests';
+      if (path === 'admin' || path === 'admin-dashboard') return 'admin';
+      if (path === 'user-dashboard' || path === 'dashboard' || path === 'candidate-panel') return 'user-dashboard';
+    }
+  } catch (e) {
+    console.warn("View resolution error:", e);
+  }
+  return 'home';
+}
+
 export default function App() {
-  const [currentView, setCurrentView] = useState(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        const urlParams = new URLSearchParams(window.location.search);
-        const viewParam = urlParams.get('view');
-        if (viewParam) {
-          if (viewParam === 'govt-jobs' || viewParam === 'govt') return 'govt';
-          if (viewParam === 'private-jobs' || viewParam === 'private') return 'private';
-          if (viewParam === 'internships') return 'internships';
-          if (viewParam === 'mock-tests') return 'mock-tests';
-          if (viewParam === 'preparation') return 'preparation';
-          if (viewParam === 'about') return 'about';
-          if (viewParam === 'contact') return 'contact';
-          if (viewParam === 'privacy-policy') return 'privacy-policy';
-        }
-      }
-    } catch (e) {}
-    return 'home';
-  });
+  const [currentView, setCurrentView] = useState(() => resolveViewFromLocation());
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -123,19 +147,24 @@ export default function App() {
 
     checkJobInUrl();
 
-    // Listen for browser Back & Forward button navigation
+    // Handle initial hash jump if visitor loaded #weekly-calendar or #jobs-section
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const sectionId = window.location.hash.replace('#', '');
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 350);
+    }
+
+    // Listen for browser Back & Forward button navigation and sync view automatically
     const handlePopState = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const targetJobId = urlParams.get('job') || urlParams.get('jobId');
-      const viewParam = urlParams.get('view');
       if (targetJobId) {
         checkJobInUrl();
-      } else if (viewParam) {
-        if (viewParam === 'govt-jobs' || viewParam === 'govt') setCurrentView('govt');
-        else if (viewParam === 'private-jobs' || viewParam === 'private') setCurrentView('private');
-        else setCurrentView(viewParam);
       } else {
-        setCurrentView('home');
+        const nextView = resolveViewFromLocation();
+        setCurrentView(nextView);
       }
     };
 
@@ -260,12 +289,21 @@ export default function App() {
     }
   };
 
-  const navigateToView = (view) => {
+  const navigateToView = (view, sectionId) => {
     setCurrentView(view);
     if (typeof window !== 'undefined') {
-      const newUrl = view === 'home' ? '/' : `/?view=${encodeURIComponent(view)}`;
+      const newUrl = view === 'home' 
+        ? (sectionId ? `/#${sectionId}` : '/') 
+        : `/?view=${encodeURIComponent(view)}${sectionId ? `#${sectionId}` : ''}`;
       window.history.pushState({ view }, '', newUrl);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (sectionId) {
+        setTimeout(() => {
+          const el = document.getElementById(sectionId);
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 

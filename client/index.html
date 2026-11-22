@@ -24,6 +24,51 @@
     <meta name="twitter:title" content="Jobopedia — National Govt &amp; Corporate Career Hub" />
     <meta name="twitter:description" content="Find the latest Government &amp; Corporate Jobs, Free ATS Resume Builder, and Career Opportunities across India on Jobopedia." />
     <meta name="twitter:image" content="https://jobopedia.in/images/jobopedia-icon.png" />
+
+    <!-- Google Structured Data: Organization & WebSite Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://jobopedia.in/#organization",
+          "name": "Jobopedia India",
+          "url": "https://jobopedia.in/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://jobopedia.in/images/jobopedia-icon.png"
+          },
+          "sameAs": [
+            "https://www.instagram.com/jobopedia.in/"
+          ],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+91-84879-44035",
+            "contactType": "Customer Support",
+            "email": "jobopedia.careers@gmail.com",
+            "areaServed": "IN",
+            "availableLanguage": ["English", "Hindi", "Gujarati"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://jobopedia.in/#website",
+          "url": "https://jobopedia.in/",
+          "name": "Jobopedia",
+          "description": "National Government and Corporate Career Employment Hub in India.",
+          "publisher": {
+            "@id": "https://jobopedia.in/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://jobopedia.in/?job={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -99,20 +144,84 @@
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
               <h3 style="font-size: 16px; color: #1e3a8a; margin-top: 0;">🏛️ Union &amp; State Civil Services</h3>
               <p style="font-size: 13px; color: #475569;">UPSC Civil Services (IAS, IPS, IFS), Combined Medical Services, Engineering Services (IES), and State Public Service Commissions including GPSC, BPSC, UPPSC, MPSC, and KPSC.</p>
+              <a href="/?view=govt-jobs" style="font-size: 12px; font-weight: bold; color: #2563eb; text-decoration: none;">Explore Civil Services Openings &rarr;</a>
             </div>
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
               <h3 style="font-size: 16px; color: #1e3a8a; margin-top: 0;">🚆 Staff Selection (SSC) &amp; Indian Railways</h3>
               <p style="font-size: 13px; color: #475569;">Central cadre openings under SSC CGL, CHSL, MTS, CPO, and Stenographer, alongside Railway Recruitment Board (RRB) NTPC, Assistant Loco Pilot (ALP), Junior Engineer, and Technician recruitments.</p>
+              <a href="/?view=govt-jobs" style="font-size: 12px; font-weight: bold; color: #2563eb; text-decoration: none;">View Central &amp; Railway Jobs &rarr;</a>
             </div>
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
               <h3 style="font-size: 16px; color: #1e3a8a; margin-top: 0;">🏦 Banking, Insurance &amp; Financial Cadre</h3>
               <p style="font-size: 13px; color: #475569;">Probationary Officers (PO), Clerks, and Specialist Officers under State Bank of India (SBI), IBPS, RBI Grade B, LIC, NABARD, and leading private financial institutions.</p>
+              <a href="/?view=govt-jobs" style="font-size: 12px; font-weight: bold; color: #2563eb; text-decoration: none;">Browse Banking Vacancies &rarr;</a>
             </div>
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
               <h3 style="font-size: 16px; color: #1e3a8a; margin-top: 0;">💻 Corporate, IT &amp; Engineering Careers</h3>
               <p style="font-size: 13px; color: #475569;">Verified openings across leading multinational corporations including TCS, Infosys, Wipro, HCL, Sun Pharma, L&amp;T, and leading automotive &amp; EV engineering organizations.</p>
+              <a href="/?view=private-jobs" style="font-size: 12px; font-weight: bold; color: #16a34a; text-decoration: none;">View Corporate Opportunities &rarr;</a>
             </div>
           </div>
+        </section>
+
+        <!-- Live Active Vacancies Summary for Crawlers -->
+        <section style="margin-bottom: 28px;">
+          <h2 style="font-size: 20px; color: #0F2942; border-bottom: 2px solid #2563eb; padding-bottom: 6px;">Featured Active Recruitment Drives (November - December 2026)</h2>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+            <thead>
+              <tr style="background: #0F2942; color: #ffffff;">
+                <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e1;">Recruiting Organization</th>
+                <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e1;">Designation / Exam</th>
+                <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e1;">Total Posts</th>
+                <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e1;">Eligibility / Level</th>
+                <th style="padding: 10px; text-align: left; border: 1px solid #cbd5e1;">Official Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-weight: bold;">UPSC Civil Services</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">IAS, IPS, IFS Preliminary Examination</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">1,056+ Posts</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Any Graduate Degree</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;"><a href="https://upsc.gov.in" target="_blank" rel="noopener noreferrer" style="color: #2563eb;">upsc.gov.in</a></td>
+              </tr>
+              <tr style="background: #f8fafc;">
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-weight: bold;">Staff Selection Commission</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">SSC CGL Combined Graduate Level</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">17,727 Posts</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Bachelor Degree</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;"><a href="https://ssc.gov.in" target="_blank" rel="noopener noreferrer" style="color: #2563eb;">ssc.gov.in</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-weight: bold;">Gujarat Metro Rail (GMRC)</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Rolling Stock &amp; Track Engineers (Advt 30 &amp; 31)</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Multi-post</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Diploma / B.E. / B.Tech</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;"><a href="https://careers.gujaratmetrorail.com" target="_blank" rel="noopener noreferrer" style="color: #2563eb;">gujaratmetrorail.com</a></td>
+              </tr>
+              <tr style="background: #f8fafc;">
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-weight: bold;">DSSSB Delhi</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Junior Engineer (Electrical) &amp; MTS (Advt 06/2026)</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">1,260 Posts</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">10th / Diploma / Degree</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;"><a href="https://dsssbonline.nic.in" target="_blank" rel="noopener noreferrer" style="color: #2563eb;">dsssbonline.nic.in</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-weight: bold;">ISRO Space Applications Centre</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Graduate, Technician &amp; Trade Apprentices</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Apprenticeships</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">B.E. / Diploma / ITI / B.Com</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;"><a href="https://careers.sac.gov.in" target="_blank" rel="noopener noreferrer" style="color: #2563eb;">sac.gov.in</a></td>
+              </tr>
+              <tr style="background: #f8fafc;">
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-weight: bold;">Accenture India</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Customer Contact Comms New Associate</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Corporate Openings</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">Graduate - Any Stream</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0;"><a href="https://accenture.com" target="_blank" rel="noopener noreferrer" style="color: #16a34a;">accenture.com</a></td>
+              </tr>
+            </tbody>
+          </table>
         </section>
 
         <section style="margin-bottom: 28px;">
@@ -126,10 +235,19 @@
         </section>
 
         <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center;">
-          <p>&copy; 2026 Jobopedia India. All rights reserved. &bull; <a href="/?view=about" style="color: #2563eb;">About Us</a> &bull; <a href="/?view=contact" style="color: #2563eb;">Contact Desk</a> &bull; <a href="/?view=privacy-policy" style="color: #2563eb;">Privacy Policy</a> &bull; <a href="/?view=preparation" style="color: #2563eb;">Exam Guides</a></p>
+          <p>&copy; 2026 Jobopedia India. All rights reserved. &bull; <a href="/?view=about" style="color: #2563eb;">About Us</a> &bull; <a href="/?view=contact" style="color: #2563eb;">Contact Desk</a> &bull; <a href="/?view=privacy-policy" style="color: #2563eb;">Privacy Policy</a> &bull; <a href="/?view=preparation" style="color: #2563eb;">Exam Guides</a> &bull; <a href="/?view=govt-jobs" style="color: #2563eb;">Govt Jobs</a> &bull; <a href="/?view=private-jobs" style="color: #2563eb;">Private MNCs</a> &bull; <a href="/?view=internships" style="color: #2563eb;">Internships</a></p>
         </footer>
       </main>
     </div>
+
+    <!-- Noscript Crawlable Fallback for Non-JS Crawlers and Web Spiders -->
+    <noscript>
+      <div style="max-width: 900px; margin: 40px auto; padding: 20px; font-family: sans-serif; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;">
+        <h2 style="color: #0F2942;">Jobopedia India — Employment News &amp; Career Opportunities Directory</h2>
+        <p>JavaScript is disabled in this browser. Jobopedia remains accessible for reading all authentic recruitment circulars, examination roadmaps, and career notifications across Government and Corporate sectors in India.</p>
+        <p><strong>Primary Portals:</strong> <a href="/?view=govt-jobs">Government Jobs</a> | <a href="/?view=private-jobs">Private Careers</a> | <a href="/?view=internships">Paid Internships</a> | <a href="/?view=mock-tests">Mock Tests</a> | <a href="/?view=preparation">Exam Syllabus</a> | <a href="/?view=about">About Us</a> | <a href="/?view=privacy-policy">Privacy Policy</a></p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
