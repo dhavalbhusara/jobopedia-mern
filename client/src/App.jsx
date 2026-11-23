@@ -19,6 +19,7 @@ import JobDetailPage from './pages/JobDetailPage';
 import PushNotificationPrompt from './components/PushNotificationPrompt';
 import ComplaintModal from './components/ComplaintModal';
 import Footer from './components/Footer';
+import CookieConsent from './components/CookieConsent';
 
 // Universal URL & View Resolver: Handles ?view=..., clean path /..., and hash scrolling
 export function resolveViewFromLocation() {
@@ -438,6 +439,9 @@ export default function App() {
         job={selectedJob} 
         onClose={() => setSelectedJob(null)} 
       />
+
+      {/* Google AdSense Compliant Cookie Consent Banner & Preferences Drawer */}
+      <CookieConsent onOpenPrivacyPolicy={() => navigateToView('privacy-policy', 'cookie-policy-section')} />
     </div>
   );
 }

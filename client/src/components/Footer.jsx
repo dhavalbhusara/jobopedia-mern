@@ -71,7 +71,8 @@ export default function Footer({ setCurrentView }) {
             <h4 className="font-black text-white text-sm">Organization</h4>
             <ul className="space-y-1.5 text-slate-400">
               <li><button onClick={() => navigateTo('about')} className="hover:text-white transition cursor-pointer">About Jobopedia</button></li>
-              <li><button onClick={() => navigateTo('privacy-policy')} className="hover:text-amber-400 font-semibold transition cursor-pointer">Privacy Policy</button></li>
+              <li><button onClick={() => navigateTo('privacy-policy')} className="hover:text-amber-400 font-semibold transition cursor-pointer">Privacy Policy &amp; Terms</button></li>
+              <li><button onClick={() => navigateTo('privacy-policy', 'cookie-policy-section')} className="hover:text-amber-300 font-semibold transition cursor-pointer">🍪 Cookie Policy &amp; AdSense</button></li>
               <li><button onClick={() => navigateTo('contact')} className="hover:text-white transition cursor-pointer">Contact Support Desk</button></li>
               <li>UPSC Civil Services 2026</li>
               <li>Gujarat Police Constable &amp; PSI</li>
@@ -110,8 +111,10 @@ export default function Footer({ setCurrentView }) {
           <div>
             © 2026 Jobopedia India. All rights reserved. Connecting Youth with Verified Careers.
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <button onClick={() => navigateTo('privacy-policy')} className="text-amber-400 hover:text-white font-semibold cursor-pointer">Privacy Policy</button>
+            <button onClick={() => navigateTo('privacy-policy', 'cookie-policy-section')} className="text-amber-300 hover:text-white font-semibold cursor-pointer">Cookie Disclosures</button>
+            <button onClick={() => window.dispatchEvent(new Event('open_cookie_preferences'))} className="text-slate-400 hover:text-white cursor-pointer underline">Cookie Preferences</button>
             <button onClick={() => navigateTo('about')} className="hover:text-slate-400 cursor-pointer">About</button>
             <button onClick={() => navigateTo('contact')} className="hover:text-slate-400 cursor-pointer">Contact</button>
             <button onClick={() => navigateTo('internships')} className="hover:text-slate-400 cursor-pointer">Internships</button>
