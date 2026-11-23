@@ -71,7 +71,17 @@ router.get('/', async (req, res) => {
       jobs = FALLBACK_JOBS;
     }
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    const includeExpired = req.query.includeExpired === 'true';
+
     let filtered = jobs.filter(job => {
+      // 0. Auto-exclude expired jobs for public visitors
+      if (!includeExpired && job.lastDate && job.lastDate.trim() !== '') {
+        if (job.lastDate < todayStr) {
+          return false;
+        }
+      }
+
       // Category filter
       if (category && category !== 'all' && job.category !== category) {
         return false;
@@ -259,6 +269,9 @@ router.get('/weekly-calendar', async (req, res) => {
     if (!dbJobs || dbJobs.length === 0) {
       dbJobs = FALLBACK_JOBS.filter(j => j.category === 'govt');
     }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    dbJobs = dbJobs.filter(j => !j.lastDate || j.lastDate >= todayStr);
 
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const days = [];

@@ -109,31 +109,7 @@
     <priority>0.5</priority>
   </url>
 
-  <!-- Active Verified Job Postings (174 Listings) -->
-  <url>
-    <loc>https://jobopedia.in/job/6ae61e05875946327bed11eb</loc>
-    <lastmod>2026-10-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://jobopedia.in/job/6ae61e05875946327bed11ed</loc>
-    <lastmod>2026-10-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://jobopedia.in/job/6ae61e05875946327bed11ee</loc>
-    <lastmod>2026-10-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://jobopedia.in/job/6ae61e05875946327bed11ef</loc>
-    <lastmod>2026-10-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
+  <!-- Active Verified Job Postings (163 Listings) -->
   <url>
     <loc>https://jobopedia.in/job/6ae61e05875946327bed11f5</loc>
     <lastmod>2026-10-31</lastmod>
@@ -471,12 +447,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://jobopedia.in/job/6af297acff7720c8075df679</loc>
-    <lastmod>2026-11-10</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://jobopedia.in/job/6af297acff7720c8075df67c</loc>
     <lastmod>2026-11-10</lastmod>
     <changefreq>weekly</changefreq>
@@ -549,12 +519,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://jobopedia.in/job/6af877421c18349dfd69430d</loc>
-    <lastmod>2026-11-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://jobopedia.in/job/6af877431c18349dfd694313</loc>
     <lastmod>2026-11-14</lastmod>
     <changefreq>weekly</changefreq>
@@ -568,18 +532,6 @@
   </url>
   <url>
     <loc>https://jobopedia.in/job/6af877431c18349dfd694319</loc>
-    <lastmod>2026-11-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://jobopedia.in/job/6af877431c18349dfd69431c</loc>
-    <lastmod>2026-11-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://jobopedia.in/job/6af877431c18349dfd69431f</loc>
     <lastmod>2026-11-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -687,12 +639,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://jobopedia.in/job/6af9e7ed6b94f803190dbe90</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://jobopedia.in/job/6af9e7ed6b94f803190dbe93</loc>
     <lastmod>2026-11-15</lastmod>
     <changefreq>weekly</changefreq>
@@ -712,12 +658,6 @@
   </url>
   <url>
     <loc>https://jobopedia.in/job/6af9e7ee6b94f803190dbe9c</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://jobopedia.in/job/6af9e7ee6b94f803190dbe9f</loc>
     <lastmod>2026-11-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1132,12 +1072,6 @@
   </url>
   <url>
     <loc>https://jobopedia.in/job/6b02aa02bd0c2e8d6628ea9d</loc>
-    <lastmod>2026-11-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://jobopedia.in/job/6b02aa02bd0c2e8d6628eaa0</loc>
     <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
