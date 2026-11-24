@@ -721,6 +721,33 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
     }
   };
 
+  const [isCleaningExpired, setIsCleaningExpired] = useState(false);
+
+  const handleAutoCleanExpiredJobs = async () => {
+    if (!window.confirm("⚠️ Auto-Clean Expired Jobs Confirmation:\n\nશું તમે ખરેખર એવી તમામ જોબ્સ કે જેમની છેલ્લી તારીખ વીતી ગઈ છે (lastDate < Today) તેને ડેટાબેઝમાંથી કાયમ માટે ડિલીટ કરવા માંગો છો?\n\n(નોંધ: સિસ્ટમ દર ૬ કલાકે આ કામ બેકગ્રાઉન્ડમાં આપમેળે પણ કરે છે).")) return;
+
+    setIsCleaningExpired(true);
+    try {
+      const res = await authFetch('/api/admin/jobs/auto-clean-expired', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessToast(data.message || `⚡ સફાઈ પૂર્ણ! ${data.deletedCount} એક્સપાયર જોબ્સ ડિલીટ થઈ ગઈ.`);
+        fetchAllAdminJobs();
+        fetchDuplicates();
+        setTimeout(() => setSuccessToast(''), 4500);
+      } else {
+        alert(data.error || 'Failed to auto-clean expired jobs');
+      }
+    } catch (err) {
+      alert("Network error: " + err.message);
+    } finally {
+      setIsCleaningExpired(false);
+    }
+  };
+
   const copyInstagramCaption = (job) => {
     const jobId = job.slug || job._id || job.id;
     const directUrl = typeof window !== 'undefined'
@@ -3798,6 +3825,37 @@ export default function AdminDashboard({ setCurrentView, user, onLogout }) {
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Reload Jobs</span>
+              </button>
+            </div>
+
+            {/* AUTOMATED EXPIRED JOBS CLEANER STATUS & TRIGGER */}
+            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-white rounded-3xl p-5 border-2 border-emerald-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <span className="p-3 bg-emerald-600 text-white rounded-2xl shadow-sm text-lg">
+                  ⏰
+                </span>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
+                    <span>Auto-Clean Expired Jobs Feature</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center space-x-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
+                      <span>ACTIVE AUTOMATION</span>
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-600 font-medium">
+                    છેલ્લી તારીખ પૂરી થતાં જ તમામ એક્સપાયર થયેલી જોબ્સ સર્વર અને ડેટાબેઝમાંથી આપમેળે કાયમ માટે ડિલીટ થઈ જાય છે (દર ૬ કલાકે ઑટો-રન).
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAutoCleanExpiredJobs}
+                disabled={isCleaningExpired}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center space-x-2 cursor-pointer self-start sm:self-auto shrink-0 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{isCleaningExpired ? 'સફાઈ ચાલુ છે...' : '⚡ Run Expired Cleanup Now'}</span>
               </button>
             </div>
 

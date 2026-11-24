@@ -6,6 +6,7 @@ const { slugify } = require('../models/Job');
 const Notification = require('../models/Notification');
 const { sendWebPushToAll } = require('../utils/webPushHelper');
 const { requireAdmin } = require('../middleware/auth');
+const { checkAndPurgeExpiredJobsThrottle, autoDeleteExpiredJobs } = require('../utils/autoExpiredJobsCleaner');
 const ORGANIZED_JOBS = require('../data/organizedJobs');
 
 // Fallback Seed Jobs in case DB is newly starting or offline
@@ -57,6 +58,9 @@ function detectPrivateSector(job) {
 // GET /api/jobs (Filter Logic: Private filtered by selected state; Govt jobs shown across all India)
 router.get('/', async (req, res) => {
   try {
+    // ⚡ Auto-Purge: Non-blocking background check to delete expired jobs once per hour
+    checkAndPurgeExpiredJobsThrottle();
+
     res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     const { category, state, qualification, search, sector } = req.query;
     

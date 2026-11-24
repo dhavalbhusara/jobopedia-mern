@@ -484,6 +484,23 @@ router.post('/jobs/duplicates/auto-clean', async (req, res) => {
   }
 });
 
+// POST /api/admin/jobs/auto-clean-expired - Automatically delete all expired jobs (lastDate < today)
+router.post('/jobs/auto-clean-expired', async (req, res) => {
+  try {
+    const { autoDeleteExpiredJobs } = require('../utils/autoExpiredJobsCleaner');
+    const result = await autoDeleteExpiredJobs();
+    res.json({
+      success: true,
+      message: `⚡ સ્વચાલિત સફાઈ પૂર્ણ! ${result.deletedCount} એક્સપાયર જોબ્સ કાયમ માટે ડિલીટ કરવામાં આવી. ડેટાબેઝમાં ${result.remainingCount} સક્રિય જોબ્સ સુરક્ષિત છે.`,
+      deletedCount: result.deletedCount,
+      remainingCount: result.remainingCount,
+      purgedAt: result.purgedAt
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // POST /api/admin/jobs/bulk-delete - Delete multiple jobs by array of IDs
 router.post('/jobs/bulk-delete', async (req, res) => {
   try {

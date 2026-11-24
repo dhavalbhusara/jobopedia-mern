@@ -14,6 +14,7 @@ const aiRouter = require('./routes/ai');
 const notificationsRouter = require('./routes/notifications');
 const analyticsRouter = require('./routes/analytics');
 const complaintsRouter = require('./routes/complaints');
+const { autoDeleteExpiredJobs } = require('./utils/autoExpiredJobsCleaner');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -107,4 +108,16 @@ app.use((err, req, res, next) => {
 // Start Server
 app.listen(PORT, () => {
   console.log(`🚀 [Jobopedia MERN Hardened Server] Running on http://localhost:${PORT}`);
+  
+  // ⚡ Feature: Automatic Daily Expired Jobs Cleanup
+  // Run 5 seconds after boot to ensure MongoDB Atlas connection is fully ready
+  setTimeout(() => {
+    autoDeleteExpiredJobs().catch(e => console.warn('[AutoExpiredCleaner Boot Error]:', e.message));
+  }, 5000);
+
+  // Recurring background schedule: check and auto-purge expired jobs every 6 hours
+  const SIX_HOURS = 6 * 60 * 60 * 1000;
+  setInterval(() => {
+    autoDeleteExpiredJobs().catch(e => console.warn('[AutoExpiredCleaner Interval Error]:', e.message));
+  }, SIX_HOURS).unref();
 });
