@@ -243,12 +243,12 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                 <User className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-2 justify-center sm:justify-start">
+                <h2 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-2 justify-center sm:justify-start">
                   <span>Welcome back, {user.fullName || 'Candidate'}!</span>
                   <span className="text-[10px] px-2 py-0.5 bg-emerald-500/30 text-emerald-300 rounded font-black border border-emerald-400/30">
                     Candidate Panel Active
                   </span>
-                </h3>
+                </h2>
                 <p className="text-xs text-blue-200 mt-0.5">
                   Track your saved vacancies, review mock test scorecards, and update your qualification preferences.
                 </p>
@@ -309,7 +309,7 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
                 Browse by Official Department
               </h2>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                 Filter official recruitment openings across UPSC, SSC, Railways, Banking, Defence, Healthcare &amp; Education
               </p>
             </div>
@@ -351,9 +351,9 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                     />
                   </div>
                   <div className="mt-3">
-                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-blue-600 transition leading-snug">
+                    <h3 className="text-xs font-extrabold text-slate-900 group-hover:text-blue-600 transition leading-snug">
                       {dept.name}
-                    </h4>
+                    </h3>
                     <span className="text-[10px] font-black text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full mt-1.5 inline-block">
                       {displayCount}
                     </span>
@@ -377,7 +377,7 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
                 Browse Private Jobs by Sector
               </h2>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                 Filter verified openings across IT &amp; Software, Pharma, Banking BFSI, Manufacturing, Sales &amp; Top Corporate Industries
               </p>
             </div>
@@ -415,10 +415,10 @@ export default function HomePage({ openResumeModal, openAuthModal, user, setCurr
                   </div>
 
                   <div className="mt-3">
-                    <h4 className="text-xs font-extrabold text-slate-900 group-hover:text-emerald-700 transition leading-snug">
+                    <h3 className="text-xs font-extrabold text-slate-900 group-hover:text-emerald-700 transition leading-snug">
                       {sec.name}
-                    </h4>
-                    <div className="text-[10px] text-slate-500 font-semibold truncate mt-0.5">
+                    </h3>
+                    <div className="text-[10px] text-slate-600 dark:text-slate-300 font-semibold truncate mt-0.5">
                       {sec.subTitle || sec.companies}
                     </div>
                     <div className="mt-2">

@@ -1,25 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
-import GovtJobsPage from './pages/GovtJobsPage';
-import PrivateJobsPage from './pages/PrivateJobsPage';
-import InternshipsPage from './pages/InternshipsPage';
-import MockTestsPage from './pages/MockTestsPage';
-import PreparationPage from './pages/PreparationPage';
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-import AdminDashboard from './pages/AdminDashboard';
-import UserDashboard from './pages/UserDashboard';
-import AiAssistant from './components/AiAssistant';
-import ResumeBuilder from './components/ResumeBuilder';
 import AuthModal from './components/AuthModal';
 import JobDetailsModal from './components/JobDetailsModal';
-import JobDetailPage from './pages/JobDetailPage';
 import PushNotificationPrompt from './components/PushNotificationPrompt';
-import ComplaintModal from './components/ComplaintModal';
 import Footer from './components/Footer';
 import CookieConsent from './components/CookieConsent';
+
+// ⚡ React.lazy Code-Splitting: Load heavy secondary pages & modals on-demand
+const GovtJobsPage = lazy(() => import('./pages/GovtJobsPage'));
+const PrivateJobsPage = lazy(() => import('./pages/PrivateJobsPage'));
+const InternshipsPage = lazy(() => import('./pages/InternshipsPage'));
+const MockTestsPage = lazy(() => import('./pages/MockTestsPage'));
+const PreparationPage = lazy(() => import('./pages/PreparationPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const UserDashboard = lazy(() => import('./pages/UserDashboard'));
+const JobDetailPage = lazy(() => import('./pages/JobDetailPage'));
+const AiAssistant = lazy(() => import('./components/AiAssistant'));
+const ResumeBuilder = lazy(() => import('./components/ResumeBuilder'));
+const ComplaintModal = lazy(() => import('./components/ComplaintModal'));
+
+// Lightweight fallback spinner for view transitions
+function ViewLoader() {
+  return (
+    <div className="py-24 text-center space-y-3">
+      <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto shadow-sm"></div>
+      <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Loading Content...</div>
+    </div>
+  );
+}
 
 // Universal URL & View Resolver: Handles ?view=..., clean path /..., and hash scrolling
 export function resolveViewFromLocation() {
@@ -407,24 +419,30 @@ export default function App() {
       />
 
       <main className="flex-1 pb-16 md:pb-0">
-        {renderCurrentView()}
+        <Suspense fallback={<ViewLoader />}>
+          {renderCurrentView()}
+        </Suspense>
       </main>
 
       <Footer setCurrentView={navigateToView} />
 
-      <AiAssistant />
-      
-      <ResumeBuilder 
-        isOpen={isResumeModalOpen} 
-        onClose={() => setIsResumeModalOpen(false)} 
-        user={user}
-      />
-
-      <ComplaintModal 
-        isOpen={isComplaintModalOpen} 
-        onClose={() => setIsComplaintModalOpen(false)} 
-        user={user}
-      />
+      <Suspense fallback={null}>
+        <AiAssistant />
+        {isResumeModalOpen && (
+          <ResumeBuilder 
+            isOpen={isResumeModalOpen} 
+            onClose={() => setIsResumeModalOpen(false)} 
+            user={user}
+          />
+        )}
+        {isComplaintModalOpen && (
+          <ComplaintModal 
+            isOpen={isComplaintModalOpen} 
+            onClose={() => setIsComplaintModalOpen(false)} 
+            user={user}
+          />
+        )}
+      </Suspense>
       
       <AuthModal 
         isOpen={isAuthModalOpen} 
@@ -440,7 +458,7 @@ export default function App() {
         onClose={() => setSelectedJob(null)} 
       />
 
-      {/* Google AdSense Compliant Cookie Consent Banner & Preferences Drawer */}
+      {/* Privacy & Cookie Consent Banner & Preferences Drawer */}
       <CookieConsent onOpenPrivacyPolicy={() => navigateToView('privacy-policy', 'cookie-policy-section')} />
     </div>
   );
