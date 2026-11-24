@@ -72,7 +72,7 @@ export default function Footer({ setCurrentView }) {
             <ul className="space-y-1.5 text-slate-400">
               <li><button onClick={() => navigateTo('about')} className="hover:text-white transition cursor-pointer">About Jobopedia</button></li>
               <li><button onClick={() => navigateTo('privacy-policy')} className="hover:text-amber-400 font-semibold transition cursor-pointer">Privacy Policy &amp; Terms</button></li>
-              <li><button onClick={() => navigateTo('privacy-policy', 'cookie-policy-section')} className="hover:text-amber-300 font-semibold transition cursor-pointer">🍪 Cookie Policy &amp; AdSense</button></li>
+              <li><button onClick={() => navigateTo('privacy-policy', 'cookie-policy-section')} className="hover:text-amber-300 font-semibold transition cursor-pointer">🍪 Cookie Policy</button></li>
               <li><button onClick={() => navigateTo('contact')} className="hover:text-white transition cursor-pointer">Contact Support Desk</button></li>
               <li>UPSC Civil Services 2026</li>
               <li>Gujarat Police Constable &amp; PSI</li>

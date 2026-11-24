@@ -163,7 +163,7 @@ export default function PrivacyPolicyPage({ setCurrentView }) {
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center space-x-2">
               <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-black">7</span>
-              <span>Comprehensive Cookie Policy &amp; Google AdSense Disclosures</span>
+              <span>Comprehensive Cookie Policy &amp; Advertising Partner Disclosures</span>
             </h2>
             <button
               type="button"
@@ -189,7 +189,7 @@ export default function PrivacyPolicyPage({ setCurrentView }) {
           {/* Sub-section: Google AdSense Specific Disclosures */}
           <div className="p-5 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs sm:text-sm text-blue-950 space-y-3">
             <h3 className="font-black text-sm text-blue-900 flex items-center space-x-2">
-              <span>7.2 Google AdSense &amp; Third-Party Advertising Policy Compliance</span>
+              <span>7.2 Third-Party Advertising &amp; Google Partner Policy Disclosures</span>
             </h3>
             <p className="leading-relaxed">
               In accordance with Google AdSense Publisher Program Policies and the Google Privacy &amp; Terms framework, we provide the following explicit disclosures to all visitors:

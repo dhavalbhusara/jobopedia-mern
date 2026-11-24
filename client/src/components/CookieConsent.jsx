@@ -6,7 +6,7 @@ export default function CookieConsent({ onOpenPrivacyPolicy }) {
   const [showDetails, setShowDetails] = useState(false);
   const [preferences, setPreferences] = useState({
     essential: true, // Always true and locked
-    advertising: true, // Google AdSense & personalized ads
+    advertising: true, // Personalized recommendations & career announcements
     analytics: true   // Traffic measurement & improvements
   });
 
@@ -89,14 +89,11 @@ export default function CookieConsent({ onOpenPrivacyPolicy }) {
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
                 <h3 className="font-black text-sm sm:text-base text-slate-900 dark:text-white">
-                  Cookie &amp; Advertising Transparency Notice
+                  Cookie &amp; Privacy Preferences
                 </h3>
-                <span className="text-[10px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-900">
-                  Google AdSense Compliant
-                </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                Jobopedia uses cookies and related technologies (including <strong>Google AdSense</strong> and <strong>DoubleClick DART cookies</strong>) to maintain authentic sessions, remember your regional language &amp; dark mode preferences, deliver verified employment notices, and serve non-intrusive, relevant career advertisements.
+                Jobopedia uses cookies and related technologies to maintain authentic sessions, remember your regional language &amp; theme preferences, deliver verified employment notices, and serve relevant career opportunities.
               </p>
               <div className="pt-1 flex items-center space-x-3 text-xs">
                 <button
@@ -107,7 +104,7 @@ export default function CookieConsent({ onOpenPrivacyPolicy }) {
                   }}
                   className="font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center space-x-1 cursor-pointer"
                 >
-                  <span>Review Detailed Cookie Policy &amp; Disclosures</span>
+                  <span>Review Detailed Cookie Policy</span>
                   <ExternalLink className="w-3 h-3" />
                 </button>
                 <button
@@ -159,10 +156,10 @@ export default function CookieConsent({ onOpenPrivacyPolicy }) {
                 </p>
               </div>
 
-              {/* Category 2: Advertising */}
+              {/* Category 2: Personalization & Recommendations */}
               <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-black text-slate-900 dark:text-white">Google AdSense</span>
+                  <span className="font-black text-slate-900 dark:text-white">Personalized Recommendations</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -174,7 +171,7 @@ export default function CookieConsent({ onOpenPrivacyPolicy }) {
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Google DART cookies (<code className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1 rounded">__gads</code>, <code className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1 rounded">__gpi</code>, <code className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1 rounded">IDE</code>) enabling relevant job adverts.
+                  Tailored job alerts, career opportunities, and partner announcements relevant to your profile.
                 </p>
               </div>
 
