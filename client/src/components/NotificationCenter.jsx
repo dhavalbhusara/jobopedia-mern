@@ -47,10 +47,10 @@ export default function NotificationCenter({ user }) {
   useEffect(() => {
     fetchNotifications();
 
-    // Poll every 15 seconds for newly published jobs
+    // Poll every 2 minutes for newly published jobs (optimized to preserve server resources)
     const interval = setInterval(() => {
       fetchNotifications(true);
-    }, 15000);
+    }, 120000);
 
     return () => clearInterval(interval);
   }, [user]);

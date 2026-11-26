@@ -5,7 +5,7 @@ import { ALL_INDIAN_STATES, ALL_QUALIFICATIONS } from '../constants/referenceDat
 import initialJobsData from '../data/initialJobs.json';
 
 export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
-  const initialGovt = Array.isArray(initialJobsData) ? initialJobsData.filter(j => j.category === 'govt') : [];
+  const initialGovt = Array.isArray(initialJobsData) ? initialJobsData.filter(j => j.category === 'govt' || j.category === 'government' || j.sector === 'GOVERNMENT') : [];
   const [jobs, setJobs] = useState(initialGovt);
   const [loading, setLoading] = useState(initialGovt.length === 0);
   const [search, setSearch] = useState('');
@@ -18,98 +18,37 @@ export default function GovtJobsPage({ setCurrentView, onSelectJob }) {
   }, [stateFilter, qualFilter]);
 
   const fetchJobs = () => {
-    setLoading(true);
+    setLoading(jobs.length === 0);
     const params = new URLSearchParams({ category: 'govt' });
     if (stateFilter !== 'all') params.set('state', stateFilter);
     if (qualFilter !== 'all') params.set('qualification', qualFilter);
 
     fetch(`/api/jobs?${params.toString()}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        if (data.success && data.jobs.length > 0) {
+        if (data.success && Array.isArray(data.jobs) && data.jobs.length > 0) {
           setJobs(data.jobs);
-        } else {
-          // Fallback sample govt jobs if database is empty
-          setJobs([
-            {
-              id: 'upsc-civil-services-ias-ips-ifs-examination-2026',
-              slug: 'upsc-civil-services-ias-ips-ifs-examination-2026',
-              title: 'UPSC Civil Services (IAS / IPS / IFS) Examination 2026',
-              department: 'Union Public Service Commission (UPSC)',
-              category: 'govt',
-              sector: 'GOVERNMENT',
-              state: 'Central',
-              qualification: 'Graduate',
-              salary: '₹56,100 - ₹2,50,000 / month (Level 10)',
-              vacancies: 1056,
-              lastDate: '2026-11-15',
-              description: 'Recruitment for Indian Administrative Service, Indian Police Service, and Central Group A Services across 77 national test centres.',
-              applyUrl: 'https://upsc.gov.in'
-            },
-            {
-              id: 'gsssb-combined-competitive-examination-cce-group-a-b-2026',
-              slug: 'gsssb-combined-competitive-examination-cce-group-a-b-2026',
-              title: 'GSSSB Combined Competitive Examination (CCE) Group A & B 2026',
-              department: 'Gujarat Secondary Service Selection Board',
-              category: 'govt',
-              sector: 'GOVERNMENT',
-              state: 'Gujarat',
-              qualification: 'Graduate',
-              salary: '₹26,000 - ₹49,600 / month',
-              vacancies: 5554,
-              lastDate: '2026-11-20',
-              description: 'Junior Clerk, Senior Clerk, Head Clerk, and Office Assistant posts across Gujarat districts.',
-              applyUrl: 'https://ojas.gujarat.gov.in'
-            },
-            {
-              id: 'gujarat-police-constable-psi-direct-recruitment-2026',
-              slug: 'gujarat-police-constable-psi-direct-recruitment-2026',
-              title: 'Gujarat Police Constable & PSI Direct Recruitment 2026',
-              department: 'Gujarat Police Recruitment Board (LRD)',
-              category: 'govt',
-              sector: 'GOVERNMENT',
-              state: 'Gujarat',
-              qualification: '12th Pass',
-              salary: '₹26,000 Fixed Pay / month',
-              vacancies: 12472,
-              lastDate: '2026-11-25',
-              description: 'Unarmed Constable, Armed Police, SRPF, and Jail Sepoy vacancies with physical efficiency tests.',
-              applyUrl: 'https://lrdgujarat2021.in'
-            },
-            {
-              id: 'ssc-combined-graduate-level-cgl-examination-2026',
-              slug: 'ssc-combined-graduate-level-cgl-examination-2026',
-              title: 'SSC Combined Graduate Level (CGL) Examination 2026',
-              department: 'Staff Selection Commission (SSC)',
-              category: 'govt',
-              sector: 'GOVERNMENT',
-              state: 'Central',
-              qualification: 'Graduate',
-              salary: '₹25,500 - ₹1,42,400 / month',
-              vacancies: 17727,
-              lastDate: '2026-11-18',
-              description: 'Assistant Section Officer (ASO), Inspector of Income Tax, Central Excise, and Sub-Inspector in CBI.',
-              applyUrl: 'https://ssc.gov.in'
-            },
-            {
-              id: 'rrb-non-technical-popular-categories-ntpc-posts-2026',
-              slug: 'rrb-non-technical-popular-categories-ntpc-posts-2026',
-              title: 'RRB Non-Technical Popular Categories (NTPC) Posts 2026',
-              department: 'Railway Recruitment Board (Indian Railways)',
-              category: 'govt',
-              sector: 'GOVERNMENT',
-              state: 'Central',
-              qualification: '12th Pass / Graduate',
-              salary: '₹19,900 - ₹35,400 / month',
-              vacancies: 11558,
-              lastDate: '2026-11-30',
-              description: 'Station Master, Goods Train Manager, Senior Commercial cum Ticket Clerk across 21 railway zones.',
-              applyUrl: 'https://indianrailways.gov.in'
-            }
-          ]);
+        } else if (jobs.length === 0) {
+          // If state/qual filter matched nothing from API, fallback to client-filtered initialGovt
+          const filteredFallback = initialGovt.filter(j => {
+            if (stateFilter !== 'all' && j.state && j.state !== stateFilter && j.state !== 'Central' && j.state !== 'All India') return false;
+            if (qualFilter !== 'all' && j.qualification && !j.qualification.toLowerCase().includes(qualFilter.toLowerCase())) return false;
+            return true;
+          });
+          setJobs(filteredFallback);
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        fetch(`https://jobopedia-backend.onrender.com/api/jobs?${params.toString()}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.success && Array.isArray(d.jobs) && d.jobs.length > 0) setJobs(d.jobs);
+          })
+          .catch(() => {});
+      })
       .finally(() => setLoading(false));
   };
 

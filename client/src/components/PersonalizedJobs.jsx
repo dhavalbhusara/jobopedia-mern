@@ -16,8 +16,8 @@ export default function PersonalizedJobs({
   onSelectJob,
   onClearFilters 
 }) {
-  // Stale-While-Revalidate: Instant render from cached jobs or pre-bundled snapshot
-  const [jobs, setJobs] = useState(() => {
+  // Stale-While-Revalidate: Instant 0ms render from pre-bundled snapshot (168 jobs) or localStorage
+  const [allJobs, setAllJobs] = useState(() => {
     try {
       const cached = localStorage.getItem('jobopedia_cached_jobs');
       if (cached) {
@@ -25,15 +25,9 @@ export default function PersonalizedJobs({
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {}
-    return Array.isArray(initialJobsData) ? initialJobsData : [];
+    return Array.isArray(initialJobsData) && initialJobsData.length > 0 ? initialJobsData : [];
   });
-  const [loading, setLoading] = useState(() => {
-    try {
-      const cached = localStorage.getItem('jobopedia_cached_jobs');
-      if (cached) return false;
-    } catch (e) {}
-    return !(Array.isArray(initialJobsData) && initialJobsData.length > 0);
-  });
+  const [loading, setLoading] = useState(allJobs.length === 0);
   const [category, setCategory] = useState(externalCategory || 'all');
   const [selectedSector, setSelectedSector] = useState(externalSector || null);
 
@@ -68,44 +62,45 @@ export default function PersonalizedJobs({
     }
   }, [externalCategory]);
 
+  // Background Auto-sync: Update master catalog from API without blocking UI
   useEffect(() => {
-    fetchJobs();
-  }, [category, selectedState, qualification, searchQuery, selectedSector]);
+    fetchLatestJobs();
+  }, []);
 
-  const fetchJobs = () => {
-    // Only show loading spinner if we don't already have jobs rendered
-    setLoading(prev => jobs.length === 0 ? true : false);
-    const params = new URLSearchParams();
-    if (category !== 'all') params.set('category', category);
-    if (selectedState !== 'all') params.set('state', selectedState);
-    if (qualification !== 'all') params.set('qualification', qualification);
-    if (searchQuery) params.set('search', searchQuery);
-    if (selectedSector && selectedSector !== 'all') params.set('sector', selectedSector);
-
-    fetch(`/api/jobs?${params.toString()}`)
-      .then(res => res.json())
+  const fetchLatestJobs = () => {
+    fetch('/api/jobs')
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        const loadedJobs = (data.success && Array.isArray(data.jobs)) ? data.jobs : (Array.isArray(data) ? data : null);
-        if (loadedJobs && loadedJobs.length > 0) {
-          setJobs(loadedJobs);
-          // Cache when looking at the default national view
-          if (category === 'all' && selectedState === 'all' && qualification === 'all' && !searchQuery && (!selectedSector || selectedSector === 'all')) {
-            try {
-              localStorage.setItem('jobopedia_cached_jobs', JSON.stringify(loadedJobs));
-            } catch (e) {}
-          }
+        const loaded = (data.success && Array.isArray(data.jobs)) ? data.jobs : (Array.isArray(data) ? data : null);
+        if (loaded && loaded.length > 0) {
+          setAllJobs(loaded);
+          try {
+            localStorage.setItem('jobopedia_cached_jobs', JSON.stringify(loaded));
+          } catch (e) {}
         }
       })
       .catch(err => {
-        console.warn("Background fetch notice:", err.message);
-        // Fallback directly to backend origin if proxy fails
-        fetch(`https://jobopedia-backend.onrender.com/api/jobs?${params.toString()}`)
-          .then(r => r.json())
+        console.warn("Proxy jobs fetch notice, attempting direct Render:", err.message);
+        return fetch('https://jobopedia-backend.onrender.com/api/jobs')
+          .then(r => {
+            if (!r.ok) throw new Error(`Render HTTP ${r.status}`);
+            return r.json();
+          })
           .then(d => {
             const lj = (d.success && Array.isArray(d.jobs)) ? d.jobs : (Array.isArray(d) ? d : null);
-            if (lj && lj.length > 0) setJobs(lj);
+            if (lj && lj.length > 0) {
+              setAllJobs(lj);
+              try {
+                localStorage.setItem('jobopedia_cached_jobs', JSON.stringify(lj));
+              } catch (e) {}
+            }
           })
-          .catch(() => {});
+          .catch(e => {
+            console.warn("Direct Render fetch notice, using verified offline snapshot:", e.message);
+          });
       })
       .finally(() => setLoading(false));
   };
@@ -120,7 +115,7 @@ export default function PersonalizedJobs({
     if (navigator.share) {
       navigator.share({
         title: job.title,
-        text: `🏛️ *${job.title}*\n🏢 ${job.department || job.organization}\n💰 Salary: ${job.salary}\n📅 Last Date: ${job.lastDate}\n\n👉 Apply here:\n${shareUrl}`,
+        text: `🏛️ *${job.title}*\n🏢 ${job.department || job.organization || job.company}\n💰 Salary: ${job.salary}\n📅 Last Date: ${job.lastDate}\n\n👉 Apply here:\n${shareUrl}`,
         url: shareUrl
       }).catch(() => {});
     } else if (navigator.clipboard) {
@@ -129,63 +124,58 @@ export default function PersonalizedJobs({
     }
   };
 
-  // Client-side smart suggestion filtering logic
-  const filteredJobs = jobs.filter(job => {
-    const isGovt = job.category === 'govt' || job.sector === 'GOVERNMENT';
+  // Instant 0ms In-Memory Filtering across Category, Search, State, Qualification, & Sector
+  const filteredJobs = allJobs.filter(job => {
+    const isGovt = job.category === 'govt' || job.category === 'government' || job.sector === 'GOVERNMENT';
     const isIntern = job.category === 'internship';
     const isPrivate = !isGovt && !isIntern;
 
-    // RULE 0: If selectedSector is active, match against sector keywords & name
+    // Filter 1: Category Tab ('all', 'govt', 'private', 'internship')
+    if (category === 'govt' && !isGovt) return false;
+    if (category === 'private' && !isPrivate) return false;
+    if (category === 'internship' && !isIntern) return false;
+
+    // Filter 2: Sector Filter
     if (selectedSector && selectedSector !== 'all') {
       const secObj = ALL_PRIVATE_SECTORS.find(s => s.id === selectedSector || s.name.toLowerCase().includes(selectedSector.toLowerCase()));
-      const hay = `${job.title || ''} ${job.department || ''} ${job.sector || ''} ${(job.tags || []).join(' ')}`.toLowerCase();
+      const hay = `${job.title || ''} ${job.department || ''} ${job.company || ''} ${job.sector || ''} ${(job.tags || []).join(' ')}`.toLowerCase();
       let matchesSector = (job.sector || '').toLowerCase().includes(selectedSector.toLowerCase());
       if (!matchesSector && secObj) {
         matchesSector = secObj.keywords.some(k => hay.includes(k)) || hay.includes(secObj.name.toLowerCase());
       }
       if (!matchesSector) return false;
-      return true;
     }
 
-    // RULE 1: Government jobs are shown across India to everyone!
-    if (isGovt) {
-      return true;
+    // Filter 3: Search Query
+    if (searchQuery && searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const hay = `${job.title || ''} ${job.department || ''} ${job.company || ''} ${job.sector || ''} ${(job.tags || []).join(' ')} ${job.qualification || ''} ${job.state || ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
     }
 
-    // RULE 2: Private jobs filter strictly by user's qualification and state
-    if (isPrivate) {
+    // Filter 4: State Preference (Applies to Private & Internships)
+    if (isPrivate || isIntern) {
       if (selectedState && selectedState !== 'all') {
-        if (job.state && job.state !== selectedState && job.state !== 'All India' && job.state !== 'Central') {
+        const jobState = job.state || '';
+        if (jobState && jobState !== selectedState && jobState !== 'All India' && jobState !== 'Central') {
           return false;
         }
       }
-      if (qualification && qualification !== 'all') {
-        const qStr = (job.qualification || '').toLowerCase();
-        const userQ = qualification.toLowerCase();
-        if (!qStr.includes(userQ) && !userQ.includes(qStr)) {
-          // If neither contains the other, check broad degree matching (e.g. B.Tech / Graduate)
-          if (userQ.includes('graduate') && qStr.includes('graduate')) {
-            // match
-          } else if (userQ.includes('12th') && qStr.includes('12th')) {
-            // match
-          } else {
-            return false;
-          }
-        }
-      }
-      return true;
     }
 
-    // RULE 3: Internships filter strictly by qualification & degree
-    if (isIntern) {
-      if (qualification && qualification !== 'all') {
-        const qStr = (job.qualification || '').toLowerCase();
-        const userQ = qualification.toLowerCase();
-        if (!qStr.includes(userQ) && !userQ.includes(qStr) && !qStr.includes('any')) {
+    // Filter 5: Qualification Preference
+    if (qualification && qualification !== 'all') {
+      const qStr = (job.qualification || '').toLowerCase();
+      const userQ = qualification.toLowerCase();
+      if (!qStr.includes(userQ) && !userQ.includes(qStr) && !qStr.includes('any')) {
+        if (userQ.includes('graduate') && qStr.includes('graduate')) {
+          // match
+        } else if (userQ.includes('12th') && qStr.includes('12th')) {
+          // match
+        } else {
           return false;
         }
       }
-      return true;
     }
 
     return true;

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Briefcase, MapPin, IndianRupee, GraduationCap, Building2, ExternalLink, Search, Filter, ArrowLeft, ArrowRight, Share2 } from 'lucide-react';
 import JobDetailsModal from '../components/JobDetailsModal';
 import { ALL_QUALIFICATIONS } from '../constants/referenceData';
+import initialJobsData from '../data/initialJobs.json';
 
 export default function InternshipsPage({ setCurrentView, onSelectJob }) {
-  const [internships, setInternships] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const initialIntern = Array.isArray(initialJobsData) ? initialJobsData.filter(j => j.category === 'internship') : [];
+  const [internships, setInternships] = useState(initialIntern.length > 0 ? initialIntern : []);
+  const [loading, setLoading] = useState(initialIntern.length === 0);
   const [filterMode, setFilterMode] = useState('ALL');
   const [search, setSearch] = useState('');
   const [selectedJobModal, setSelectedJobModal] = useState(null);
@@ -99,15 +101,27 @@ export default function InternshipsPage({ setCurrentView, onSelectJob }) {
 
   useEffect(() => {
     fetch('/api/jobs?category=internship')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        if (data.success && data.jobs.length > 0) {
+        if (data.success && Array.isArray(data.jobs) && data.jobs.length > 0) {
           setInternships(data.jobs);
-        } else {
+        } else if (internships.length === 0) {
           setInternships(sampleInternships);
         }
       })
-      .catch(() => setInternships(sampleInternships))
+      .catch(() => {
+        fetch('https://jobopedia-backend.onrender.com/api/jobs?category=internship')
+          .then(r => r.json())
+          .then(d => {
+            if (d.success && Array.isArray(d.jobs) && d.jobs.length > 0) setInternships(d.jobs);
+          })
+          .catch(() => {
+            if (internships.length === 0) setInternships(sampleInternships);
+          });
+      })
       .finally(() => setLoading(false));
   }, []);
 

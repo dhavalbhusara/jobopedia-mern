@@ -111,21 +111,33 @@ export default function PrivateJobsPage({ setCurrentView, onSelectJob }) {
   }, [stateFilter, qualFilter]);
 
   const fetchJobs = () => {
-    setLoading(true);
+    setLoading(jobs.length === 0);
     const params = new URLSearchParams({ category: 'private' });
     if (stateFilter !== 'all') params.set('state', stateFilter);
     if (qualFilter !== 'all') params.set('qualification', qualFilter);
 
     fetch(`/api/jobs?${params.toString()}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        if (data.success && data.jobs.length > 0) {
+        if (data.success && Array.isArray(data.jobs) && data.jobs.length > 0) {
           setJobs(data.jobs);
-        } else {
+        } else if (jobs.length === 0) {
           setJobs(samplePrivateJobs);
         }
       })
-      .catch(() => setJobs(samplePrivateJobs))
+      .catch(() => {
+        fetch(`https://jobopedia-backend.onrender.com/api/jobs?${params.toString()}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.success && Array.isArray(d.jobs) && d.jobs.length > 0) setJobs(d.jobs);
+          })
+          .catch(() => {
+            if (jobs.length === 0) setJobs(samplePrivateJobs);
+          });
+      })
       .finally(() => setLoading(false));
   };
 
