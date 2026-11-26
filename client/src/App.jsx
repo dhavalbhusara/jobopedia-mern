@@ -7,21 +7,37 @@ import PushNotificationPrompt from './components/PushNotificationPrompt';
 import Footer from './components/Footer';
 import CookieConsent from './components/CookieConsent';
 
-// ⚡ React.lazy Code-Splitting: Load heavy secondary pages & modals on-demand
-const GovtJobsPage = lazy(() => import('./pages/GovtJobsPage'));
-const PrivateJobsPage = lazy(() => import('./pages/PrivateJobsPage'));
-const InternshipsPage = lazy(() => import('./pages/InternshipsPage'));
-const MockTestsPage = lazy(() => import('./pages/MockTestsPage'));
-const PreparationPage = lazy(() => import('./pages/PreparationPage'));
-const AboutPage = lazy(() => import('./pages/AboutPage'));
-const ContactPage = lazy(() => import('./pages/ContactPage'));
-const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const UserDashboard = lazy(() => import('./pages/UserDashboard'));
-const JobDetailPage = lazy(() => import('./pages/JobDetailPage'));
-const AiAssistant = lazy(() => import('./components/AiAssistant'));
-const ResumeBuilder = lazy(() => import('./components/ResumeBuilder'));
-const ComplaintModal = lazy(() => import('./components/ComplaintModal'));
+// ⚡ Resilient React.lazy Code-Splitting with automatic deployment update recovery
+function safeLazy(importFn) {
+  return lazy(() => 
+    importFn().catch(err => {
+      console.warn("Deployment chunk update notice, refreshing assets...", err.message);
+      if (typeof window !== 'undefined') {
+        const reloadKey = 'jobopedia_chunk_retry_' + window.location.search;
+        if (!sessionStorage.getItem(reloadKey)) {
+          sessionStorage.setItem(reloadKey, 'true');
+          window.location.reload();
+        }
+      }
+      throw err;
+    })
+  );
+}
+
+const GovtJobsPage = safeLazy(() => import('./pages/GovtJobsPage'));
+const PrivateJobsPage = safeLazy(() => import('./pages/PrivateJobsPage'));
+const InternshipsPage = safeLazy(() => import('./pages/InternshipsPage'));
+const MockTestsPage = safeLazy(() => import('./pages/MockTestsPage'));
+const PreparationPage = safeLazy(() => import('./pages/PreparationPage'));
+const AboutPage = safeLazy(() => import('./pages/AboutPage'));
+const ContactPage = safeLazy(() => import('./pages/ContactPage'));
+const PrivacyPolicyPage = safeLazy(() => import('./pages/PrivacyPolicyPage'));
+const AdminDashboard = safeLazy(() => import('./pages/AdminDashboard'));
+const UserDashboard = safeLazy(() => import('./pages/UserDashboard'));
+const JobDetailPage = safeLazy(() => import('./pages/JobDetailPage'));
+const AiAssistant = safeLazy(() => import('./components/AiAssistant'));
+const ResumeBuilder = safeLazy(() => import('./components/ResumeBuilder'));
+const ComplaintModal = safeLazy(() => import('./components/ComplaintModal'));
 
 // Lightweight fallback spinner for view transitions
 function ViewLoader() {
